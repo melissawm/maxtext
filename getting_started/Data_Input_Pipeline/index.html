@@ -1,0 +1,1390 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../../reference/config_options/">
+      
+      
+        <link rel="next" href="../Data_Input_Perf/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.42">
+    
+    
+      
+        <title>Data Input Pipeline - MaxText Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.0253249f.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#data-input-pipeline" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="MaxText Documentation" class="md-header__button md-logo" aria-label="MaxText Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MaxText Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Data Input Pipeline
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../about/" class="md-tabs__link">
+        
+  
+    
+  
+  What is Maxtext?
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../First_run/" class="md-tabs__link">
+          
+  
+  Getting started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../Run_MaxText_via_multihost_job/" class="md-tabs__link">
+          
+  
+  Advanced usage
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../../reference/code_organization/" class="md-tabs__link">
+          
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="MaxText Documentation" class="md-nav__button md-logo" aria-label="MaxText Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    MaxText Documentation
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../about/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    What is Maxtext?
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Getting started
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Getting started
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../First_run/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Getting Started
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../steps_model/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Steps to build a Model
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://www.kaggle.com/code/melissawm/maxtext-examples" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    End-to-end example
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Advanced usage
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Advanced usage
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Run_MaxText_via_multihost_job/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Run MaxText via multihost job
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Run_MaxText_via_multihost_runner/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Run MaxText via multihost runner
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Run_MaxText_via_xpk/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Run MaxText via xpk
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Use_Vertex_AI_Tensorboard/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Use Vertex AI Tensorboard
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Run_Llama2/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Run Llama2
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../data_loading/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Data Loading
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Reference
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/code_organization/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    MaxText Code Organization
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/config_options/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Configuration options
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Data Input Pipeline
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Data Input Pipeline
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#data-input-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      Data Input Pipeline
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Data Input Pipeline">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      Performance
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multihost-dataloading-best-practice" class="md-nav__link">
+    <span class="md-ellipsis">
+      Multihost dataloading best practice
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Multihost dataloading best practice">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#huggingface-pipeline-in-multihost" class="md-nav__link">
+    <span class="md-ellipsis">
+      HuggingFace pipeline in multihost
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tfds-pipeline-in-multihost" class="md-nav__link">
+    <span class="md-ellipsis">
+      TFDS pipeline in multihost
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#grain-pipeline-in-multihost" class="md-nav__link">
+    <span class="md-ellipsis">
+      Grain pipeline in multihost
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#huggingface-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      HuggingFace pipeline
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="HuggingFace pipeline">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-config-for-streaming-from-huggingface-hub-no-download-needed" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example config for streaming from HuggingFace Hub (no download needed):
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-config-for-streaming-from-downloaded-data-in-a-gcs-bucket" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example config for streaming from downloaded data in a GCS bucket:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#limitations-recommendations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Limitations &amp; Recommendations
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#grain-pipeline-for-determinism" class="md-nav__link">
+    <span class="md-ellipsis">
+      Grain pipeline - for determinism
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Grain pipeline - for determinism">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-do-we-need-determinism-for-data-input-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      Why do we need determinism for data input pipeline?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-does-grain-achieve-determinism" class="md-nav__link">
+    <span class="md-ellipsis">
+      How does Grain achieve determinism
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cases-where-determinism-is-crucial" class="md-nav__link">
+    <span class="md-ellipsis">
+      Cases where determinism is crucial
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#global-shuffle-in-grain" class="md-nav__link">
+    <span class="md-ellipsis">
+      Global shuffle in Grain
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#using-grain" class="md-nav__link">
+    <span class="md-ellipsis">
+      Using Grain
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tfds-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      TFDS pipeline
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Data_Input_Perf/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Data Input Perf
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#data-input-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      Data Input Pipeline
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Data Input Pipeline">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      Performance
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multihost-dataloading-best-practice" class="md-nav__link">
+    <span class="md-ellipsis">
+      Multihost dataloading best practice
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Multihost dataloading best practice">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#huggingface-pipeline-in-multihost" class="md-nav__link">
+    <span class="md-ellipsis">
+      HuggingFace pipeline in multihost
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tfds-pipeline-in-multihost" class="md-nav__link">
+    <span class="md-ellipsis">
+      TFDS pipeline in multihost
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#grain-pipeline-in-multihost" class="md-nav__link">
+    <span class="md-ellipsis">
+      Grain pipeline in multihost
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#huggingface-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      HuggingFace pipeline
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="HuggingFace pipeline">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-config-for-streaming-from-huggingface-hub-no-download-needed" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example config for streaming from HuggingFace Hub (no download needed):
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-config-for-streaming-from-downloaded-data-in-a-gcs-bucket" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example config for streaming from downloaded data in a GCS bucket:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#limitations-recommendations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Limitations &amp; Recommendations
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#grain-pipeline-for-determinism" class="md-nav__link">
+    <span class="md-ellipsis">
+      Grain pipeline - for determinism
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Grain pipeline - for determinism">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-do-we-need-determinism-for-data-input-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      Why do we need determinism for data input pipeline?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-does-grain-achieve-determinism" class="md-nav__link">
+    <span class="md-ellipsis">
+      How does Grain achieve determinism
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cases-where-determinism-is-crucial" class="md-nav__link">
+    <span class="md-ellipsis">
+      Cases where determinism is crucial
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#global-shuffle-in-grain" class="md-nav__link">
+    <span class="md-ellipsis">
+      Global shuffle in Grain
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#using-grain" class="md-nav__link">
+    <span class="md-ellipsis">
+      Using Grain
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tfds-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      TFDS pipeline
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  <h1>Data Input Pipeline</h1>
+
+<!--
+ Copyright 2023 Google LLC
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+      https://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+<h2 id="data-input-pipeline">Data Input Pipeline</h2>
+<p>Currently MaxText has three data input pipelines:</p>
+<table>
+<thead>
+<tr>
+<th>Pipeline</th>
+<th>Dataset formats</th>
+<th>Features</th>
+<th>Limitations</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HuggingFace</td>
+<td>datasets in HuggingFace Hub<br>local/Cloud Storage datasets in json, parquet, arrow, csv, txt</td>
+<td>convenience<br>multiple formats</td>
+<td>limit scalability using HuggingFace Hub<br>non-deterministic with preemption<br>(deterministic without preemption)</td>
+</tr>
+<tr>
+<td>Grain</td>
+<td>ArrayRecord, available through Tensorflow Datasets</td>
+<td>fully deterministic, regardless of preemption</td>
+<td>only supports random access datasets</td>
+</tr>
+<tr>
+<td>TFDS</td>
+<td>TFRecord, available through Tensorflow Datasets</td>
+<td></td>
+<td>only supports TFRecords<br>non-deterministic with preemption<br>(deterministic without preemption)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="performance">Performance</h3>
+<ul>
+<li>Perf data for all 3 input pipeline: https://github.com/google/maxtext/blob/main/getting_started/Data_Input_Perf.md</li>
+</ul>
+<h3 id="multihost-dataloading-best-practice">Multihost dataloading best practice</h3>
+<p>In multihost environment, if use an input pipeline that reads data sequentially (HuggingFace or TFDS), the most performant way is to have each data file only accessed by one host, and each host access a subset of data files (shuffle is within the subset of files). This requires (# of data files) to be multiples of (# of hosts loading data). We recommand users to reshard the dataset or use a subset of hosts to load data by setting expansion_factor_real_data (only available for some topologies, will error out otherwise). In MaxText, since the goal is to demonstrate the most performant experience, the behaviors for different data pipelines are:</p>
+<h4 id="huggingface-pipeline-in-multihost">HuggingFace pipeline in multihost</h4>
+<ul>
+<li>When (# of data files) &gt;= (# of hosts loading data), assign files to each host as evenly as possible, some host may ended up with 1 file more than the others. When some hosts run out of data, they will produce empty padding batches, so that you are able to utilize the data from the hosts that still have data. But in this stage, training/eval will be less effective, and you will see a decrease in total_weights and slower change in loss. If all hosts run out of data before the step number you set, you will see 0 total_weights and 0 loss. The training/eval will run until the steps/eval_steps set in the config. Note that even each host are assigned the same number of data files, due to the different example count in each data file, and example packing, you will still have different number of batches on each host near the end of the epoch.</li>
+<li>When (# of data files) &lt; (# of hosts loading data), files are read sequentially with multiple hosts accessing each file, perf can degrade quickly as # of host increases.</li>
+</ul>
+<h4 id="tfds-pipeline-in-multihost">TFDS pipeline in multihost</h4>
+<ul>
+<li>When (# of data files) &gt;= (# of hosts loading data), assign equal number of files to each host. The remainning files are skipped. Train/eval will hang if steps/eval_steps are not met but some hosts run out of data. Please set steps/eval_steps accordingly.</li>
+<li>When (# of data files) &lt; (# of hosts loading data), files are read sequentially with multiple hosts accessing each file, perf can degrade quickly as # of host increases.</li>
+</ul>
+<h4 id="grain-pipeline-in-multihost">Grain pipeline in multihost</h4>
+<ul>
+<li>Perf not affected by (# of data files) vs (# of hosts loading data). <a href="https://github.com/google/maxtext/blob/main/getting_started/Data_Input_Pipeline.md#global-shuffle-in-grain">Data are shuffled globally</a>. Because grain uses a data format (ArrayRecord) that supports random access by index. Even with multiple hosts accessing the same file, they are accessing different indices and and won't have the issue seen with sequential reading.</li>
+<li>At the end of the dataset, you may still have some hosts runing out of indices and hang, Please set steps/eval_steps accordingly.</li>
+</ul>
+<h3 id="huggingface-pipeline">HuggingFace pipeline</h3>
+<p>The HuggingFace pipeline supports streaming directly from HuggingFace Hub, or from GCS bucket in HuggingFace supported formats (parquet, json, etc.). This is through the HuggingFace <a href="https://huggingface.co/docs/datasets/en/loading"><code>datasets.load_dataset</code> API</a> with <code>streaming=True</code>, which take in <code>hf_*</code> parameters.</p>
+<h4 id="example-config-for-streaming-from-huggingface-hub-no-download-needed">Example config for streaming from HuggingFace Hub (no download needed):</h4>
+<pre><code>dataset_type: hf
+hf_path: 'allenai/c4'  # for using https://huggingface.co/datasets/allenai/c4
+hf_data_dir: 'en'
+hf_train_files: ''
+# set eval_interval &gt; 0 to use the specified eval dataset, otherwise, only metrics on the train set will be calculated.
+eval_interval: 10000
+hf_eval_split: 'validation'
+hf_eval_files: ''
+# for HF pipeline, tokenizer_path can be a path in HuggingFace Hub, 
+# or a local path containing tokenizer in a format supported by transformers.AutoTokenizer
+tokenizer_path: 'google-t5/t5-large'  # for using https://huggingface.co/google-t5/t5-large
+hf_access_token: ''  # provide token if using gated dataset or tokenizer
+</code></pre>
+<h4 id="example-config-for-streaming-from-downloaded-data-in-a-gcs-bucket">Example config for streaming from downloaded data in a GCS bucket:</h4>
+<pre><code>dataset_type: hf
+hf_path: 'parquet'  # or json, arrow, etc.
+hf_data_dir: ''
+hf_train_files: 'gs://&lt;bucket&gt;/&lt;folder&gt;/*-train-*.parquet'   # match the train files
+# set eval_interval &gt; 0 to use the specified eval dataset. Otherwise, only metrics on the train set will be calculated.
+eval_interval: 10000
+hf_eval_split: ''
+hf_eval_files: 'gs://&lt;bucket&gt;/&lt;folder&gt;/*-validation-*.parquet'  # match the val files
+# for HF pipeline, tokenizer_path can be a path in HuggingFace Hub, 
+# or a local path containing tokenizer in a format supported by transformers.AutoTokenizer
+tokenizer_path: 'google-t5/t5-large'  # for using https://huggingface.co/google-t5/t5-large
+</code></pre>
+<h4 id="limitations-recommendations">Limitations &amp; Recommendations</h4>
+<ol>
+<li>Streaming data directly from HuggingFace Hub may be impacted by the traffic of the server. During peak hours you may encounter "504 Server Error: Gateway Time-out". It's recommended to download the HuggingFace dataset to a GCS bucket or disk for the most stable experience.</li>
+<li>Streaming data directly from HuggingFace Hub works in multihost settings with a small number of hosts. We have encountered "read time out" error with host number &gt; 16.</li>
+<li>Only supports epoch=1 at this moment.</li>
+</ol>
+<h3 id="grain-pipeline-for-determinism">Grain pipeline - for determinism</h3>
+<h4 id="why-do-we-need-determinism-for-data-input-pipeline">Why do we need determinism for data input pipeline?</h4>
+<p>Determinism in a data input pipeline means that the same input data always results in the same sequence of batches at each step. This is typically achieved by setting a fixed shuffle seed during pipeline initialization. In an ideal scenario, where training runs uninterrupted, this determinism is straightforward (deterministic without preemption). However, real-world distributed training environments often face preemptions due to maintenance, hardware failures, or resource constraints. 
+When a preempted training run resumes, the data input pipeline is re-initialized. If the same shuffle seed is used, the pipeline restarts from the beginning, potentially re-training the model on initial data. Conversely, a new seed produces a different batch sequence, making it difficult to track which data has been seen and how often each example is used for training. This lack of control can impact model performance and reproducibility.</p>
+<h4 id="how-does-grain-achieve-determinism">How does Grain achieve determinism</h4>
+<p>Grain ensures determinism in data input pipelines by saving the pipeline's state, including dataset metadata and processed data indices, within a small JSON file in checkpoints. When a training run is resumed with the same dataset and shuffle seed, Grain restores the pipeline's exact state from the checkpoint. This enables fully deterministic, reproducible training that is resilient to disruptions.</p>
+<h4 id="cases-where-determinism-is-crucial">Cases where determinism is crucial</h4>
+<ul>
+<li><strong>Model sensitive to repetition.</strong> When models are sensitive to the frequency with which they encounter specific examples, precise control over the order and repetition of data during training is essential.</li>
+<li><strong>Convergence comparison.</strong> In sensitive convergence experiments like testing quantization techniques, maintaining identical data batches between runs (e.g., quantized vs. unquantized) is essential for comparison. Determinism ensures consistency even when the runs are long and undergo saving/resuming at different steps.</li>
+<li><strong>Debug training anomalies.</strong> When troubleshooting training spikes or anomalies, the ability to replay the exact data sequence helps distinguish between bad data batches and underlying hardware or software issues.</li>
+</ul>
+<h4 id="global-shuffle-in-grain">Global shuffle in Grain</h4>
+<p>In HF or TFDS data pipeline, global shuffle is performed by a shuffle buffer with limited size. Grain performs global shuffle of the indices in the beginning of each epoch and then reads the elements according to the random order. We have found this to be generally fast enough, even when using hard drives and distributed file systems.</p>
+<h4 id="using-grain">Using Grain</h4>
+<ol>
+<li>Dataset needs to be in a format that supports random access. The default format is <a href="https://github.com/google/array_record">ArrayRecord</a>. For converting a dataset into ArrayRecord, see <a href="https://github.com/google/array_record/tree/main/beam">instructions</a>. Additionally, other random accessible data sources can be supported via a custom data source class (<a href="https://github.com/google/grain/blob/main/docs/data_sources.md">docs</a>).</li>
+<li>ArrayRecord dataset, when hosted on GCS bucket, can only be read through <a href="https://cloud.google.com/storage/docs/gcs-fuse">Cloud Storage FUSE</a>. The installation of Cloud Storage FUSE is included in <a href="https://github.com/google/maxtext/blob/main/setup.sh">setup.sh</a>. User then needs to mount the GCS bucket to a local path for each worker, using the script <a href="https://github.com/google/maxtext/blob/main/setup_gcsfuse.sh">setup_gcsfuse.sh</a>. The script configs some parameters for the mount.</li>
+</ol>
+<pre><code>bash setup_gcsfuse.sh DATASET_GCS_BUCKET=$BUCKET_NAME MOUNT_PATH=$MOUNT_PATH
+</code></pre>
+<ol>
+<li>Set <code>dataset_type=grain</code> and set <code>grain_train_files</code> to match the ArrayRecord files via a local path since the bucket has been mounted.</li>
+<li>Tune <code>grain_worker_count</code> for performance. This parameter controls the number of child process used by Grain (more details in <a href="https://github.com/google/grain/blob/main/docs/behind_the_scenes.md">behind_the_scene</a>, <a href="https://github.com/google/grain/blob/main/grain/_src/python/grain_pool.py">code</a>). If you use a large number of workers, please check your config for gcsfuse in <a href="https://github.com/google/maxtext/blob/main/setup_gcsfuse.sh">setup_gcsfuse.sh</a> to avoid gcsfuse throttling.</li>
+<li>Example command:</li>
+</ol>
+<pre><code>bash setup_gcsfuse.sh \
+DATASET_GCS_BUCKET=maxtext-dataset \
+MOUNT_PATH=/tmp/gcsfuse &amp;&amp; \
+python3 MaxText/train.py MaxText/configs/base.yml \
+run_name=&lt;RUN_NAME&gt; base_output_directory=gs://&lt;MY_BUCKET&gt;  \
+dataset_type=grain \
+grain_train_files=/tmp/gcsfuse/array-record/c4/en/3.0.1/c4-train.array_record* \
+grain_worker_count=2
+</code></pre>
+<ol>
+<li>Using validation set for eval
+When setting eval_interval &gt; 0, eval will be run with a specified eval dataset. Example config:</li>
+</ol>
+<pre><code>eval_interval: 10000
+grain_eval_files: '/tmp/gcsfuse/array-record/c4/en/3.0.1/c4-validation.array_record*'
+</code></pre>
+<h3 id="tfds-pipeline">TFDS pipeline</h3>
+<ol>
+<li>Download the Allenai c4 dataset in TFRecord format to a GCS bucket (will cost about $100, <a href="https://github.com/allenai/allennlp/discussions/5056">details</a>)</li>
+</ol>
+<pre><code>bash download_dataset.sh {GCS_PROJECT} {GCS_BUCKET_NAME}
+</code></pre>
+<ol>
+<li>Use the following config:</li>
+</ol>
+<pre><code>dataset_type: tfds
+dataset_name: 'c4/en:3.0.1'
+# set eval_interval &gt; 0 to use the specified eval dataset. Otherwise, only metrics on the train set will be calculated.
+eval_interval: 10000
+eval_dataset_name: 'c4/en:3.0.1'
+eval_split: 'validation'
+# TFDS input pipeline only supports tokenizer in spm format
+tokenizer_path: &quot;assets/tokenizer.llama2&quot;
+</code></pre>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "navigation.expand"], "search": "../../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.83f73b43.min.js"></script>
+      
+    
+  </body>
+</html>
