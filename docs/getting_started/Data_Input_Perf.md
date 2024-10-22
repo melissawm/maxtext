@@ -9,6 +9,7 @@
 
 ### HuggingFace pipeline
 The following data are collected using c4 data in Parquet format.
+
 | Pipeline    | seq_len | VM type    | per_host_batch    | # of host | # of batch | first step (s) | total time (s) |
 | ----------- | ------- | ---------- | ----------------- | --------- | ---------- | -------------  | -------------- |
 | HuggingFace | 2048    | TPU v4-8   | 32 (per_device=8) | 1         | 1000       | 6              | 72             |
@@ -16,6 +17,7 @@ The following data are collected using c4 data in Parquet format.
 
 ### Grain pipeline
 The following data are collected using c4 data in ArrayRecord format.
+
 | Pipeline    | seq_len | VM type    | per_host_batch    | # of host | # of batch | worker | first step (s) | total time (s) |
 | ----------- | ------- | ---------- | ----------------- | --------- | ---------- | -----  | -------------- | --------------- |
 | Grain       | 2048    | TPU v4-8   | 32 (per_device=8) | 1         | 1000       | 1      | 7              | 1200            |
@@ -29,6 +31,7 @@ The following data are collected using c4 data in ArrayRecord format.
 
 ### TFDS pipeline
 The following data are collected using c4 data in TFRecord format.
+
 | Pipeline    | seq_len | VM type    | per_host_batch    | # of host | # of batch | first step (s) | total time (s) |
 | ----------- | ------- | ---------- | ----------------- | --------- | ---------- | -------------  | -------------- |
 | TFDS        | 2048    | TPU v4-8   | 32 (per_device=8) | 1         | 1000       | 2              | 17             |
