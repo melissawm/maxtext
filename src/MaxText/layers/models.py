@@ -96,17 +96,15 @@ class TransformerLinenPure(nn.Module):
           config=self.config, mesh=self.mesh, name="mtp_block", transformer_layer_module=mtp_layer, decoder=self.decoder
       )
 
-  def logits_from_hidden_states(self, hidden_states, deterministic, model_mode):
+  def logits_from_hidden_states(self, hidden_states, deterministic):
     """
     Compute logits from hidden states (wrapping decoder._apply_output_head).
     This function is only used for vocabulary tiling.
     """
-    # pylint: disable=protected-access
     logits = self.decoder._apply_output_head(
         shared_embedding=self.shared_embedding,
         y=hidden_states,
         deterministic=deterministic,
-        model_mode=model_mode,
     )
     return logits
 
@@ -297,8 +295,14 @@ class Transformer(nnx.Module):
     decoder_linen = Decoder(config=cfg, mesh=mesh, quant=self.quant, model_mode=self.model_mode)
     self.decoder = nnx_wrappers.ToNNX(decoder_linen, rngs=rngs)
     self.hidden_states = None
+    if self.model_mode == MODEL_MODE_PREFILL:
+      seq_len = cfg.max_prefill_predict_length
+    elif self.model_mode == MODEL_MODE_AUTOREGRESSIVE:
+      seq_len = 1
+    else:
+      seq_len = cfg.max_target_length
 
-    batch_size, seq_len = max_utils.get_batch_seq_len_for_mode(config=cfg, model_mode=model_mode)
+    batch_size = cfg.micro_batch_size_to_train_on
     dummy_decoder_input_tokens = jnp.ones((batch_size, seq_len), dtype=jnp.int32)
     dummy_decoder_positions = jnp.ones((batch_size, seq_len), dtype=jnp.int32)
 
