@@ -146,7 +146,7 @@ if [[ "$MODE" == "nightly" ]]; then
     # Remove/update this section based on the pinned github repo commit in requirements.txt
     sed -i -E \
       -e 's|^mlperf-logging @ https?://github.com/mlcommons/logging/archive/.*\.zip$|mlperf-logging@git+https://github.com/mlperf/logging.git|' \
-      -e '/^tunix/!s|^([^ ]*) @ https?://github.com/([^/]*\/[^/]*)/archive/.*\.zip$|\1@git+https://github.com/\2.git|' \
+      -e 's|^([^ ]*) @ https?://github.com/([^/]*\/[^/]*)/archive/.*\.zip$|\1@git+https://github.com/\2.git|' \
       requirements.txt.nightly-temp
 
     echo "--- Installing modified nightly requirements: ---"
@@ -191,8 +191,13 @@ if [[ "$MODE" == "stable" || ! -v MODE ]]; then
             python3 -m uv pip install -U jax[tpu]==${JAX_VERSION} -f https://storage.googleapis.com/jax-releases/libtpu_releases.html
         else
             echo "Installing stable jax, jaxlib, libtpu for tpu"
-            python3 -m uv pip install -U 'jax[tpu]>0.4' -f https://storage.googleapis.com/jax-releases/libtpu_releases.html
+            python3 -m uv pip install 'jax[tpu]>0.4' -f https://storage.googleapis.com/jax-releases/libtpu_releases.html
         fi
+
+        # TODO: Once tunix has support for GPUs, move it from here to requirements.txt
+        echo "Installing tunix for stable TPU environment"
+        python3 -m uv pip install 'google-tunix @ https://github.com/google/tunix/archive/e03f154edd2abfddd6b9babb72a3d0d3c4d81bb2.zip'
+
         if [[ -n "$LIBTPU_GCS_PATH" ]]; then
             # Install custom libtpu
             echo "Installing libtpu.so from $LIBTPU_GCS_PATH to $libtpu_path"
@@ -253,6 +258,10 @@ elif [[ $MODE == "nightly" ]]; then
             echo "Installing libtpu-nightly"
             python3 -m uv pip install -U --pre libtpu -f https://storage.googleapis.com/jax-releases/libtpu_releases.html
         fi
+        echo "Installing nightly tensorboard plugin profile"
+        python3 -m uv pip install tbp-nightly --upgrade
+        # Installing tunix
+        python3 -m uv pip install 'git+https://github.com/google/tunix.git'
     fi
     echo "Installing nightly tensorboard plugin profile"
     python3 -m uv pip install tbp-nightly --upgrade
