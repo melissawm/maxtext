@@ -1034,6 +1034,9 @@ def validate_gpt_oss_moe(raw_keys):
         "GPT OSS model only supports dropless MoE. Please use dense matmul with capacity_factor=-1 or sparse matmul."
     )
 
+def validate_gpt_oss_moe(raw_keys):
+  if raw_keys["decoder_block"] == "gpt_oss" and not raw_keys["sparse_matmul"] and raw_keys["capacity_factor"] != -1:
+    raise ValueError(f"GPT OSS model only supports dropless MoE. Please use dense matmul with capacity_factor=-1 or sparse matmul.")
 
 def validate_sparse_matmul_parallelism(raw_keys):
   # TODO: remove once b/434699033 resolved

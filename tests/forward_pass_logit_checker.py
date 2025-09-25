@@ -342,15 +342,11 @@ def main(config, test_args):  # pylint: disable=W0621
 
       if test_args.max_kl_div is not None:
         max_logging.log(
-            f"Checking KL Divergence between train distribution and golden distribution against "
-            f"threshold {test_args.max_kl_div}."
+            f"Checking KL Divergence between train distribution and golden distribution against theshold {test_args.max_kl_div}."
         )
         assert jax.numpy.all(
             kl_div < test_args.max_kl_div,
-        ), (
-            f"KL divergence values exceed the specified threshold of {test_args.max_kl_div}. "
-            f"Max divergence: {jax.numpy.max(kl_div)}"
-        )
+        ), f"KL divergence values exceed the specified threshold of {test_args.max_kl_div}. Max divergence: {jax.numpy.max(kl_div)}"
 
   else:
     """Comparing maxtext model with HF model on-the-fly"""
