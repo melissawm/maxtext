@@ -116,6 +116,7 @@ class TransformerLinenPure(nn.Module):
       decoder_positions: jnp.ndarray,
       decoder_segment_ids=None,
       encoder_images: None | jnp.ndarray = None,
+      encoder_image_masks: None | jnp.ndarray = None,
       enable_dropout=True,
       model_mode=MODEL_MODE_TRAIN,
       previous_chunk=None,
@@ -162,6 +163,7 @@ class TransformerLinenPure(nn.Module):
         page_state=page_state,
         bidirectional_mask=bidirectional_mask,
         image_embeddings=image_embeddings,
+        image_masks=encoder_image_masks,
     )
 
     # If we are initializing the model AND MTP is enabled, we must create
