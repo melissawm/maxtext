@@ -297,7 +297,7 @@ class RoutedMoE(nnx.Module):
     self.rngs = rngs
 
     if self.config.fsdp_shard_on_exp:
-    # special sharding for dsv3
+      # special sharding for dsv3
       self.wi_kernel_axes = ("embed_no_exp", None, "mlp")
       self.wo_kernel_axes = ("embed_no_exp", "mlp", None)
     else:
@@ -426,7 +426,6 @@ class RoutedMoE(nnx.Module):
 
     return top_k_weights, top_k_indices
 
-    
   def deepseek_scale_weights(self, weights):
     """Scales weights according to DeepSeek's v3 reference implementation."""
     # https://github.com/deepseek-ai/DeepSeek-V3/blob/2f7b80eecebf3d1c84da5a0d465f6639ea175012/inference/model.py#L592-L594.
@@ -893,7 +892,7 @@ class RoutedMoE(nnx.Module):
     # w0, w1, wo needs to be un sharded on fsdp / fsdp_transpose axis, so use
     # mlp_no_fsdp axis
     if self.config.fsdp_shard_on_exp:
-    # special sharding for dsv3 to remove overhead between gmm/AG
+      # special sharding for dsv3 to remove overhead between gmm/AG
       w0_pspec = nn.logical_to_mesh_axes(("embed_tensor_transpose", None, "mlp_no_fsdp"))
       w1_pspec = nn.logical_to_mesh_axes(("embed_tensor_transpose", None, "mlp_no_fsdp"))
       wo_pspec = nn.logical_to_mesh_axes(("embed_tensor_transpose", "mlp_no_fsdp", None))

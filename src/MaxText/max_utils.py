@@ -36,9 +36,6 @@ from orbax.checkpoint.experimental.emergency.multi_tier_checkpointing import ini
 import psutil
 from tensorboardX import writer
 
-from MaxText import max_logging
-from MaxText.common_types import MODEL_MODE_PREFILL, MODEL_MODE_AUTOREGRESSIVE, MODEL_MODE_TRAIN
-
 initialize_multi_tier_checkpointing = initialization.initialize_multi_tier_checkpointing
 HYBRID_RING_64X4 = "hybrid_ring_64x4"
 HYBRID_RING_32X8 = "hybrid_ring_32x8"
@@ -190,7 +187,6 @@ def maybe_initialize_jax_distributed_system(raw_keys):
         backup_interval_minutes=raw_keys["multi_tier_checkpointing_backup_interval_minutes"],
         run_name=raw_keys["run_name"],
         jax_initialization_timeout_seconds=raw_keys["jax_distributed_initialization_timeout"],
-        data_parallelism=raw_keys["mtc_data_parallelism"],
     )
     max_logging.log("Jax distributed system initialized for multi-tier checkpointing!")
   elif (raw_keys["enable_checkpointing"] and raw_keys["compile_topology_num_slices"] == -1) or raw_keys[

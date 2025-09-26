@@ -25,7 +25,20 @@ import qwix
 import qwix.pallas as qpl
 
 
-def gmm(
+gmm = jax.custom_vjp(
+    backend.gmm,
+    nondiff_argnums=(3, 4, 7, 8, 9, 10, 11),
+)
+
+
+def _get_current_rule(op_name: str):
+  rule = qpl.get_current_rule(op_name)
+  if rule is not None and not isinstance(rule, qwix.QtRule):
+    rule = qwix.QtRule(**dataclasses.asdict(rule))
+  return rule
+
+
+def _gmm_fwd(
     lhs: jnp.ndarray,
     rhs: jnp.ndarray,
     group_sizes: jnp.ndarray,

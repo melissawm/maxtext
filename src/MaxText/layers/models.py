@@ -392,7 +392,7 @@ class Transformer(nnx.Module):
     Returns:
       Logits from the Transformer model.
     """
-    if decoder_segment_ids is not None and model_mode == MODEL_MODE_AUTOREGRESSIVE:
+    if decoder_segment_ids is not None and self.model_mode == MODEL_MODE_AUTOREGRESSIVE:
       raise ValueError(
           f"During autoregressive decoding we assume the tokens are in the active sequence"
           f" which is always {DECODING_ACTIVE_SEQUENCE_INDICATOR}."

@@ -37,7 +37,9 @@ class DisruptionManager:
 
   def __init__(self) -> None:
     """Initializes the DisruptionManager."""
-    self.threads_to_monitor: defaultdict[str, list[threading.Thread]] = defaultdict(list)
+    self.threads_to_monitor: defaultdict[str, list[threading.Thread]] = (
+        defaultdict(list)
+    )
 
   def add_workload(
       self,

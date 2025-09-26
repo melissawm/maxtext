@@ -37,7 +37,7 @@ from MaxText import max_utils
 from MaxText import maxtext_utils
 from MaxText.data_loader import DataLoader
 from MaxText.input_pipeline.input_pipeline_interface import create_data_iterator
-from MaxText.metric_logger import MetricLogger, MetadataKey
+from MaxText.metric_logger import MetricLogger
 from MaxText.utils import gcs_utils
 from MaxText.utils.goodput_utils import GoodputEvent, record_goodput
 

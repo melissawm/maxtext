@@ -76,6 +76,18 @@ from MaxText.globals import MAXTEXT_ASSETS_ROOT, MAXTEXT_PKG_DIR
 # for vLLM we can skip JAX precompilation with this flag, it makes startup faster
 os.environ["SKIP_JAX_PRECOMPILE"] = "1"
 
+# add the parent directory (two levels up to say ~/HOME/maxtext) to sys.path if currently running from
+# ~/HOME/maxtext/src/MaxText/examples
+
+# Get the directory of the current script
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
+# Go up two levels to get the project root
+project_root = os.path.abspath(os.path.join(script_dir, "..", ".."))
+
+# Add the project root to the Python path
+sys.path.insert(0, project_root)
+
 from MaxText import model_creation_utils
 from MaxText import pyconfig
 from MaxText.integration.tunix.tunix_adapter import TunixMaxTextAdapter
@@ -371,8 +383,11 @@ show_hbm_usage()
 def get_ref_maxtext_model(config):
   """Creates and returns a TunixMaxTextAdapter model and mesh.
 
-  Args:
-    config: The model configuration.
+  model, mesh = model_creation_utils.create_nnx_model(config)
+  with mesh:
+    tunix_model = TunixMaxTextAdapter(
+        base_model=model,
+    )
 
   Returns:
     A tuple containing the TunixMaxTextAdapter model and the mesh.

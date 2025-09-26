@@ -82,8 +82,8 @@ def main():
     print("--- Stdout ---")
     print(e.stdout)
     sys.exit(e.returncode)
-  except (OSError, FileNotFoundError) as e:
-    print(f"An OS-level error occurred while trying to run uv: {e}")
+  except Exception as e:
+    print(f"An unexpected error occurred: {e}")
     sys.exit(1)
 
 
