@@ -1,0 +1,776 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Performance Optimizations with Pallas Kernels &#8212; MaxText  documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=3ac9c114" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/documentation_options.js?v=c73c0f3e"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'guides/pallas_kernels_performance';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Performance Metrics" href="performance_metrics.html" />
+    <link rel="prev" title="Features and Diagnostics" href="features_and_diagnostics.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/maxtext.png" class="logo__image only-light" alt="MaxText  documentation - Home"/>
+    <script>document.write(`<img src="../_static/maxtext.png" class="logo__image only-dark" alt="MaxText  documentation - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../index.html">
+                    MaxText
+                </a>
+            </li>
+        </ul>
+        <ul class="current nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../tutorials.html">Tutorials</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/first_run.html">Getting Started: First Run</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/full_finetuning.html">Full Finetuning LLama3-8B  Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/run_llama2.html">About Llama2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/grpo.html">Try GRPO!</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/sft.html">Try SFT!</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../guides.html">How-to Guides</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="checkpoints.html">Checkpoints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="custom_model.html">How to customize your model configs on TPU</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_maxtext_localhost.html">Run MaxText on Localhost or Single Host VM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_maxtext_via_xpk.html">Running MaxText at Scale with XPK</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_maxtext_via_pathways.html">Guide: Running MaxText via Pathways</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="data_input_pipeline.html">Manage the data input pipeline</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="data_input_grain.html">Grain pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data_input_hf.html">Hugging Face pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data_input_tfds.html">TFDS pipeline</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="single_host_gpu.html">Maxtext on Single host GPU</a></li>
+<li class="toctree-l2"><a class="reference internal" href="knowledge_distillation.html">Knowledge Distillation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gcp_workload_observability.html">Enable GCP Workload Observabiltiy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="monitor_goodput.html">ML Goodput Measurement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="use_vertex_ai_tensorboard.html">Use Vertex AI Tensorboard</a></li>
+<li class="toctree-l2"><a class="reference internal" href="features_and_diagnostics.html">Features and Diagnostics</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Performance Optimizations with Pallas Kernels</a></li>
+<li class="toctree-l2"><a class="reference internal" href="performance_metrics.html">Performance Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="understand_logs_and_metrics.html">Understand Logs and Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="checkpointing_solutions/gcs_checkpointing.html">GCS bucket-based checkpointing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="checkpointing_solutions/emergency_checkpointing.html">Emergency Checkpointing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="checkpointing_solutions/multi_tier_checkpointing.html">Multi-Tier Checkpointing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="jax_ai_libraries_chosen.html">The JAX Ecosystem in MaxText: An Opinionated Guide</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../explanations.html">Explanations</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/steps_model.html">Steps to build a Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/quantization.html">Quantization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/sharding.html">Sharding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/data_pipeline_perf.html">Data input pipeline performance</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../reference.html">Reference documentation</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../reference/terminology.html">Terminology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/supported_models_and_architectures.html">Supported Models &amp; Architectures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/alternatives.html">Comparison to Alternatives</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/benchmark_and_performance.html">Benchmark and Performance Tuning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/architecture_overview.html">MaxText architecture overview</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">How to Contribute</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+<a href="https://github.com/AI-Hypercomputer/maxtext" target="_blank"
+   class="btn btn-sm btn-source-repository-button"
+   title="Source repository"
+   data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+
+</a>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/guides/pallas_kernels_performance.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Performance Optimizations with Pallas Kernels</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-pallas-mindset-when-to-write-a-custom-kernel"><strong>🧠 The Pallas Mindset: When to Write a Custom Kernel</strong></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#use-cases"><strong>💡 Use Cases</strong></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#irregular-compute-moe-ragged-activations"><strong>1. Irregular Compute (MoE, ragged activations)</strong></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#memory-access-bound-work-attention"><strong>2. Memory-Access-Bound Work (Attention)</strong></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pallas-kernels-in-maxtext"><strong>🛠️ Pallas Kernels in MaxText</strong></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-pallas-optimization-workflow-code-profile-tune-repeat"><strong>🔧 The Pallas Optimization Workflow: Code → Profile → Tune → Repeat</strong></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#high-level-profiling">1. High-Level Profiling</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#deeper-compiler-view-optional"><strong>2. Deeper Compiler View (Optional)</strong></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#systematic-tuning"><strong>3. Systematic Tuning</strong></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#understanding-tpu-memory-compute"><strong>⚙️ Understanding TPU Memory &amp; Compute</strong></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#core-pallas-design-patterns"><strong>🧱 Core Pallas Design Patterns</strong></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#writing-integrating-a-kernel"><strong>✍️ Writing &amp; Integrating a Kernel</strong></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#example-1-minimal-elementwise-add"><strong>Example 1: Minimal Elementwise Add</strong></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#example-2-blocked-2d-add-with-blockspec"><strong>Example 2: Blocked 2D Add with BlockSpec</strong></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pipelining-best-practices-tpu"><strong>⏩ Pipelining Best Practices (TPU)</strong></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#distributed-execution"><strong>🌐 Distributed Execution</strong></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#debugging-tips"><strong>🐞 Debugging Tips</strong></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#putting-it-all-together-checklist"><strong>✅ Putting It All Together (Checklist)</strong></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#references">📚 References</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <!--
+ Copyright 2023–2025 Google LLC
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+    https://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+<section class="tex2jax_ignore mathjax_ignore" id="performance-optimizations-with-pallas-kernels">
+<h1>Performance Optimizations with Pallas Kernels<a class="headerlink" href="#performance-optimizations-with-pallas-kernels" title="Link to this heading">#</a></h1>
+<p>New to Pallas? Start with the <a class="reference external" href="https://docs.jax.dev/en/latest/pallas/index.html">official docs</a>.</p>
+<p>While JAX and the XLA compiler provide excellent out-of-the-box performance, some scenarios demand the next level of optimization. <strong>Pallas</strong> is a JAX extension for TPUs and GPUs that gives expert users fine-grained control over how kernels execute on accelerator hardware. When you know something about your problem’s structure that the general-purpose compiler cannot infer, you can often translate that knowledge into choices that outperform the default lowering. For example, you can explicitly manage <strong>cache locality</strong> through tiling, handle <strong>data sparsity</strong> in workloads like Mixture-of-Experts, or orchestrate <strong>matrix unit overlap</strong> with memory transfers through manual pipelining.</p>
+<p>This guide explains <strong>when</strong> to consider Pallas, a <strong>workflow</strong> for developing and tuning kernels, and how Pallas is <strong>used in MaxText</strong> today.</p>
+<section id="the-pallas-mindset-when-to-write-a-custom-kernel">
+<h2><strong>🧠 The Pallas Mindset: When to Write a Custom Kernel</strong><a class="headerlink" href="#the-pallas-mindset-when-to-write-a-custom-kernel" title="Link to this heading">#</a></h2>
+<p>Think in <strong>roofline</strong> terms (<a class="reference external" href="https://jax-ml.github.io/scaling-book/roofline/">All About Rooflines</a>) and in terms of <strong>structure the compiler can’t see</strong>:</p>
+<ul class="simple">
+<li><p><strong>Roofline framing.</strong> Is your op <strong>compute-limited</strong> (MXU at or near peak) or <strong>bandwidth-limited</strong> (HBM↔on-chip transfers dominate)? Pallas tends to shine when you can reduce bandwidth pressure or avoid wasted work via better tiling and scheduling.</p></li>
+<li><p><strong>Compiler invisibles.</strong> Irregular sparsity, ragged batch shapes, non-contiguous memory access, and domain-specific invariants are all signals that a custom kernel could help.</p></li>
+</ul>
+<p><strong>Know when XLA is enough.</strong> Before writing a custom kernel, always <a class="reference internal" href="#high-level-profiling">profile your baseline</a>. If a standard operation (like a dense <a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.numpy.matmul.html"><code class="docutils literal notranslate"><span class="pre">jnp.matmul</span></code></a>) is already performing well, the XLA compiler is doing its job. In these cases, a Pallas kernel will increase code complexity and maintenance burden with minimal performance improvement.</p>
+<p><strong>When maintainability wins.</strong> Pallas kernels are lower-level and harder to debug. If gains are small, prefer the simpler path.</p>
+<p><strong>Autodiff note.</strong> Pallas kernels require writing the autodiff rule manually (e.g., with <a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.custom_vjp.html"><code class="docutils literal notranslate"><span class="pre">jax.custom_vjp</span></code></a>), since unlike other transforms such as <a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.shard_map.html"><code class="docutils literal notranslate"><span class="pre">shard_map</span></code></a>,
+it is very difficult to automatically infer the dual of the memory pipeline.</p>
+</section>
+<section id="use-cases">
+<h2><strong>💡 Use Cases</strong><a class="headerlink" href="#use-cases" title="Link to this heading">#</a></h2>
+<section id="irregular-compute-moe-ragged-activations">
+<h3><strong>1. Irregular Compute (MoE, ragged activations)</strong><a class="headerlink" href="#irregular-compute-moe-ragged-activations" title="Link to this heading">#</a></h3>
+<p>For dense, regular GEMMs, XLA’s libraries are hard to beat. The exception is <strong>Mixture-of-Experts (MoE)</strong> MLPs with <strong>ragged token→expert layouts</strong> (some tokens routed to different experts; shapes are irregular). Zero-padding to make dense tensors wastes FLOPs; a custom kernel can operate only on the actually-selected tokens.</p>
+<ul class="simple">
+<li><p>In MaxText, we use Grouped Matrix Multiplication (GMM) via <strong>Megablox</strong> to compute per-expert matmuls on ragged batches. Precomputed metadata (e.g., token→expert indices and ranges) guides the grouped computation and avoids work on padded regions.</p></li>
+</ul>
+<p><strong>Note:</strong> <em>Megablox</em> is an efficient, non-capped MoE implementation in JAX. <em>Megablocks</em> refers to the equivalent PyTorch implementation. See <a class="reference external" href="https://arxiv.org/abs/2211.15841">arXiv:2211.15841</a> for more details.</p>
+</section>
+<section id="memory-access-bound-work-attention">
+<h3><strong>2. Memory-Access-Bound Work (Attention)</strong><a class="headerlink" href="#memory-access-bound-work-attention" title="Link to this heading">#</a></h3>
+<p>Attention kernels are classically <strong>bandwidth-limited</strong> if you materialize the full [L,L] score matrix. A Pallas kernel can block <strong>Q/K/V</strong> into tiles that fit on-chip and perform <strong>online softmax accumulation</strong>, never storing the massive intermediate.</p>
+<ul class="simple">
+<li><p>MaxText uses a Pallas attention kernel for training (Flash/Splash-style) and <strong>paged/ragged</strong> attention for inference to efficiently fetch KV cache pages and handle non-contiguous layouts.</p></li>
+</ul>
+</section>
+</section>
+<section id="pallas-kernels-in-maxtext">
+<h2><strong>🛠️ Pallas Kernels in MaxText</strong><a class="headerlink" href="#pallas-kernels-in-maxtext" title="Link to this heading">#</a></h2>
+<p>To maximize performance, MaxText uses custom Pallas kernels for memory-bandwidth-bound or structurally irregular operations that a general-purpose compiler cannot optimize as effectively. Below are the key kernels we use. <strong>Note</strong>: Examples evolve; treat this list as guidance.</p>
+<ul>
+<li><p><strong>Training Attention (Flash/Splash-style):</strong> This kernel is the default for training Transformer models in MaxText, such as DeepSeek, Gemma and Llama. It avoids creating the large [L,L] attention matrix to save memory, processing data in smaller, tiled chunks with online softmax accumulation.</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/blob/main/src/MaxText/kernels/splash_attention_kernel.py"><code class="docutils literal notranslate"><span class="pre">src/MaxText/kernels/splash_attention_kernel.py</span></code></a></p></li>
+</ul>
+</li>
+<li><p><strong>Serving Attention (Paged &amp; Ragged):</strong> For high-throughput inference, this kernel efficiently fetches non-contiguous “pages” of the KV cache from memory. It is a key optimization for our serving stack and is used for models running on MaxText’s inference engine.</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/blob/main/src/MaxText/inference/paged_attention.py"><code class="docutils literal notranslate"><span class="pre">src/MaxText/inference/paged_attention.py</span></code></a></p></li>
+<li><p><a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/blob/main/src/MaxText/inference/paged_attention_kernel_v2.py"><code class="docutils literal notranslate"><span class="pre">src/MaxText/inference/paged_attention_kernel_v2.py</span></code></a></p></li>
+</ul>
+</li>
+<li><p><strong>MoE Grouped Matmul (Megablox GMM):</strong> Sparse/irregular grouped GEMMs driven by host-built metadata.</p>
+<blockquote>
+<div><p>This is an efficient computation method for Mixture-of-Experts (MoE) models like DeepSeek, Llama 4, Mixtral and Qwen-MoE.  In MoE, each token is processed by only a few “experts,” which is inefficient for standard matrix multiplication. Megablox solves this by having the CPU (<strong>host</strong>) first create a routing plan (<strong>metadata</strong>) that assigns tokens to experts. The accelerator (<strong>device</strong>) then uses this plan to perform many small, dense matrix multiplications in parallel (<strong>Grouped Matrix Multiplication</strong>), avoiding wasted work on unused experts.</p>
+</div></blockquote>
+<ul class="simple">
+<li><p><a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/blob/main/src/MaxText/kernels/megablox/gmm.py"><code class="docutils literal notranslate"><span class="pre">src/MaxText/kernels/megablox/gmm.py</span></code></a></p></li>
+</ul>
+<p><strong>Note:</strong> Megablox accelerates the grouped <strong>matmul</strong>; <strong>routing/gating</strong> is separate code (<a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/blob/main/src/MaxText/layers/moe.py"><code class="docutils literal notranslate"><span class="pre">src/MaxText/layers/moe.py</span></code></a>).</p>
+</li>
+</ul>
+</section>
+<section id="the-pallas-optimization-workflow-code-profile-tune-repeat">
+<h2><strong>🔧 The Pallas Optimization Workflow: Code → Profile → Tune → Repeat</strong><a class="headerlink" href="#the-pallas-optimization-workflow-code-profile-tune-repeat" title="Link to this heading">#</a></h2>
+<section id="high-level-profiling">
+<h3>1. High-Level Profiling<a class="headerlink" href="#high-level-profiling" title="Link to this heading">#</a></h3>
+<p>Give the kernel a clear name in traces and capture a profile. Always use <a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.block_until_ready.html"><code class="docutils literal notranslate"><span class="pre">jax.block_until_ready()</span></code></a> when timing your operations.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>  
+<span class="kn">from</span><span class="w"> </span><span class="nn">jax</span><span class="w"> </span><span class="kn">import</span> <span class="n">profiler</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">my_op</span><span class="p">(</span><span class="o">...</span><span class="p">):</span>  
+  <span class="c1"># This name shows up in Perfetto/TensorBoard traces  </span>
+  <span class="k">with</span> <span class="n">jax</span><span class="o">.</span><span class="n">named_scope</span><span class="p">(</span><span class="s2">&quot;my_custom_kernel&quot;</span><span class="p">):</span>  
+    <span class="n">out</span> <span class="o">=</span> <span class="n">my_kernel_wrapper</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>  
+  <span class="k">return</span> <span class="n">out</span>
+
+<span class="c1"># Capture a Perfetto/TensorBoard trace  </span>
+<span class="k">with</span> <span class="n">profiler</span><span class="o">.</span><span class="n">trace</span><span class="p">(</span><span class="s2">&quot;/tmp/tb_profile&quot;</span><span class="p">):</span>  
+  <span class="n">y</span> <span class="o">=</span> <span class="n">my_op</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>  
+  <span class="c1"># Stabilize timing for accurate measurement  </span>
+  <span class="n">jax</span><span class="o">.</span><span class="n">block_until_ready</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="deeper-compiler-view-optional">
+<h3><strong>2. Deeper Compiler View (Optional)</strong><a class="headerlink" href="#deeper-compiler-view-optional" title="Link to this heading">#</a></h3>
+<p>For hard cases, inspect compiler dumps (e.g., LLO) to understand schedules, memory moves, and resource usage. Keep this as an advanced tool—most tuning decisions come from traces and microbenchmarks.</p>
+</section>
+<section id="systematic-tuning">
+<h3><strong>3. Systematic Tuning</strong><a class="headerlink" href="#systematic-tuning" title="Link to this heading">#</a></h3>
+<p>Performance is a function of interacting hyperparameters, chiefly block shapes (via <a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.experimental.pallas.BlockSpec.html"><code class="docutils literal notranslate"><span class="pre">BlockSpec</span></code></a>). Build a small test script (a “harness”) to systematically run the kernel with different block sizes. <strong>Record the throughput and latency</strong> for each run, and let data, not rules of thumb, pick the winners.
+For a more automated approach, consider using libraries like <a class="reference external" href="https://github.com/rdyro/tune-jax">tune-jax</a>.</p>
+</section>
+</section>
+<section id="understanding-tpu-memory-compute">
+<h2><strong>⚙️ Understanding TPU Memory &amp; Compute</strong><a class="headerlink" href="#understanding-tpu-memory-compute" title="Link to this heading">#</a></h2>
+<p>Pallas exposes the underlying hardware primitives for you to control.</p>
+<ul class="simple">
+<li><p><strong>HBM:</strong> High-Bandwidth Memory (standard device memory).</p></li>
+<li><p><strong>VMEM:</strong> On-chip vector SRAM for array tiles; your kernel primarily reads/writes VMEM refs.</p></li>
+<li><p><strong>SMEM:</strong> On-chip scalar SRAM for control/metadata (e.g., counters, small tables).</p></li>
+<li><p><strong>Semaphores:</strong> Available for advanced async/barrier patterns in manual pipelines.</p></li>
+<li><p><strong>MXU:</strong> The Matrix Unit, optimized for large block GEMMs/convolutions.</p></li>
+<li><p><strong>VPU:</strong> The Vector Processing Unit, used for elementwise/vector work.</p></li>
+</ul>
+<p><strong>Alignment &amp; Constraints:</strong> Respect TPU BlockSpec constraints (divisibility/shape rules for trailing dimensions and supported block shapes). Start with tile shapes that fit in VMEM and meet these requirements, then sweep different sizes to find the optimum. Let profiling guide you; don’t assume powers of two are always best.</p>
+</section>
+<section id="core-pallas-design-patterns">
+<h2><strong>🧱 Core Pallas Design Patterns</strong><a class="headerlink" href="#core-pallas-design-patterns" title="Link to this heading">#</a></h2>
+<p>These are the common techniques used in MaxText’s Pallas kernels.</p>
+<ul class="simple">
+<li><p><strong>Tiling &amp; Blocking:</strong> Move just a tile that fits on-chip, compute on it, and write it back.</p></li>
+<li><p><strong>Explicit Pipelining:</strong> Overlap HBM↔VMEM loads with compute to hide latency (e.g., double-buffering).</p></li>
+<li><p><strong>Online Accumulation:</strong> Combine partial results as you go; don’t materialize huge intermediate arrays.</p></li>
+<li><p><strong>Auxiliary Metadata:</strong> Precompute control tables (e.g., token-to-expert ranges) and keep them in fast scalar memory.</p></li>
+<li><p><strong>Compute↔Communication Overlap:</strong> In distributed runs, overlap local work with cross-device traffic when possible.</p></li>
+</ul>
+</section>
+<section id="writing-integrating-a-kernel">
+<h2><strong>✍️ Writing &amp; Integrating a Kernel</strong><a class="headerlink" href="#writing-integrating-a-kernel" title="Link to this heading">#</a></h2>
+<p>A Pallas kernel is a Python function that operates on Refs (references to array tiles). When this function is passed to <a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.experimental.pallas.pallas_call.html"><code class="docutils literal notranslate"><span class="pre">pl.pallas_call</span></code></a>, it will be compiled and scheduled by Pallas.</p>
+<section id="example-1-minimal-elementwise-add">
+<h3><strong>Example 1: Minimal Elementwise Add</strong><a class="headerlink" href="#example-1-minimal-elementwise-add" title="Link to this heading">#</a></h3>
+<p>Shows the kernel/ref pattern used by <code class="docutils literal notranslate"><span class="pre">pallas_call</span></code>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>  
+<span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>  
+<span class="kn">from</span><span class="w"> </span><span class="nn">jax.experimental</span><span class="w"> </span><span class="kn">import</span> <span class="n">pallas</span> <span class="k">as</span> <span class="n">pl</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">add_vectors_kernel</span><span class="p">(</span><span class="n">x_ref</span><span class="p">,</span> <span class="n">y_ref</span><span class="p">,</span> <span class="n">o_ref</span><span class="p">):</span>  
+  <span class="n">o_ref</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">x_ref</span><span class="p">[:]</span> <span class="o">+</span> <span class="n">y_ref</span><span class="p">[:]</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">add_vectors</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">jax</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">jax</span><span class="o">.</span><span class="n">Array</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">jax</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>  
+  <span class="k">assert</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">y</span><span class="o">.</span><span class="n">shape</span>  
+  <span class="k">return</span> <span class="n">pl</span><span class="o">.</span><span class="n">pallas_call</span><span class="p">(</span>  
+      <span class="n">add_vectors_kernel</span><span class="p">,</span>  
+      <span class="n">out_shape</span><span class="o">=</span><span class="n">jax</span><span class="o">.</span><span class="n">ShapeDtypeStruct</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">x</span><span class="o">.</span><span class="n">dtype</span><span class="p">),</span>  
+  <span class="p">)(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="example-2-blocked-2d-add-with-blockspec">
+<h3><strong>Example 2: Blocked 2D Add with BlockSpec</strong><a class="headerlink" href="#example-2-blocked-2d-add-with-blockspec" title="Link to this heading">#</a></h3>
+<p>This example shows how to map a grid of blocks over larger arrays.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">jax.experimental</span><span class="w"> </span><span class="kn">import</span> <span class="n">pallas</span> <span class="k">as</span> <span class="n">pl</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">tile_add_kernel</span><span class="p">(</span><span class="n">x_ref</span><span class="p">,</span> <span class="n">y_ref</span><span class="p">,</span> <span class="n">o_ref</span><span class="p">):</span>
+  <span class="c1"># Operate on the tile slices handed in by BlockSpecs (already in VMEM on TPU).</span>
+  <span class="n">o_ref</span><span class="p">[:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">x_ref</span><span class="p">[:,</span> <span class="p">:]</span> <span class="o">+</span> <span class="n">y_ref</span><span class="p">[:,</span> <span class="p">:]</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">tile_add</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">jax</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">jax</span><span class="o">.</span><span class="n">Array</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">jax</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
+  <span class="k">assert</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">y</span><span class="o">.</span><span class="n">shape</span> <span class="ow">and</span> <span class="n">x</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span>
+  <span class="n">B0</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>  <span class="c1"># Example choice; tune this with a sweep</span>
+  <span class="n">B1</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>            <span class="c1"># Full width tile (for illustration)</span>
+
+  <span class="c1"># Map program id (tile index) -&gt; tile origin in the full (HBM) array.</span>
+  <span class="c1"># NOTE: The runtime advances origins by `block_shape`, so `i` is already a tile</span>
+  <span class="c1"># index. Do NOT multiply by B0 here.</span>
+  <span class="n">in_out_spec</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">BlockSpec</span><span class="p">(</span>
+      <span class="n">block_shape</span><span class="o">=</span><span class="p">(</span><span class="n">B0</span><span class="p">,</span> <span class="n">B1</span><span class="p">),</span>
+      <span class="n">index_map</span><span class="o">=</span><span class="k">lambda</span> <span class="n">i</span><span class="p">:</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+  <span class="p">)</span>
+
+  <span class="c1"># Grid is implied by data &amp; block shape (use ceiling-division helper).</span>
+  <span class="n">grid</span> <span class="o">=</span> <span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">cdiv</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">B0</span><span class="p">),)</span>
+  <span class="c1"># Note: grid size can also be computed dynamically at runtime.</span>
+
+  <span class="k">return</span> <span class="n">pl</span><span class="o">.</span><span class="n">pallas_call</span><span class="p">(</span>
+      <span class="n">tile_add_kernel</span><span class="p">,</span>
+      <span class="n">out_shape</span><span class="o">=</span><span class="n">jax</span><span class="o">.</span><span class="n">ShapeDtypeStruct</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">dtype</span><span class="p">),</span>
+      <span class="n">in_specs</span><span class="o">=</span><span class="p">[</span><span class="n">in_out_spec</span><span class="p">,</span> <span class="n">in_out_spec</span><span class="p">],</span>
+      <span class="n">out_specs</span><span class="o">=</span><span class="n">in_out_spec</span><span class="p">,</span>
+      <span class="n">grid</span><span class="o">=</span><span class="n">grid</span><span class="p">,</span>
+  <span class="p">)(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Tip:</strong> In practice, you’ll <strong>sweep</strong> <code class="docutils literal notranslate"><span class="pre">(B0,</span> <span class="pre">B1)</span></code>-i.e., try a small grid of tile sizes and pick the fastest. Focus tuning on block shapes; treat grid as derived.</p>
+</section>
+</section>
+<section id="pipelining-best-practices-tpu">
+<h2><strong>⏩ Pipelining Best Practices (TPU)</strong><a class="headerlink" href="#pipelining-best-practices-tpu" title="Link to this heading">#</a></h2>
+<p>Prefer <code class="docutils literal notranslate"><span class="pre">pl.pallas_call</span></code> with scratch buffers allocated in the appropriate memory space (VMEM/SMEM) and use multi-buffering to overlap HBM loads with compute. Advanced pipelining to consider: custom prefetch block order via a scalar prefetch grid (for details see <a class="reference external" href="https://docs.jax.dev/en/latest/pallas/tpu/sparse.html">here</a>), which lets you control block execution order based on runtime values.</p>
+</section>
+<section id="distributed-execution">
+<h2><strong>🌐 Distributed Execution</strong><a class="headerlink" href="#distributed-execution" title="Link to this heading">#</a></h2>
+<p>Dispatch a kernel on multiple devices with <code class="docutils literal notranslate"><span class="pre">jax.shard_map</span></code>. It’s usually simpler and more maintainable than in-kernel cross-device communication. While Pallas supports low-level comms, <code class="docutils literal notranslate"><span class="pre">shard_map</span></code> is the right first choice for multi-device parallelism, and you can <strong>communicate with <code class="docutils literal notranslate"><span class="pre">shard_map</span></code> collectives</strong> when needed.</p>
+</section>
+<section id="debugging-tips">
+<h2><strong>🐞 Debugging Tips</strong><a class="headerlink" href="#debugging-tips" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Use <code class="docutils literal notranslate"><span class="pre">interpret=True</span></code> in <code class="docutils literal notranslate"><span class="pre">pallas_call</span></code> to run the kernel body in a Python interpreter backend, simulating device execution on CPU without lowering through XLA.</p></li>
+<li><p>Start with a tiny problem size and assert on invariants inside the kernel.</p></li>
+<li><p>Add <code class="docutils literal notranslate"><span class="pre">jax.named_scope</span></code> liberally so kernels are easy to spot in performance traces.</p></li>
+</ul>
+</section>
+<section id="putting-it-all-together-checklist">
+<h2><strong>✅ Putting It All Together (Checklist)</strong><a class="headerlink" href="#putting-it-all-together-checklist" title="Link to this heading">#</a></h2>
+<ol class="arabic simple">
+<li><p><strong>Profile</strong> the baseline using <code class="docutils literal notranslate"><span class="pre">named_scope</span></code> and <code class="docutils literal notranslate"><span class="pre">block_until_ready</span></code>.</p></li>
+<li><p><strong>Tile arrays into smaller chunks using BlockSpecs</strong> (virtually always necessary, even for simple kernels).</p></li>
+<li><p>Build a <strong>sweep harness</strong> for block shapes (and optionally scalar prefetch grid choices).</p></li>
+<li><p><strong>Validate</strong> end-to-end performance in the model, not just microbenchmarks.</p></li>
+<li><p>Consider <strong>maintainability</strong> and guard the new kernel with tests.</p></li>
+<li><p>Consider applying <strong><code class="docutils literal notranslate"><span class="pre">jax.vmap</span></code></strong> to a Pallas kernel to simplify implementation; think of it as prepending grid dimensions automatically.</p></li>
+</ol>
+</section>
+<section id="references">
+<h2>📚 References<a class="headerlink" href="#references" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>Pallas Docs &amp; Quickstart:</strong> <a class="reference external" href="https://docs.jax.dev/en/latest/pallas/index.html">docs.jax.dev/en/latest/pallas/index.html</a></p></li>
+<li><p><strong>JAX Profiling Guides:</strong> <a class="reference external" href="https://jax.readthedocs.io/en/latest/profiling.html">jax.readthedocs.io/en/latest/profiling.html</a></p></li>
+<li><p><strong>Manual Parallelism (shard_map):</strong> <a class="reference external" href="https://docs.jax.dev/en/latest/notebooks/shard_map.html">docs.jax.dev/en/latest/notebooks/shard_map.html</a></p></li>
+<li><p><strong>Distributed Pallas on TPU:</strong> <a class="reference external" href="https://docs.jax.dev/en/latest/pallas/tpu/distributed.html">docs.jax.dev/en/latest/pallas/tpu/distributed.html</a></p></li>
+</ul>
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="features_and_diagnostics.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Features and Diagnostics</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="performance_metrics.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Performance Metrics</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-pallas-mindset-when-to-write-a-custom-kernel"><strong>🧠 The Pallas Mindset: When to Write a Custom Kernel</strong></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#use-cases"><strong>💡 Use Cases</strong></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#irregular-compute-moe-ragged-activations"><strong>1. Irregular Compute (MoE, ragged activations)</strong></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#memory-access-bound-work-attention"><strong>2. Memory-Access-Bound Work (Attention)</strong></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pallas-kernels-in-maxtext"><strong>🛠️ Pallas Kernels in MaxText</strong></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-pallas-optimization-workflow-code-profile-tune-repeat"><strong>🔧 The Pallas Optimization Workflow: Code → Profile → Tune → Repeat</strong></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#high-level-profiling">1. High-Level Profiling</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#deeper-compiler-view-optional"><strong>2. Deeper Compiler View (Optional)</strong></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#systematic-tuning"><strong>3. Systematic Tuning</strong></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#understanding-tpu-memory-compute"><strong>⚙️ Understanding TPU Memory &amp; Compute</strong></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#core-pallas-design-patterns"><strong>🧱 Core Pallas Design Patterns</strong></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#writing-integrating-a-kernel"><strong>✍️ Writing &amp; Integrating a Kernel</strong></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#example-1-minimal-elementwise-add"><strong>Example 1: Minimal Elementwise Add</strong></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#example-2-blocked-2d-add-with-blockspec"><strong>Example 2: Blocked 2D Add with BlockSpec</strong></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pipelining-best-practices-tpu"><strong>⏩ Pipelining Best Practices (TPU)</strong></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#distributed-execution"><strong>🌐 Distributed Execution</strong></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#debugging-tips"><strong>🐞 Debugging Tips</strong></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#putting-it-all-together-checklist"><strong>✅ Putting It All Together (Checklist)</strong></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#references">📚 References</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By MaxText developers
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2025, MaxText developers.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

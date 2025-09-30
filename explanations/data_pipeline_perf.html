@@ -1,0 +1,574 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Data input pipeline performance &#8212; MaxText  documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=3ac9c114" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/documentation_options.js?v=c73c0f3e"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'explanations/data_pipeline_perf';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Reference documentation" href="../reference.html" />
+    <link rel="prev" title="Sharding" href="sharding.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/maxtext.png" class="logo__image only-light" alt="MaxText  documentation - Home"/>
+    <script>document.write(`<img src="../_static/maxtext.png" class="logo__image only-dark" alt="MaxText  documentation - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../index.html">
+                    MaxText
+                </a>
+            </li>
+        </ul>
+        <ul class="current nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../tutorials.html">Tutorials</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/first_run.html">Getting Started: First Run</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/full_finetuning.html">Full Finetuning LLama3-8B  Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/run_llama2.html">About Llama2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/grpo.html">Try GRPO!</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/sft.html">Try SFT!</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../guides.html">How-to Guides</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../guides/checkpoints.html">Checkpoints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/custom_model.html">How to customize your model configs on TPU</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/run_maxtext_localhost.html">Run MaxText on Localhost or Single Host VM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/run_maxtext_via_xpk.html">Running MaxText at Scale with XPK</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/run_maxtext_via_pathways.html">Guide: Running MaxText via Pathways</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../guides/data_input_pipeline.html">Manage the data input pipeline</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../guides/data_input_grain.html">Grain pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../guides/data_input_hf.html">Hugging Face pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../guides/data_input_tfds.html">TFDS pipeline</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/single_host_gpu.html">Maxtext on Single host GPU</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/knowledge_distillation.html">Knowledge Distillation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/gcp_workload_observability.html">Enable GCP Workload Observabiltiy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/monitor_goodput.html">ML Goodput Measurement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/use_vertex_ai_tensorboard.html">Use Vertex AI Tensorboard</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/features_and_diagnostics.html">Features and Diagnostics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/pallas_kernels_performance.html">Performance Optimizations with Pallas Kernels</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/performance_metrics.html">Performance Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/understand_logs_and_metrics.html">Understand Logs and Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/checkpointing_solutions/gcs_checkpointing.html">GCS bucket-based checkpointing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/checkpointing_solutions/emergency_checkpointing.html">Emergency Checkpointing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/checkpointing_solutions/multi_tier_checkpointing.html">Multi-Tier Checkpointing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/jax_ai_libraries_chosen.html">The JAX Ecosystem in MaxText: An Opinionated Guide</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../explanations.html">Explanations</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="steps_model.html">Steps to build a Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quantization.html">Quantization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sharding.html">Sharding</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Data input pipeline performance</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../reference.html">Reference documentation</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../reference/terminology.html">Terminology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/supported_models_and_architectures.html">Supported Models &amp; Architectures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/alternatives.html">Comparison to Alternatives</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/benchmark_and_performance.html">Benchmark and Performance Tuning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/architecture_overview.html">MaxText architecture overview</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">How to Contribute</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+<a href="https://github.com/AI-Hypercomputer/maxtext" target="_blank"
+   class="btn btn-sm btn-source-repository-button"
+   title="Source repository"
+   data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+
+</a>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/explanations/data_pipeline_perf.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Data input pipeline performance</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-goal-overlap-data-loading-and-computation">The goal: overlap data loading and computation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prerequisite-asynchronous-execution">Prerequisite: asynchronous execution</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#common-pitfall-forcing-synchronization">Common pitfall: forcing synchronization</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#how-to-test-your-pipeline">How to test your pipeline</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#how-to-speed-up-a-slow-data-pipeline">How to speed up a slow data pipeline</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <!--
+ Copyright 2024 Google LLC
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+      https://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+ -->
+<section class="tex2jax_ignore mathjax_ignore" id="data-input-pipeline-performance">
+<span id="data-pipeline-perf"></span><h1>Data input pipeline performance<a class="headerlink" href="#data-input-pipeline-performance" title="Link to this heading">#</a></h1>
+<p>This guide explains how to set and verify the performance goal for your data input pipeline to maximize accelerator utilization.</p>
+<section id="the-goal-overlap-data-loading-and-computation">
+<h2>The goal: overlap data loading and computation<a class="headerlink" href="#the-goal-overlap-data-loading-and-computation" title="Link to this heading">#</a></h2>
+<p>The primary performance goal is simple: <strong>data loading on the CPU must be faster than computation on the accelerator (TPU/GPU)</strong>.</p>
+<p>Ideally, while the accelerator is busy with the current step’s computation (e.g., <code class="docutils literal notranslate"><span class="pre">Matmul</span></code>), the CPU is already prefetching data for the <em>future</em> step(s). This overlap, shown in the following image, ensures the accelerator never has to wait for data.</p>
+<p>If data loading is faster than computation, the pipeline is not a bottleneck. Optimizing it further will <strong>not</strong> improve training speed.</p>
+<figure class="align-default" id="id1">
+<img alt="../_images/data_input_goal.png" src="../_images/data_input_goal.png" />
+<figcaption>
+<p><span class="caption-text">Status of TPU and CPU during training stages.</span><a class="headerlink" href="#id1" title="Link to this image">#</a></p>
+</figcaption>
+</figure>
+</section>
+<section id="prerequisite-asynchronous-execution">
+<h2>Prerequisite: asynchronous execution<a class="headerlink" href="#prerequisite-asynchronous-execution" title="Link to this heading">#</a></h2>
+<p>For this overlap to happen, the data pipeline (on the CPU) and the model computation (on the accelerator) must execute in parallel. You can verify this using a profiler.</p>
+<ul class="simple">
+<li><p><strong>Good (parallel)</strong>: The trace on the right shows the CPU (bottom tracks) is busy fetching data at the same time the TPU (top track) is computing.</p></li>
+<li><p><strong>Bad (sequential)</strong>: The trace on the left shows a <strong>gap</strong> in TPU utilization, where the TPU is idle. This gap is often caused by <strong>forcing synchronization</strong> (as explained in the following section), not necessarily a slow pipeline. While speeding up data loading might narrow this gap, only removing the synchronization eliminates the gap and achieves true parallelism.</p></li>
+</ul>
+<figure class="align-default" id="id2">
+<img alt="../_images/data_profile.png" src="../_images/data_profile.png" />
+<figcaption>
+<p><span class="caption-text">Example profiles of sequential (left) vs. parallel (right) data loading with TPU computation.</span><a class="headerlink" href="#id2" title="Link to this image">#</a></p>
+</figcaption>
+</figure>
+</section>
+<section id="common-pitfall-forcing-synchronization">
+<h2>Common pitfall: forcing synchronization<a class="headerlink" href="#common-pitfall-forcing-synchronization" title="Link to this heading">#</a></h2>
+<p>JAX’s asynchronous dispatch allows the CPU to run ahead. However, this parallelism breaks if your host code (Python) tries to access the result of a computation before it’s finished.</p>
+<ul class="simple">
+<li><p><strong>Example</strong>: Calling <code class="docutils literal notranslate"><span class="pre">print(loss)</span></code> or <code class="docutils literal notranslate"><span class="pre">.block_until_ready()</span></code> on a JAX array from the current step forces the host to wait for the accelerator, stalling the data pipeline.</p></li>
+<li><p><strong>MaxText solution</strong>: MaxText avoids this by using a metrics cache. It only prints the loss from the previous step, allowing the current step’s computation and the next step’s data loading to proceed in parallel (see <a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/blob/1c6f5a26dc155262d2ebdd68223397107dfd4b95/src/MaxText/metric_logger.py#L193">buffer_and_write_train_metrics()</a> in <code class="docutils literal notranslate"><span class="pre">metric_logger.py</span></code>).</p></li>
+</ul>
+</section>
+<section id="how-to-test-your-pipeline">
+<h2>How to test your pipeline<a class="headerlink" href="#how-to-test-your-pipeline" title="Link to this heading">#</a></h2>
+<p>You can check if your data pipeline meets the performance goal in two ways:</p>
+<ol class="arabic simple">
+<li><p><strong>Check the profile</strong>: Look for gaps in the accelerator trace (like the “Bad” example above). If there are no gaps, your data loading is likely fast enough.</p></li>
+<li><p><strong>Run in isolation</strong>: You can benchmark training and dataloading separately with the following steps: run your training workload with synthetic data (<code class="docutils literal notranslate"><span class="pre">dataset_type=synthetic</span></code>) to get a target_step_time time; use a script (like <code class="docutils literal notranslate"><span class="pre">standalone_dataloader.py</span></code>) to time how long it takes to load data batches without training. If your data_loading_time is consistently less than your target_step_time, your data pipeline is not the bottleneck. However, if your step time with <em>real data</em> is still slower than your target_step_time, it strongly suggests a forced synchronization issue.</p></li>
+</ol>
+</section>
+<section id="how-to-speed-up-a-slow-data-pipeline">
+<h2>How to speed up a slow data pipeline<a class="headerlink" href="#how-to-speed-up-a-slow-data-pipeline" title="Link to this heading">#</a></h2>
+<p>If your profile confirms that data loading is parallel but still slower than computation, then data loading is the bottleneck. Here are a few ways to speed it up:</p>
+<ol class="arabic simple">
+<li><p><strong>Tune Grain</strong>: If you are using the <a class="reference internal" href="../guides/data_input_grain.html"><span class="std std-doc">Grain data pipeline</span></a>, start by tuning the <code class="docutils literal notranslate"><span class="pre">grain_worker_count</span></code>. If adjusting the worker count isn’t enough, use the <a class="reference external" href="https://google-grain.readthedocs.io/en/latest/tutorials/dataset_debugging_tutorial.html">Grain performance and debugging tool</a> to find the specific bottleneck.</p></li>
+<li><p><strong>Pre-process offline</strong>: Perform as much data preparation as possible offline. Apply only light-weight preprocessing during training.</p></li>
+</ol>
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="sharding.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Sharding</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../reference.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Reference documentation</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-goal-overlap-data-loading-and-computation">The goal: overlap data loading and computation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prerequisite-asynchronous-execution">Prerequisite: asynchronous execution</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#common-pitfall-forcing-synchronization">Common pitfall: forcing synchronization</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#how-to-test-your-pipeline">How to test your pipeline</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#how-to-speed-up-a-slow-data-pipeline">How to speed up a slow data pipeline</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By MaxText developers
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2025, MaxText developers.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

@@ -1,0 +1,632 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Try SFT! &#8212; MaxText  documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=3ac9c114" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/documentation_options.js?v=c73c0f3e"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'tutorials/sft';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="How-to Guides" href="../guides.html" />
+    <link rel="prev" title="Try GRPO!" href="grpo.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/maxtext.png" class="logo__image only-light" alt="MaxText  documentation - Home"/>
+    <script>document.write(`<img src="../_static/maxtext.png" class="logo__image only-dark" alt="MaxText  documentation - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../index.html">
+                    MaxText
+                </a>
+            </li>
+        </ul>
+        <ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../tutorials.html">Tutorials</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="first_run.html">Getting Started: First Run</a></li>
+<li class="toctree-l2"><a class="reference internal" href="full_finetuning.html">Full Finetuning LLama3-8B  Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_llama2.html">About Llama2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="grpo.html">Try GRPO!</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Try SFT!</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../guides.html">How-to Guides</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../guides/checkpoints.html">Checkpoints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/custom_model.html">How to customize your model configs on TPU</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/run_maxtext_localhost.html">Run MaxText on Localhost or Single Host VM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/run_maxtext_via_xpk.html">Running MaxText at Scale with XPK</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/run_maxtext_via_pathways.html">Guide: Running MaxText via Pathways</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../guides/data_input_pipeline.html">Manage the data input pipeline</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../guides/data_input_grain.html">Grain pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../guides/data_input_hf.html">Hugging Face pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../guides/data_input_tfds.html">TFDS pipeline</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/single_host_gpu.html">Maxtext on Single host GPU</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/knowledge_distillation.html">Knowledge Distillation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/gcp_workload_observability.html">Enable GCP Workload Observabiltiy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/monitor_goodput.html">ML Goodput Measurement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/use_vertex_ai_tensorboard.html">Use Vertex AI Tensorboard</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/features_and_diagnostics.html">Features and Diagnostics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/pallas_kernels_performance.html">Performance Optimizations with Pallas Kernels</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/performance_metrics.html">Performance Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/understand_logs_and_metrics.html">Understand Logs and Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/checkpointing_solutions/gcs_checkpointing.html">GCS bucket-based checkpointing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/checkpointing_solutions/emergency_checkpointing.html">Emergency Checkpointing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/checkpointing_solutions/multi_tier_checkpointing.html">Multi-Tier Checkpointing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/jax_ai_libraries_chosen.html">The JAX Ecosystem in MaxText: An Opinionated Guide</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../explanations.html">Explanations</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/steps_model.html">Steps to build a Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/quantization.html">Quantization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/sharding.html">Sharding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/data_pipeline_perf.html">Data input pipeline performance</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../reference.html">Reference documentation</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../reference/terminology.html">Terminology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/supported_models_and_architectures.html">Supported Models &amp; Architectures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/alternatives.html">Comparison to Alternatives</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/benchmark_and_performance.html">Benchmark and Performance Tuning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/architecture_overview.html">MaxText architecture overview</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">How to Contribute</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+<a href="https://github.com/AI-Hypercomputer/maxtext" target="_blank"
+   class="btn btn-sm btn-source-repository-button"
+   title="Source repository"
+   data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+
+</a>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/tutorials/sft.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Try SFT!</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#setup-virtual-environment">Setup virtual environment</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#create-a-python3-12-virtual-environment">Create a Python3.12 virtual environment</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activate-virtual-environment">Activate virtual environment</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#install-maxtext-dependencies">Install MaxText dependencies</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#run-sft">Run SFT</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#run-sft-on-hugging-face-checkpoint">Run SFT on Hugging Face checkpoint</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#setup-environment-variables">Setup environment variables</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#run-sft-on-maxtext-checkpoint">Run SFT on MaxText checkpoint</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">Setup environment variables</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <!--
+ Copyright 2023–2025 Google LLC
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+      https://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+ -->
+<section class="tex2jax_ignore mathjax_ignore" id="try-sft">
+<h1>Try SFT!<a class="headerlink" href="#try-sft" title="Link to this heading">#</a></h1>
+<p>Supervised fine-tuning (SFT) is a process where a pre-trained large language model is fine-tuned on a labeled dataset to adapt the model to perform better on specific tasks.</p>
+<p>This tutorial demonstrates step-by-step instructions for setting up the environment and then training the Llama3.1 8B model on the <a class="reference external" href="https://huggingface.co/datasets/HuggingFaceH4/ultrachat_200k">HuggingFaceH4/ultrachat_200k</a> dataset using SFT. If you wish to use a different dataset, you can <a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/blob/main/MaxText/configs/sft.yml">update the dataset configurations</a>.</p>
+<p>We use <a class="reference external" href="https://github.com/google/tunix">Tunix</a>, a JAX-based library designed for post-training tasks, to perform SFT.</p>
+<p>In this tutorial we use a single host TPU VM such as <code class="docutils literal notranslate"><span class="pre">v6e-8/v5p-8</span></code>. Let’s get started!</p>
+<section id="setup-virtual-environment">
+<h2>Setup virtual environment<a class="headerlink" href="#setup-virtual-environment" title="Link to this heading">#</a></h2>
+<section id="create-a-python3-12-virtual-environment">
+<h3>Create a Python3.12 virtual environment<a class="headerlink" href="#create-a-python3-12-virtual-environment" title="Link to this heading">#</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">bash</span> <span class="n">setup</span><span class="o">.</span><span class="n">sh</span>
+</pre></div>
+</div>
+</section>
+<section id="activate-virtual-environment">
+<h3>Activate virtual environment<a class="headerlink" href="#activate-virtual-environment" title="Link to this heading">#</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span># Replace with your virtual environment name if not using this default name
+venv_name=&quot;maxtext_venv&quot;
+source ~/$venv_name/bin/activate
+</pre></div>
+</div>
+</section>
+<section id="install-maxtext-dependencies">
+<h3>Install MaxText dependencies<a class="headerlink" href="#install-maxtext-dependencies" title="Link to this heading">#</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">bash</span> <span class="n">setup</span><span class="o">.</span><span class="n">sh</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="run-sft">
+<h2>Run SFT<a class="headerlink" href="#run-sft" title="Link to this heading">#</a></h2>
+<p>There are two scenarios supported for running SFT:</p>
+<ol class="arabic simple">
+<li><p><strong>Run SFT on Hugging Face checkpoint</strong>
+Download the checkpoint directly from Hugging Face and fine-tune it using SFT.</p></li>
+<li><p><strong>Run SFT on MaxText checkpoint</strong>
+Use a checkpoint generated by MaxText and fine-tune it using SFT.</p></li>
+</ol>
+<p>Choose the scenario that matches your workflow and follow the corresponding instructions below.</p>
+<section id="run-sft-on-hugging-face-checkpoint">
+<h3>Run SFT on Hugging Face checkpoint<a class="headerlink" href="#run-sft-on-hugging-face-checkpoint" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>The script will first convert a Hugging Face checkpoint to a MaxText checkpoint.</p></li>
+<li><p>It then runs SFT on this converted checkpoint.</p></li>
+</ul>
+<section id="setup-environment-variables">
+<h4>Setup environment variables<a class="headerlink" href="#setup-environment-variables" title="Link to this heading">#</a></h4>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span> <span class="n">export</span> <span class="n">HF_TOKEN</span><span class="o">=&lt;</span><span class="n">Hugging</span> <span class="n">Face</span> <span class="n">access</span> <span class="n">token</span><span class="o">&gt;</span>
+
+ <span class="n">export</span> <span class="n">BASE_OUTPUT_DIRECTORY</span><span class="o">=&lt;</span><span class="n">output</span> <span class="n">directory</span> <span class="n">to</span> <span class="n">store</span> <span class="n">run</span> <span class="n">logs</span><span class="o">&gt;</span>
+
+ <span class="n">export</span> <span class="n">STEPS</span><span class="o">=&lt;</span><span class="n">number</span> <span class="n">of</span> <span class="n">fine</span><span class="o">-</span><span class="n">tuning</span> <span class="n">steps</span> <span class="n">to</span> <span class="n">run</span><span class="o">&gt;</span>
+
+ <span class="n">export</span> <span class="n">PER_DEVICE_BATCH_SIZE</span><span class="o">=</span><span class="mi">1</span>
+</pre></div>
+</div>
+<p>Finally, run the <a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/blob/main/end_to_end/tpu/llama3.1/8b/run_sft.sh">script</a>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">bash</span> <span class="o">~/</span><span class="n">maxtext</span><span class="o">/</span><span class="n">end_to_end</span><span class="o">/</span><span class="n">tpu</span><span class="o">/</span><span class="n">llama3</span><span class="mf">.1</span><span class="o">/</span><span class="mi">8</span><span class="n">b</span><span class="o">/</span><span class="n">run_sft</span><span class="o">.</span><span class="n">sh</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="run-sft-on-maxtext-checkpoint">
+<h3>Run SFT on MaxText checkpoint<a class="headerlink" href="#run-sft-on-maxtext-checkpoint" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>The script directly runs SFT on MaxText checkpoint.</p></li>
+</ul>
+<section id="id1">
+<h4>Setup environment variables<a class="headerlink" href="#id1" title="Link to this heading">#</a></h4>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span> <span class="n">export</span> <span class="n">HF_TOKEN</span><span class="o">=&lt;</span><span class="n">Hugging</span> <span class="n">Face</span> <span class="n">access</span> <span class="n">token</span><span class="o">&gt;</span>
+
+ <span class="n">export</span> <span class="n">BASE_OUTPUT_DIRECTORY</span><span class="o">=&lt;</span><span class="n">output</span> <span class="n">directory</span> <span class="n">to</span> <span class="n">store</span> <span class="n">run</span> <span class="n">logs</span><span class="o">&gt;</span>
+
+ <span class="n">export</span> <span class="n">STEPS</span><span class="o">=&lt;</span><span class="n">number</span> <span class="n">of</span> <span class="n">fine</span><span class="o">-</span><span class="n">tuning</span> <span class="n">steps</span> <span class="n">to</span> <span class="n">run</span><span class="o">&gt;</span>
+
+ <span class="n">export</span> <span class="n">PER_DEVICE_BATCH_SIZE</span><span class="o">=</span><span class="mi">1</span>
+
+ <span class="n">export</span> <span class="n">PRE_TRAINED_MODEL_CKPT_PATH</span><span class="o">=&lt;</span><span class="n">gcs</span> <span class="n">path</span> <span class="k">for</span> <span class="n">MaxText</span> <span class="n">checkpoint</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>Finally, run the <a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/blob/main/end_to_end/tpu/llama3.1/8b/run_sft.sh">script</a>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">bash</span> <span class="o">~/</span><span class="n">maxtext</span><span class="o">/</span><span class="n">end_to_end</span><span class="o">/</span><span class="n">tpu</span><span class="o">/</span><span class="n">llama3</span><span class="mf">.1</span><span class="o">/</span><span class="mi">8</span><span class="n">b</span><span class="o">/</span><span class="n">run_sft</span><span class="o">.</span><span class="n">sh</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="grpo.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Try GRPO!</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../guides.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">How-to Guides</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#setup-virtual-environment">Setup virtual environment</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#create-a-python3-12-virtual-environment">Create a Python3.12 virtual environment</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#activate-virtual-environment">Activate virtual environment</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#install-maxtext-dependencies">Install MaxText dependencies</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#run-sft">Run SFT</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#run-sft-on-hugging-face-checkpoint">Run SFT on Hugging Face checkpoint</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#setup-environment-variables">Setup environment variables</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#run-sft-on-maxtext-checkpoint">Run SFT on MaxText checkpoint</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">Setup environment variables</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By MaxText developers
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2025, MaxText developers.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

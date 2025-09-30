@@ -1,0 +1,731 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Emergency Checkpointing &#8212; MaxText  documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../_static/css/custom.css?v=3ac9c114" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../../_static/documentation_options.js?v=c73c0f3e"></script>
+    <script src="../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script src="../../_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'guides/checkpointing_solutions/emergency_checkpointing';</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Multi-Tier Checkpointing" href="multi_tier_checkpointing.html" />
+    <link rel="prev" title="GCS bucket-based checkpointing" href="gcs_checkpointing.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/maxtext.png" class="logo__image only-light" alt="MaxText  documentation - Home"/>
+    <script>document.write(`<img src="../../_static/maxtext.png" class="logo__image only-dark" alt="MaxText  documentation - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../../index.html">
+                    MaxText
+                </a>
+            </li>
+        </ul>
+        <ul class="current nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../tutorials.html">Tutorials</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../tutorials/first_run.html">Getting Started: First Run</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../tutorials/full_finetuning.html">Full Finetuning LLama3-8B  Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../tutorials/run_llama2.html">About Llama2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../tutorials/grpo.html">Try GRPO!</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../tutorials/sft.html">Try SFT!</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../../guides.html">How-to Guides</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../checkpoints.html">Checkpoints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../custom_model.html">How to customize your model configs on TPU</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../run_maxtext_localhost.html">Run MaxText on Localhost or Single Host VM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../run_maxtext_via_xpk.html">Running MaxText at Scale with XPK</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../run_maxtext_via_pathways.html">Guide: Running MaxText via Pathways</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../data_input_pipeline.html">Manage the data input pipeline</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../data_input_grain.html">Grain pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../data_input_hf.html">Hugging Face pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../data_input_tfds.html">TFDS pipeline</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="../single_host_gpu.html">Maxtext on Single host GPU</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../knowledge_distillation.html">Knowledge Distillation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../gcp_workload_observability.html">Enable GCP Workload Observabiltiy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../monitor_goodput.html">ML Goodput Measurement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../use_vertex_ai_tensorboard.html">Use Vertex AI Tensorboard</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../features_and_diagnostics.html">Features and Diagnostics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pallas_kernels_performance.html">Performance Optimizations with Pallas Kernels</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../performance_metrics.html">Performance Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../understand_logs_and_metrics.html">Understand Logs and Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gcs_checkpointing.html">GCS bucket-based checkpointing</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Emergency Checkpointing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="multi_tier_checkpointing.html">Multi-Tier Checkpointing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../jax_ai_libraries_chosen.html">The JAX Ecosystem in MaxText: An Opinionated Guide</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../explanations.html">Explanations</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../explanations/steps_model.html">Steps to build a Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../explanations/quantization.html">Quantization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../explanations/sharding.html">Sharding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../explanations/data_pipeline_perf.html">Data input pipeline performance</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../reference.html">Reference documentation</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../reference/terminology.html">Terminology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../reference/supported_models_and_architectures.html">Supported Models &amp; Architectures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../reference/alternatives.html">Comparison to Alternatives</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../reference/benchmark_and_performance.html">Benchmark and Performance Tuning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../reference/architecture_overview.html">MaxText architecture overview</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../development.html">How to Contribute</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+<a href="https://github.com/AI-Hypercomputer/maxtext" target="_blank"
+   class="btn btn-sm btn-source-repository-button"
+   title="Source repository"
+   data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+
+</a>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../../_sources/guides/checkpointing_solutions/emergency_checkpointing.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Emergency Checkpointing</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#assumptions">Assumptions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cluster-creation-using-xpk">Cluster Creation using XPK</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#calculating-ramdisk-size-per-host">Calculating Ramdisk Size Per Host</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#example-calculation">Example Calculation</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#example-xpk-cluster-creation-command">Example XPK cluster creation command</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#maxtext-configuration">MaxText Configuration</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#workload-creation-using-xpk">Workload Creation using XPK</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#example-xpk-workload-creation-command">Example XPK workload creation command</a></li>
+</ul>
+</li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="emergency-checkpointing">
+<h1>Emergency Checkpointing<a class="headerlink" href="#emergency-checkpointing" title="Link to this heading">#</a></h1>
+<p>Emergency checkpointing is a vital feature for large-scale, multi-slice training. It enables rapid saving and restoration of model state from local, in-memory checkpoints in response to hardware failures, host errors, or preemptions. This feature becomes increasingly critical as the number of hosts and devices grows, which raises the probability of a failure.</p>
+<section id="assumptions">
+<h2>Assumptions<a class="headerlink" href="#assumptions" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>GKE Environment</strong>: A <strong>Google Kubernetes Engine (GKE)</strong> cluster must be used. GCE infrastructure solutions like QueuedResources are not supported.</p></li>
+<li><p><strong>Multi-Tier Checkpointing Enabled on GKE cluster level</strong>: The Multi-Tier Checkpointing feature must be enabled and configured on your GKE cluster. This involves setting up the necessary CSI drivers and configurations as outlined in the <a class="reference external" href="https://cloud.google.com/kubernetes-engine/docs/how-to/machine-learning/training/multi-tier-checkpointing">Google Cloud Checkpointing Documentation</a>.</p></li>
+<li><p><strong>Multi-Slice Workload</strong>: The training job must be a <a class="reference external" href="https://cloud.google.com/kubernetes-engine/docs/how-to/tpu-multislice">multi-slice environment</a>, meaning it utilizes more than one node pool.</p></li>
+<li><p><strong>Orbax Checkpointer</strong>: The <a class="reference external" href="https://orbax.readthedocs.io">Orbax library</a> must be used for checkpointing in your training script.</p></li>
+<li><p><strong>Ramdisk Mounted via Jobset</strong>: Each workload pod must have a <a class="reference external" href="https://cloud.google.com/kubernetes-engine/docs/how-to/machine-learning/training/multi-tier-checkpointing#update-jobset">ramdisk directory mounted by Jobset</a> using the Multi-Tier Checkpointing CSI driver. This provides a high-speed, in-memory storage location for checkpoints.</p></li>
+<li><p><strong>Supported TPU types</strong>: <a class="reference external" href="https://cloud.google.com/tpu/docs/v4">v4</a>, <a class="reference external" href="https://cloud.google.com/tpu/docs/v5e">v5e</a>, <a class="reference external" href="https://cloud.google.com/tpu/docs/v5p">v5p</a>, and <a class="reference external" href="https://cloud.google.com/tpu/docs/v6e">v6e</a></p></li>
+</ul>
+</section>
+<section id="cluster-creation-using-xpk">
+<h2>Cluster Creation using XPK<a class="headerlink" href="#cluster-creation-using-xpk" title="Link to this heading">#</a></h2>
+<p>To run workloads with Emergency Checkpointing, you need a Google Kubernetes Engine (GKE) cluster with the necessary drivers and features enabled. You can create a properly configured cluster using the <strong>XPK</strong> or by setting it up manually with <code class="docutils literal notranslate"><span class="pre">gcloud</span></code> commands following <a class="reference external" href="https://cloud.google.com/kubernetes-engine/docs/how-to/machine-learning/training/multi-tier-checkpointing">Google Cloud Checkpointing Documentation</a>.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">xpk</span></code> script provides a streamlined way to create a GKE cluster with all the required MTC settings. The key flags used are:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--enable-mtc</span></code>: Enables the Multi-Tier Checkpointing feature.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--enable-gcsfuse-csi-driver</span></code>: Installs the required GCS FUSE CSI driver.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--mtc-ramdisk-size</span></code>: Allocates an in-memory ramdisk on each node for fast, local checkpoints.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--mtc-gcs-bucket</span></code>: Specifies the GCS bucket. It is not utilized in emergency checkpointing, but is needed to deploy checkpointing configurations.</p></li>
+</ul>
+<section id="calculating-ramdisk-size-per-host">
+<h3>Calculating Ramdisk Size Per Host<a class="headerlink" href="#calculating-ramdisk-size-per-host" title="Link to this heading">#</a></h3>
+<p>The total size of a full training checkpoint (including model weights and optimizer state) can be estimated based on the number of model parameters.
+A good rule of thumb:
+<strong>Total Checkpoint Size ≈ Number of Parameters × 12 bytes</strong></p>
+<p>For example, a 1 billion parameter model would require approximately <strong>1B × 12 bytes = 12 GB</strong> for a full checkpoint.</p>
+<p>In a distributed training environment, the checkpoint is <strong>sharded</strong>, or split, across all the hosts in a slice. Each host is only responsible for saving its portion of the total checkpoint. Therefore, the ramdisk on a single pod only needs to be large enough for its local shard.</p>
+<p>The formula is:
+<strong>Required Ramdisk Size per Pod ≈ 2 * ( Total Checkpoint Size / Number of Hosts in the Slice</strong>)</p>
+<p>It’s a good practice to add a <strong>10-15% buffer</strong> .</p>
+</section>
+<section id="example-calculation">
+<h3>Example Calculation<a class="headerlink" href="#example-calculation" title="Link to this heading">#</a></h3>
+<p>Let’s walk through an example for a large model.</p>
+<ul class="simple">
+<li><p><strong>Model</strong>: A 70 billion parameter language model.</p></li>
+<li><p><strong>Training Slice</strong>: A nodepool with <strong>32 hosts</strong>.</p></li>
+</ul>
+<ol class="arabic simple">
+<li><p><strong>Estimate Total Checkpoint Size</strong>:
+<code class="docutils literal notranslate"><span class="pre">70,000,000,000</span> <span class="pre">parameters</span> <span class="pre">×</span> <span class="pre">12</span> <span class="pre">bytes/parameter</span> <span class="pre">=</span> <span class="pre">840,000,000,000</span> <span class="pre">bytes</span></code>
+<code class="docutils literal notranslate"><span class="pre">840,000,000,000</span> <span class="pre">bytes</span> <span class="pre">≈</span> <span class="pre">840</span> <span class="pre">GB</span></code></p></li>
+<li><p><strong>Calculate Per-Host Checkpoint shard</strong>:
+<code class="docutils literal notranslate"><span class="pre">(Total</span> <span class="pre">Checkpoint</span> <span class="pre">Size</span> <span class="pre">/</span> <span class="pre">32</span> <span class="pre">hosts)</span> <span class="pre">=</span> <span class="pre">26.25</span> <span class="pre">GB</span> <span class="pre">per</span> <span class="pre">host</span></code></p></li>
+<li><p><strong>Calculate Per-Host Ramdisk Size</strong>:
+<code class="docutils literal notranslate"><span class="pre">(Per-Host</span> <span class="pre">Checkpoint</span> <span class="pre">shard)</span> <span class="pre">*</span> <span class="pre">2</span> <span class="pre">=</span> <span class="pre">52.50</span> <span class="pre">GB</span> <span class="pre">per</span> <span class="pre">host</span></code></p></li>
+<li><p><strong>Add a Safety Buffer (e.g., 15%)</strong>:
+<code class="docutils literal notranslate"><span class="pre">(Per-Host</span> <span class="pre">Ramdisk</span> <span class="pre">Size)</span> <span class="pre">×</span> <span class="pre">1.15</span> <span class="pre">≈</span> <span class="pre">60.3</span> <span class="pre">GB</span></code></p></li>
+</ol>
+<p>In this scenario, you should configure each pod in that slice with a ramdisk of at least <strong>60 GB</strong>.</p>
+</section>
+<section id="example-xpk-cluster-creation-command">
+<h3>Example XPK cluster creation command<a class="headerlink" href="#example-xpk-cluster-creation-command" title="Link to this heading">#</a></h3>
+<ol class="arabic">
+<li><p><strong>Set up environment variables:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">OUTPUT_PATH</span><span class="o">=</span>&lt;gcs<span class="w"> </span>bucket<span class="w"> </span>output<span class="w"> </span>path&gt;
+<span class="nv">PROJECT_ID</span><span class="o">=</span>&lt;project<span class="w"> </span>id&gt;
+<span class="nv">ZONE</span><span class="o">=</span>&lt;your<span class="w"> </span>zone&gt;
+<span class="nv">CLUSTER_NAME</span><span class="o">=</span>&lt;cluster<span class="w"> </span>name&gt;
+<span class="nv">TPU_TYPE</span><span class="o">=</span>&lt;tpu-type&gt;<span class="w"> </span><span class="c1">#example: v6e-256</span>
+<span class="nv">MACHINE_TYPE</span><span class="o">=</span>&lt;cpu<span class="w"> </span>machine-type&gt;
+<span class="nv">NUM_SLICES</span><span class="o">=</span>&lt;number<span class="w"> </span>of<span class="w"> </span>slices&gt;
+<span class="nv">RAMDISK_SIZE</span><span class="o">=</span>&lt;ramdisk<span class="w"> </span>size&gt;<span class="w"> </span><span class="c1">#example: 60000Mi</span>
+<span class="nv">GKE_VERSION</span><span class="o">=</span>&lt;gke<span class="w"> </span>version&gt;<span class="w"> </span><span class="c1">#example: 1.32.3-gke.1785000</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Configure gcloud:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>gcloud<span class="w"> </span>config<span class="w"> </span><span class="nb">set</span><span class="w"> </span>project<span class="w"> </span><span class="si">${</span><span class="nv">PROJECT_ID</span><span class="si">}</span>
+gcloud<span class="w"> </span>config<span class="w"> </span><span class="nb">set</span><span class="w"> </span>compute/zone<span class="w"> </span><span class="si">${</span><span class="nv">ZONE</span><span class="si">}</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Clone the XPK repository:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span><span class="o">[</span>https://github.com/AI-Hypercomputer/xpk.git<span class="o">](</span>https://github.com/AI-Hypercomputer/xpk.git<span class="o">)</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Run the cluster creation command:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>xpk/xpk.py<span class="w"> </span>cluster<span class="w"> </span>create<span class="w"> </span><span class="se">\</span>
+--cluster<span class="w"> </span><span class="si">${</span><span class="nv">CLUSTER_NAME</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
+--cluster-cpu-machine-type<span class="o">=</span><span class="si">${</span><span class="nv">MACHINE_TYPE</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
+--num-slices<span class="o">=</span><span class="si">${</span><span class="nv">NUM_SLICES</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
+--tpu-type<span class="o">=</span><span class="si">${</span><span class="nv">TPU_TYPE</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
+--enable-mtc<span class="w"> </span><span class="se">\</span>
+--enable-gcsfuse-csi-driver<span class="w"> </span><span class="se">\</span>
+--mtc-ramdisk-size<span class="o">=</span><span class="si">${</span><span class="nv">RAMDISK_SIZE</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
+--mtc-gcs-bucket<span class="o">=</span><span class="si">${</span><span class="nv">OUTPUT_PATH</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
+--gke-version<span class="o">=</span><span class="si">${</span><span class="nv">GKE_VERSION</span><span class="si">}</span>
+</pre></div>
+</div>
+</li>
+</ol>
+</section>
+</section>
+<section id="maxtext-configuration">
+<h2>MaxText Configuration<a class="headerlink" href="#maxtext-configuration" title="Link to this heading">#</a></h2>
+<p>MaxText provides a set of configuration flags to control checkpointing options. This configuration manages a <code class="docutils literal notranslate"><span class="pre">two-tiered</span> <span class="pre">checkpointing</span></code> system designed for both durability and rapid recovery.</p>
+<ul class="simple">
+<li><p><strong>Local Emergency Checkpoints</strong>: It saves checkpoints much more frequently to a fast, local directory on each host (i.e. a ramdisk). If a preemption or failure occurs, the job can restore from this recent local copy, minimizing lost work without needing to download from slower persistent storage. This feature is enabled by setting <code class="docutils literal notranslate"><span class="pre">enable_checkpointing</span></code>, <code class="docutils literal notranslate"><span class="pre">enable_emergency_checkpoint</span></code>, <code class="docutils literal notranslate"><span class="pre">local_checkpoint_directory</span></code> and a non-zero <code class="docutils literal notranslate"><span class="pre">local_checkpoint_period</span></code>.</p></li>
+<li><p><strong>Persistent Checkpoints</strong>: These are standard checkpoints saved periodically and much more rarely to durable storage(i.e. GCS bucket). They ensure that you can recover your training state even after a complete cluster failure. This is controlled by <code class="docutils literal notranslate"><span class="pre">enable_checkpointing</span></code>, and <code class="docutils literal notranslate"><span class="pre">checkpoint_period</span></code>.</p></li>
+</ul>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head text-left"><p>Flag</p></th>
+<th class="head text-left"><p>Description</p></th>
+<th class="head text-left"><p>Type</p></th>
+<th class="head text-left"><p>Default</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">enable_checkpointing</span></code></p></td>
+<td class="text-left"><p>A master switch to enable (<code class="docutils literal notranslate"><span class="pre">True</span></code>) or disable (<code class="docutils literal notranslate"><span class="pre">False</span></code>) saving checkpoints during the training run.</p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">boolean</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">enable_emergency_checkpoint</span></code></p></td>
+<td class="text-left"><p>When set to (<code class="docutils literal notranslate"><span class="pre">True</span></code>), this flag enables the two-tiered emergency checkpointing feature.</p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">boolean</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">async_checkpointing</span></code></p></td>
+<td class="text-left"><p>When set to (<code class="docutils literal notranslate"><span class="pre">True</span></code>), this flag makes checkpoint saving asynchronous. The training step is only blocked for the minimal time needed to capture the model’s state, and the actual writing to storage happens in a background thread. This is highly recommended for performance. It’s enabled by default.</p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">boolean</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">local_checkpoint_directory</span></code></p></td>
+<td class="text-left"><p>The high-speed local filesystem path(i.e. ramdisk) where <strong>emergency checkpoints</strong> are saved. Setting this path, along with a non-zero <code class="docutils literal notranslate"><span class="pre">local_checkpoint_period</span></code>, enables the emergency checkpointing feature.</p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">string</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code></p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">local_checkpoint_period</span></code></p></td>
+<td class="text-left"><p>The interval, in training steps, for how often a <strong>local checkpoint</strong> is saved. This should be set to a much smaller value than <code class="docutils literal notranslate"><span class="pre">checkpoint_period</span></code> for frequent, low-overhead saves.</p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">integer</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">0</span></code></p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">checkpoint_period</span></code></p></td>
+<td class="text-left"><p>The interval, in training steps, for how often a checkpoint is saved to <strong>persistent storage</strong>.</p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">integer</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">10000</span></code></p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">enable_single_replica_ckpt_restoring</span></code></p></td>
+<td class="text-left"><p>If <code class="docutils literal notranslate"><span class="pre">True</span></code>, one replica reads the checkpoint from storage and then broadcasts it to all other replicas. This can significantly speed up restoration on multi-host systems by reducing redundant reads from storage.</p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">boolean</span></code></p></td>
+<td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="workload-creation-using-xpk">
+<h2>Workload Creation using XPK<a class="headerlink" href="#workload-creation-using-xpk" title="Link to this heading">#</a></h2>
+<p>The flags below would give the user access to the ramdisk in their workload:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head text-left"><p>Flag</p></th>
+<th class="head text-left"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">--mtc-enabled</span></code></p></td>
+<td class="text-left"><p>Enables the Multi-Tier Checkpointing feature, by mounting ramdisk to the workload pods, using csi drivers.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p><code class="docutils literal notranslate"><span class="pre">--ramdisk-directory</span></code></p></td>
+<td class="text-left"><p>Specifies the mount path inside each pod where the high-speed ramdisk will be accessible. Your training application should write its local, emergency checkpoints to this path.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<section id="example-xpk-workload-creation-command">
+<h3>Example XPK workload creation command<a class="headerlink" href="#example-xpk-workload-creation-command" title="Link to this heading">#</a></h3>
+<ol class="arabic">
+<li><p><strong>Set up environment variables:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">RAMDISK_DIRECTORY</span><span class="o">=</span>&lt;your<span class="w"> </span>ramdisk<span class="w"> </span>directory&gt;
+<span class="nv">WORKLOAD_NAME</span><span class="o">=</span>&lt;YOUR<span class="w"> </span>WORKLOAD<span class="w"> </span>NAME&gt;
+<span class="nv">TPU_TYPE</span><span class="o">=</span>&lt;tpu-type&gt;
+<span class="nv">NUM_SLICES</span><span class="o">=</span>&lt;number<span class="w"> </span>of<span class="w"> </span>slices&gt;
+<span class="nv">PROJECT_ID</span><span class="o">=</span>&lt;project-id&gt;
+<span class="nv">LOCAL_CHECKPOINT_PERIOD</span><span class="o">=</span>&lt;&gt;
+<span class="nv">CHECKPOINT_PEROID</span><span class="o">=</span>&lt;checkpoint_period&gt;
+<span class="nv">STEPS</span><span class="o">=</span>&lt;steps&gt;
+<span class="nv">DATA_PATH</span><span class="o">=</span>&lt;dataset<span class="w"> </span>path&gt;
+<span class="nv">OUTPUT_PATH</span><span class="o">=</span>&lt;gcs<span class="w"> </span>bucket<span class="w"> </span>output<span class="w"> </span>path&gt;
+</pre></div>
+</div>
+</li>
+<li><p><strong>Define the Docker image:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">DOCKER_IMAGE</span><span class="o">=</span>gcr.io/<span class="si">${</span><span class="nv">PROJECT_ID</span><span class="si">}</span>/<span class="si">${</span><span class="nv">USER</span><span class="si">}</span>_mtc_runner:latest
+</pre></div>
+</div>
+</li>
+<li><p><strong>Run the workload creation command:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>xpk/xpk.py<span class="w"> </span>workload<span class="w"> </span>create<span class="w"> </span><span class="se">\</span>
+--cluster<span class="w"> </span><span class="si">${</span><span class="nv">CLUSTER_NAME</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
+--docker-image<span class="w"> </span><span class="si">${</span><span class="nv">DOCKER_IMAGE</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
+--workload<span class="w"> </span><span class="si">${</span><span class="nv">WORKLOAD_NAME</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
+--tpu-type<span class="o">=</span><span class="si">${</span><span class="nv">TPU_TYPE</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
+--num-slices<span class="o">=</span><span class="si">${</span><span class="nv">NUM_SLICES</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
+--ramdisk-directory<span class="o">=</span><span class="si">${</span><span class="nv">RAMDISK_DIRECTORY</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
+--mtc-enabled<span class="w"> </span><span class="se">\</span>
+--command<span class="w"> </span><span class="s2">&quot;python3 src/MaxText/train.py src/MaxText/configs/base.yml base_output_directory=</span><span class="nv">$OUTPUT_PATH</span><span class="s2"> dataset_path=</span><span class="nv">$DATA_PATH</span><span class="s2"> steps=120 per_device_batch_size=6 enable_checkpoint_cloud_logger=True checkpoint_period=</span><span class="si">${</span><span class="nv">CHECKPOINT_PEROID</span><span class="si">}</span><span class="s2"> enable_emergency_checkpoint=True local_checkpoint_period=</span><span class="si">${</span><span class="nv">LOCAL_CHECKPOINT_PERIOD</span><span class="si">}</span><span class="s2"> local_checkpoint_directory=/</span><span class="si">${</span><span class="nv">RAMDISK_DIRECTORY</span><span class="si">}</span><span class="s2">&quot;</span>
+</pre></div>
+</div>
+</li>
+</ol>
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="gcs_checkpointing.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">GCS bucket-based checkpointing</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="multi_tier_checkpointing.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Multi-Tier Checkpointing</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#assumptions">Assumptions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cluster-creation-using-xpk">Cluster Creation using XPK</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#calculating-ramdisk-size-per-host">Calculating Ramdisk Size Per Host</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#example-calculation">Example Calculation</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#example-xpk-cluster-creation-command">Example XPK cluster creation command</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#maxtext-configuration">MaxText Configuration</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#workload-creation-using-xpk">Workload Creation using XPK</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#example-xpk-workload-creation-command">Example XPK workload creation command</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By MaxText developers
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2025, MaxText developers.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

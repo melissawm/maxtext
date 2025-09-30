@@ -1,0 +1,672 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Run MaxText on Localhost or Single Host VM &#8212; MaxText  documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=3ac9c114" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/documentation_options.js?v=c73c0f3e"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'guides/run_maxtext_localhost';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Running MaxText at Scale with XPK" href="run_maxtext_via_xpk.html" />
+    <link rel="prev" title="How to customize your model configs on TPU" href="custom_model.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/maxtext.png" class="logo__image only-light" alt="MaxText  documentation - Home"/>
+    <script>document.write(`<img src="../_static/maxtext.png" class="logo__image only-dark" alt="MaxText  documentation - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../index.html">
+                    MaxText
+                </a>
+            </li>
+        </ul>
+        <ul class="current nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../tutorials.html">Tutorials</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/first_run.html">Getting Started: First Run</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/full_finetuning.html">Full Finetuning LLama3-8B  Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/run_llama2.html">About Llama2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/grpo.html">Try GRPO!</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/sft.html">Try SFT!</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../guides.html">How-to Guides</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="checkpoints.html">Checkpoints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="custom_model.html">How to customize your model configs on TPU</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Run MaxText on Localhost or Single Host VM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_maxtext_via_xpk.html">Running MaxText at Scale with XPK</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_maxtext_via_pathways.html">Guide: Running MaxText via Pathways</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="data_input_pipeline.html">Manage the data input pipeline</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="data_input_grain.html">Grain pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data_input_hf.html">Hugging Face pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data_input_tfds.html">TFDS pipeline</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="single_host_gpu.html">Maxtext on Single host GPU</a></li>
+<li class="toctree-l2"><a class="reference internal" href="knowledge_distillation.html">Knowledge Distillation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gcp_workload_observability.html">Enable GCP Workload Observabiltiy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="monitor_goodput.html">ML Goodput Measurement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="use_vertex_ai_tensorboard.html">Use Vertex AI Tensorboard</a></li>
+<li class="toctree-l2"><a class="reference internal" href="features_and_diagnostics.html">Features and Diagnostics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pallas_kernels_performance.html">Performance Optimizations with Pallas Kernels</a></li>
+<li class="toctree-l2"><a class="reference internal" href="performance_metrics.html">Performance Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="understand_logs_and_metrics.html">Understand Logs and Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="checkpointing_solutions/gcs_checkpointing.html">GCS bucket-based checkpointing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="checkpointing_solutions/emergency_checkpointing.html">Emergency Checkpointing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="checkpointing_solutions/multi_tier_checkpointing.html">Multi-Tier Checkpointing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="jax_ai_libraries_chosen.html">The JAX Ecosystem in MaxText: An Opinionated Guide</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../explanations.html">Explanations</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/steps_model.html">Steps to build a Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/quantization.html">Quantization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/sharding.html">Sharding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/data_pipeline_perf.html">Data input pipeline performance</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../reference.html">Reference documentation</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../reference/terminology.html">Terminology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/supported_models_and_architectures.html">Supported Models &amp; Architectures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/alternatives.html">Comparison to Alternatives</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/benchmark_and_performance.html">Benchmark and Performance Tuning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/architecture_overview.html">MaxText architecture overview</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">How to Contribute</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+<a href="https://github.com/AI-Hypercomputer/maxtext" target="_blank"
+   class="btn btn-sm btn-source-repository-button"
+   title="Source repository"
+   data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+
+</a>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/guides/run_maxtext_localhost.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Run MaxText on Localhost or Single Host VM</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#objective">Objective</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prerequisites">Prerequisites</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#setup-google-cloud-storage-bucket">Setup Google Cloud Storage Bucket</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#setup-maxtext">Setup Maxtext</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#development">Development</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#run-maxtext-on-single-host-vm">Run Maxtext on Single Host VM</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#run-a-test-training-job">Run a Test Training Job</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#generate-sample-output-decoding">Generate Sample Output (Decoding)</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#running-models-using-provided-configs">Running Models Using Provided Configs</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#training-on-tpus">Training on TPUs</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#training-on-gpus">Training on GPUs</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="run-maxtext-on-localhost-or-single-host-vm">
+<h1>Run MaxText on Localhost or Single Host VM<a class="headerlink" href="#run-maxtext-on-localhost-or-single-host-vm" title="Link to this heading">#</a></h1>
+<section id="objective">
+<h2>Objective<a class="headerlink" href="#objective" title="Link to this heading">#</a></h2>
+<p>This guide provides comprehensive instructions for setting up MaxText on a local machine or single-host environment, covering everything from cloning the repo and dependency installation to building with Docker. By walking through the process of pre-training a small model, you will gain the foundational knowledge to run jobs on TPUs/GPUs.</p>
+</section>
+<section id="prerequisites">
+<h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Link to this heading">#</a></h2>
+<p>Before you can begin a training run, you need to configure your storage environment and set up the basic MaxText configuration.</p>
+<section id="setup-google-cloud-storage-bucket">
+<h3>Setup Google Cloud Storage Bucket<a class="headerlink" href="#setup-google-cloud-storage-bucket" title="Link to this heading">#</a></h3>
+<p>You’ll need a GCS bucket to store all your training artifacts, such as logs, metrics, and model checkpoints.</p>
+<ol class="arabic simple">
+<li><p>In your Google Cloud project, create a new storage bucket.</p></li>
+<li><p>Your TPU or GPU VMs require read/write access to this bucket. The simplest way to grant this is by assigning the <code class="docutils literal notranslate"><span class="pre">Storage</span> <span class="pre">Admin</span></code> (<code class="docutils literal notranslate"><span class="pre">roles/storage.admin</span></code>) role to the service account associated with your VMs.</p></li>
+</ol>
+</section>
+<section id="setup-maxtext">
+<h3>Setup Maxtext<a class="headerlink" href="#setup-maxtext" title="Link to this heading">#</a></h3>
+<p>MaxText uses a primary YAML file, <code class="docutils literal notranslate"><span class="pre">configs/base.yml</span></code>, to manage its settings. This default configuration sets up a llama2 style decoder-only model with approximately 1 billion parameters.</p>
+<ul class="simple">
+<li><p>Before running your first model, take a moment to review this file. Pay special attention to these core settings:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">run_name</span></code>: The name for your experiment.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">per_device_batch_size</span></code>: Controls how many examples are processed per chip. You may need to lower this for larger models to avoid running out of memory.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">max_target_length</span></code>: The maximum sequence length for the model.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">learning_rate</span></code>: The core hyperparameter for the optimizer.</p></li>
+<li><p>Mode shape parameters: <code class="docutils literal notranslate"><span class="pre">base_num_decoder_layers</span></code>, <code class="docutils literal notranslate"><span class="pre">base_emb_dim</span></code>, <code class="docutils literal notranslate"><span class="pre">base_num_query_heads</span></code>, <code class="docutils literal notranslate"><span class="pre">base_num_kv_heads</span></code>, and <code class="docutils literal notranslate"><span class="pre">head_dim</span></code>.</p></li>
+</ul>
+</li>
+<li><p><strong>Override Settings (Optional):</strong> You can modify training parameters in two ways: by editing <code class="docutils literal notranslate"><span class="pre">configs/base.yml</span></code> directly or by passing them as command-line arguments to the training script which is the recommended method. For example, to change the number of training steps, you can pass <code class="docutils literal notranslate"><span class="pre">--steps=500</span></code> when running <code class="docutils literal notranslate"><span class="pre">train.py</span></code>.</p></li>
+<li><p><strong>Note</strong>: You <strong>must</strong> update the variable <code class="docutils literal notranslate"><span class="pre">base_output_directory</span></code> which is initialized in <code class="docutils literal notranslate"><span class="pre">configs/base.yml</span></code> to point to a folder within the GCS bucket you just created (e.g., <code class="docutils literal notranslate"><span class="pre">gs://your-bucket-name/maxtext-output</span></code>).</p></li>
+</ul>
+</section>
+</section>
+<section id="development">
+<h2>Development<a class="headerlink" href="#development" title="Link to this heading">#</a></h2>
+<p>Local development on a single host TPU/GPU VM is a convenient way to run MaxText on a single host. It doesn’t scale to multiple hosts but is a good way to learn about MaxText. The following describes how to run Maxtext on TPU/GPU VMs.</p>
+<section id="run-maxtext-on-single-host-vm">
+<h3>Run Maxtext on Single Host VM<a class="headerlink" href="#run-maxtext-on-single-host-vm" title="Link to this heading">#</a></h3>
+<ol class="arabic">
+<li><p>Create and SSH to the single host VM of your choice. You can use any available single host TPU, such as <code class="docutils literal notranslate"><span class="pre">v5litepod-8</span></code>, <code class="docutils literal notranslate"><span class="pre">v5p-8</span></code>, or <code class="docutils literal notranslate"><span class="pre">v4-8</span></code>. For GPUs, you can use <code class="docutils literal notranslate"><span class="pre">nvidia-h100-mega-80gb</span></code>, <code class="docutils literal notranslate"><span class="pre">nvidia-h200-141gb</span></code>, or <code class="docutils literal notranslate"><span class="pre">nvidia-b200</span></code>. For setting up a TPU VM, use the Cloud TPU documentation available at <a class="reference external" href="https://cloud.google.com/tpu/docs/managing-tpus-tpu-vm">https://cloud.google.com/tpu/docs/managing-tpus-tpu-vm</a>. For a GPU setup, refer to the guide at <a class="reference external" href="https://cloud.google.com/compute/docs/gpus/create-vm-with-gpus">https://cloud.google.com/compute/docs/gpus/create-vm-with-gpus</a>.</p></li>
+<li><p>Clone MaxText onto that VM.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Clone the repository</span>
+git<span class="w"> </span>clone<span class="w"> </span>https://github.com/google/maxtext.git
+<span class="nb">cd</span><span class="w"> </span>maxtext
+</pre></div>
+</div>
+</li>
+<li><p>Once you have cloned the repository, you have two primary options for setting up the necessary dependencies on your VM: Installing in a Python Environment, or building a Docker container. For single host workloads, we recommend to install dependencies in a python environment, and for multihost workloads we recommend the containerized approach.</p></li>
+</ol>
+<p>Within the root directory of the cloned repo, install dependencies and the pre-commit hook by running:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create a virtual environment and install dependencies</span>
+python3.12<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>~/venv-maxtext
+<span class="nb">source</span><span class="w"> </span>~/venv-maxtext/bin/activate
+bash<span class="w"> </span>setup.sh<span class="w"> </span><span class="nv">DEVICE</span><span class="o">={</span>tpu<span class="p">|</span>gpu<span class="o">}</span>
+</pre></div>
+</div>
+<section id="run-a-test-training-job">
+<h4>Run a Test Training Job<a class="headerlink" href="#run-a-test-training-job" title="Link to this heading">#</a></h4>
+<p>After the installation is complete, run a short training job using synthetic data to confirm everything is working correctly. This command trains a model for just 10 steps. Remember to replace <code class="docutils literal notranslate"><span class="pre">$YOUR_JOB_NAME</span></code> with a unique name for your run and <code class="docutils literal notranslate"><span class="pre">gs://&lt;my-bucket&gt;</span></code> with the path to the GCS bucket you configured in the prerequisites.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>MaxText.train<span class="w"> </span>MaxText/configs/base.yml<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">run_name</span><span class="o">=</span><span class="nv">$YOUR_JOB_NAME</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">base_output_directory</span><span class="o">=</span>gs://&lt;my-bucket&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">dataset_type</span><span class="o">=</span>synthetic<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">steps</span><span class="o">=</span><span class="m">10</span>
+</pre></div>
+</div>
+<p><strong>Optional</strong>: If you want to try training on a real dataset, see <a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/blob/main/docs/guides/data_input_pipeline.md">Data Input Pipeline</a> for data input options from sources like HuggingFace, Grain, and TFDS.</p>
+</section>
+<section id="generate-sample-output-decoding">
+<h4>Generate Sample Output (Decoding)<a class="headerlink" href="#generate-sample-output-decoding" title="Link to this heading">#</a></h4>
+<p>To demonstrate model output, run the following command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>MaxText.decode<span class="w"> </span>MaxText/configs/base.yml<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">run_name</span><span class="o">=</span><span class="nv">$YOUR_JOB_NAME</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">base_output_directory</span><span class="o">=</span>gs://&lt;my-bucket&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">per_device_batch_size</span><span class="o">=</span><span class="m">1</span>
+</pre></div>
+</div>
+<p><strong>Note:</strong> Because the model hasn’t been properly trained, the output text will be random. To generate meaningful output, you need to load a trained checkpoint using the <code class="docutils literal notranslate"><span class="pre">load_parameters_path</span></code> argument.</p>
+</section>
+</section>
+<section id="running-models-using-provided-configs">
+<h3>Running Models Using Provided Configs<a class="headerlink" href="#running-models-using-provided-configs" title="Link to this heading">#</a></h3>
+<p>Maxtext provides many OSS model configs that you can use directly to run training jobs on those model-specific architectures. These model-specific YAML files are located in <code class="docutils literal notranslate"><span class="pre">MaxText/configs/models</span></code> for TPU-oriented defaults, and <code class="docutils literal notranslate"><span class="pre">MaxText/configs/models/gpu</span></code> for GPU-oriented defaults.</p>
+<section id="training-on-tpus">
+<h4>Training on TPUs<a class="headerlink" href="#training-on-tpus" title="Link to this heading">#</a></h4>
+<p>To use a pre-configured model for TPUs, you override the <code class="docutils literal notranslate"><span class="pre">model_name</span></code> parameter, and MaxText will automatically load the corresponding configuration from the <code class="docutils literal notranslate"><span class="pre">MaxText/configs/models</span></code> directory and merge it with the settings from <code class="docutils literal notranslate"><span class="pre">MaxText/configs/base.yml</span></code>.</p>
+<details open>
+<summary><strong>llama3-8b (TPU)</strong></summary>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>MaxText.train<span class="w"> </span>MaxText/configs/base.yml<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">model_name</span><span class="o">=</span>llama3-8b<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">run_name</span><span class="o">=</span><span class="nv">$YOUR_JOB_NAME</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">base_output_directory</span><span class="o">=</span>gs://&lt;my-bucket&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">dataset_type</span><span class="o">=</span>synthetic<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">steps</span><span class="o">=</span><span class="m">10</span>
+</pre></div>
+</div>
+</details>
+<details open>
+<summary><strong>qwen3-4b (TPU)</strong></summary>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>MaxText.train<span class="w"> </span>MaxText/configs/base.yml<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">model_name</span><span class="o">=</span>qwen3-4b<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">run_name</span><span class="o">=</span><span class="nv">$YOUR_JOB_NAME</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">base_output_directory</span><span class="o">=</span>gs://&lt;my-bucket&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">dataset_type</span><span class="o">=</span>synthetic<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">steps</span><span class="o">=</span><span class="m">10</span>
+</pre></div>
+</div>
+</details>
+</section>
+<section id="training-on-gpus">
+<h4>Training on GPUs<a class="headerlink" href="#training-on-gpus" title="Link to this heading">#</a></h4>
+<p>To use a GPU-optimized configuration, you should specify the path to the model’s YAML file within the <code class="docutils literal notranslate"><span class="pre">MaxText/configs/models/gpu</span></code> directory as the main config file in the command. These files typically inherit from <code class="docutils literal notranslate"><span class="pre">base.yml</span></code> and set the appropriate <code class="docutils literal notranslate"><span class="pre">model_name</span></code> internally, as well as GPU-specific settings.</p>
+<details open>
+<summary><strong>mixtral-8x7b (GPU)</strong></summary>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>MaxText.train<span class="w"> </span>MaxText/configs/models/gpu/mixtral_8x7b.yml<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">run_name</span><span class="o">=</span><span class="nv">$YOUR_JOB_NAME</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">base_output_directory</span><span class="o">=</span>gs://&lt;my-bucket&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">dataset_type</span><span class="o">=</span>synthetic<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">steps</span><span class="o">=</span><span class="m">10</span>
+</pre></div>
+</div>
+<p>This will load <code class="docutils literal notranslate"><span class="pre">gpu/mixtral_8x7b.yml</span></code>, which inherits from <code class="docutils literal notranslate"><span class="pre">base.yml</span></code>.</p>
+</details>
+<details open>
+<summary><strong>llama3-8b (GPU)</strong></summary>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>MaxText.train<span class="w"> </span>MaxText/configs/models/gpu/llama3-8b.yml<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">run_name</span><span class="o">=</span><span class="nv">$YOUR_JOB_NAME</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">base_output_directory</span><span class="o">=</span>gs://&lt;my-bucket&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">dataset_type</span><span class="o">=</span>synthetic<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">steps</span><span class="o">=</span><span class="m">10</span>
+</pre></div>
+</div>
+</details>
+</section>
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="custom_model.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">How to customize your model configs on TPU</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="run_maxtext_via_xpk.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Running MaxText at Scale with XPK</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#objective">Objective</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prerequisites">Prerequisites</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#setup-google-cloud-storage-bucket">Setup Google Cloud Storage Bucket</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#setup-maxtext">Setup Maxtext</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#development">Development</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#run-maxtext-on-single-host-vm">Run Maxtext on Single Host VM</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#run-a-test-training-job">Run a Test Training Job</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#generate-sample-output-decoding">Generate Sample Output (Decoding)</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#running-models-using-provided-configs">Running Models Using Provided Configs</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#training-on-tpus">Training on TPUs</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#training-on-gpus">Training on GPUs</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By MaxText developers
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2025, MaxText developers.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

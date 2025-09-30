@@ -1,0 +1,876 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>How to customize your model configs on TPU &#8212; MaxText  documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=3ac9c114" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/documentation_options.js?v=c73c0f3e"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'guides/custom_model';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Run MaxText on Localhost or Single Host VM" href="run_maxtext_localhost.html" />
+    <link rel="prev" title="Checkpoints" href="checkpoints.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/maxtext.png" class="logo__image only-light" alt="MaxText  documentation - Home"/>
+    <script>document.write(`<img src="../_static/maxtext.png" class="logo__image only-dark" alt="MaxText  documentation - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../index.html">
+                    MaxText
+                </a>
+            </li>
+        </ul>
+        <ul class="current nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../tutorials.html">Tutorials</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/first_run.html">Getting Started: First Run</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/full_finetuning.html">Full Finetuning LLama3-8B  Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/run_llama2.html">About Llama2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/grpo.html">Try GRPO!</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/sft.html">Try SFT!</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../guides.html">How-to Guides</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="checkpoints.html">Checkpoints</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">How to customize your model configs on TPU</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_maxtext_localhost.html">Run MaxText on Localhost or Single Host VM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_maxtext_via_xpk.html">Running MaxText at Scale with XPK</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_maxtext_via_pathways.html">Guide: Running MaxText via Pathways</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="data_input_pipeline.html">Manage the data input pipeline</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="data_input_grain.html">Grain pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data_input_hf.html">Hugging Face pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data_input_tfds.html">TFDS pipeline</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="single_host_gpu.html">Maxtext on Single host GPU</a></li>
+<li class="toctree-l2"><a class="reference internal" href="knowledge_distillation.html">Knowledge Distillation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gcp_workload_observability.html">Enable GCP Workload Observabiltiy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="monitor_goodput.html">ML Goodput Measurement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="use_vertex_ai_tensorboard.html">Use Vertex AI Tensorboard</a></li>
+<li class="toctree-l2"><a class="reference internal" href="features_and_diagnostics.html">Features and Diagnostics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pallas_kernels_performance.html">Performance Optimizations with Pallas Kernels</a></li>
+<li class="toctree-l2"><a class="reference internal" href="performance_metrics.html">Performance Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="understand_logs_and_metrics.html">Understand Logs and Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="checkpointing_solutions/gcs_checkpointing.html">GCS bucket-based checkpointing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="checkpointing_solutions/emergency_checkpointing.html">Emergency Checkpointing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="checkpointing_solutions/multi_tier_checkpointing.html">Multi-Tier Checkpointing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="jax_ai_libraries_chosen.html">The JAX Ecosystem in MaxText: An Opinionated Guide</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../explanations.html">Explanations</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/steps_model.html">Steps to build a Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/quantization.html">Quantization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/sharding.html">Sharding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/data_pipeline_perf.html">Data input pipeline performance</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../reference.html">Reference documentation</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../reference/terminology.html">Terminology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/supported_models_and_architectures.html">Supported Models &amp; Architectures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/alternatives.html">Comparison to Alternatives</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/benchmark_and_performance.html">Benchmark and Performance Tuning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/architecture_overview.html">MaxText architecture overview</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">How to Contribute</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+<a href="https://github.com/AI-Hypercomputer/maxtext" target="_blank"
+   class="btn btn-sm btn-source-repository-button"
+   title="Source repository"
+   data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+
+</a>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/guides/custom_model.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>How to customize your model configs on TPU</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#introduction">Introduction</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-1-identify-initial-configs">Step 1. Identify Initial Configs</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-2-consider-tpu-best-practices">Step 2. Consider TPU Best Practices</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#model-configs">Model configs</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#performance-configs">Performance configs</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-3-choose-efficient-sharding-strategies-using-roofline-analysis">Step 3. Choose Efficient Sharding Strategies Using Roofline Analysis</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#fully-sharded-data-parallelism-fsdp">Fully Sharded Data Parallelism (FSDP)</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pure-fsdp">Pure FSDP</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#mix-fsdp">Mix FSDP</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#expert-parallelism-ep">Expert Parallelism (EP)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tensor-parallelism-tp">Tensor Parallelism (TP)</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-4-analyze-experiments">Step 4. Analyze Experiments</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-of-dense-model">Example of dense model</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#b-dense-model-on-trillium">900B dense model on Trillium</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-of-moe-model">Example of MoE model</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#b-mixtral-like-moe-on-trillium">700B Mixtral-like MoE on Trillium</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#t-mixtral-like-moe-on-trillium">10T Mixtral-like MoE on Trillium</a></li>
+</ul>
+</li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <!--
+ Copyright 2024 Google LLC
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+      https://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+ -->
+<section class="tex2jax_ignore mathjax_ignore" id="how-to-customize-your-model-configs-on-tpu">
+<h1>How to customize your model configs on TPU<a class="headerlink" href="#how-to-customize-your-model-configs-on-tpu" title="Link to this heading">#</a></h1>
+<section id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Link to this heading">#</a></h2>
+<p>This document provides a guide to optimize and customize your LLM model configurations for higher performance (i.e. MFU) on Cloud TPU. Note that this document focuses exclusively on performance tuning. The analysis of model quality and convergence behavior is outside of scope.</p>
+</section>
+<section id="step-1-identify-initial-configs">
+<h2>Step 1. Identify Initial Configs<a class="headerlink" href="#step-1-identify-initial-configs" title="Link to this heading">#</a></h2>
+<p>To begin, identify your model’s size, review open-source model configs, and establish the initial configurations for each block. You can use our <a class="reference external" href="https://colab.research.google.com/github/AI-Hypercomputer/maxtext/blob/main/docs/guides/llm_calculator.ipynb">reference calculator (on Colab)</a> to estimate parameters and FLOPs for dense, Mixtral-like Mixture of Experts (MoE), and DeepSeek-like MoE models to help you estimate the parameter count and FLOPs.</p>
+<p>Based on resources like <a class="reference external" href="https://github.com/stanford-cs336/spring2025-lectures/blob/e9cb2488fdb53ea37f0e38924ec3a1701925cef3/nonexecutable/2025%20Lecture%203%20-%20architecture.pdf">Language Modeling from Scratch</a>, we observe common architectural ratios for dense models, as shown below:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">mlp_dim</span> <span class="pre">/</span> <span class="pre">emb_dim</span></code>: 2.5-4</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">head_dim</span> <span class="pre">*</span> <span class="pre">num_query_heads</span> <span class="pre">/</span> <span class="pre">emb_dim</span></code>: 1-2</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">emb_dim</span> <span class="pre">/</span> <span class="pre">num_decoder_layers</span></code>: 100-200</p></li>
+</ul>
+<p>For MoE models,</p>
+<ul class="simple">
+<li><p>sparsity (<code class="docutils literal notranslate"><span class="pre">num_experts</span> <span class="pre">/</span> <span class="pre">num_experts_per_tok</span></code>): 4-32</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">moe_mlp_dim</span> <span class="pre">/</span> <span class="pre">emb_dim</span></code>: 0.3-3</p></li>
+</ul>
+</section>
+<section id="step-2-consider-tpu-best-practices">
+<h2>Step 2. Consider TPU Best Practices<a class="headerlink" href="#step-2-consider-tpu-best-practices" title="Link to this heading">#</a></h2>
+<section id="model-configs">
+<h3>Model configs<a class="headerlink" href="#model-configs" title="Link to this heading">#</a></h3>
+<p>To unlock peak performance on <a class="reference external" href="https://cloud.google.com/tpu/docs/system-architecture-tpu-vm">TPUs</a>, it is critical to keep the Matrix Multiply Unit (MXU) fully utilized. The MXU is the primary computational engine, with the Trillium chip specifically optimized for 256×256 matrix multiplications (earlier TPU versions, like v4/v5e/v5p, are optimized for 128×128 operations). Processing smaller matrix multiplications (e.g., two 128×128 operations on Trillium) will halve the efficiency compared to a single, fully-utilized 256×256 operation.</p>
+<p>Therefore, for optimal efficiency:</p>
+<ul class="simple">
+<li><p>Model and MLP Dimensions: Design your model’s emb_dim and mlp_dim to be multiples of 256 (for Trillium) or 128 (for older TPUs).</p></li>
+<li><p>Self-Attention Head Dimension: Ensure your attention head_dim are also multiples of 256 (for Trillium) or 128 (for older TPUs).</p></li>
+</ul>
+<p>Generally, larger multiples are more efficient. If achieving these specific multiples isn’t possible, prioritize dimensions to a multiple of either 8 or 128 to help the XLA compiler optimize memory and computation.</p>
+<p>To achieve efficient memory usage on a TPU, configure your training with the largest batch size that fits within its memory limits (configure a rematerialization policy with offloading to achieve the best MFU). Each TPU core leverages internal 8×128 vector registers for highly optimized matrix multiplications. Therefore, for peak performance and to minimize padding, your batch size should ideally be a multiple of 128. If a multiple of 128 is not feasible, try a multiple of 8. For more detailed explanations, see this <a class="reference external" href="https://cloud.google.com/tpu/docs/performance-guide">performance guide</a>.</p>
+</section>
+<section id="performance-configs">
+<h3>Performance configs<a class="headerlink" href="#performance-configs" title="Link to this heading">#</a></h3>
+<p>Use these general runtime configurations to improve your model’s performance.</p>
+<ul class="simple">
+<li><p><strong>Multi-Head Attention (MHA)</strong>. If you are using MHA, we recommend to set <code class="docutils literal notranslate"><span class="pre">fused_qkv=True</span></code> to fuse the query, key, and value computations into a single, more efficient operation.</p></li>
+<li><p><strong>Flash Attention</strong>. Use the largest possible block size to maximize throughput.</p></li>
+<li><p><strong>Memory usage</strong>. To free up memory with large models, use custom remat policy to offload layer activations (including inputs, query, key, value, out projections, etc) to the host CPU.</p></li>
+<li><p><strong>Compiler flags</strong>. XLA is the backend compiler for TPUs. Many critical performance settings can be controlled directly through XLA flags. We suggest beginning with the proven flags we have tested and provided <a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/blob/02b6b8d2558f7dab7d2be024783977bdbb3ed251/benchmarks/xla_flags_library.py">here</a>.</p></li>
+<li><p><strong>Benchmark</strong>. For consistent speed tests, set <code class="docutils literal notranslate"><span class="pre">reuse_example_batch=1</span></code> to repeatedly use the same data batch, isolating computation speed from data loading. Or use on-the-fly generated data by setting <code class="docutils literal notranslate"><span class="pre">dataset_type=synthetic</span></code>.</p></li>
+</ul>
+</section>
+</section>
+<section id="step-3-choose-efficient-sharding-strategies-using-roofline-analysis">
+<span id="roofline-sharding"></span><h2>Step 3. Choose Efficient Sharding Strategies Using Roofline Analysis<a class="headerlink" href="#step-3-choose-efficient-sharding-strategies-using-roofline-analysis" title="Link to this heading">#</a></h2>
+<p>To achieve good performance, it’s often necessary to co-design the model’s dimensions (like the MLP dimension) along with the sharding strategy. We have included examples for Trillium that demonstrate which sharding approaches work well for specific models. We recommend reading <a class="reference internal" href="../explanations/sharding.html#sharding"><span class="std std-ref">Sharding</span></a> and Jax’s <a class="reference external" href="https://jax-ml.github.io/scaling-book/sharding/">scaling book</a>.</p>
+<p>For the calculation below on Trillium, we will use Arithmetic Intensity (AI) of 5100 for 2 ICI links bandwidth bandwidth (1D with wrapound or 2D without wraparound) and 2500 for 4 ICI links bandwidth (2D with wraparound on both dimensions) over the ICI. The later bandwidth is particularly for Trillium v6e-256 (16x16) with wraparound connection.</p>
+<section id="fully-sharded-data-parallelism-fsdp">
+<h3>Fully Sharded Data Parallelism (FSDP)<a class="headerlink" href="#fully-sharded-data-parallelism-fsdp" title="Link to this heading">#</a></h3>
+<section id="pure-fsdp">
+<h4>Pure FSDP<a class="headerlink" href="#pure-fsdp" title="Link to this heading">#</a></h4>
+<p>For pure FSDP to be effective, it must have enough memory to hold both a large data batch and a full, single layer of weights at the same time.</p>
+<p>FSPD AI: <code class="docutils literal notranslate"><span class="pre">global</span> <span class="pre">batch</span> <span class="pre">/</span> <span class="pre">sparsity</span></code> (<code class="docutils literal notranslate"><span class="pre">sparsity</span> <span class="pre">=</span> <span class="pre">num_experts</span> <span class="pre">/</span> <span class="pre">num_experts_per_tok</span></code>).</p>
+<p><strong>Example with a sparsity of 16</strong>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">global</span> <span class="pre">batch</span> <span class="pre">/</span> <span class="pre">sparsity</span> <span class="pre">&gt;</span> <span class="pre">hardware</span> <span class="pre">AI</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">global</span> <span class="pre">batch</span> <span class="pre">/</span> <span class="pre">16</span> <span class="pre">&gt;</span> <span class="pre">2500</span></code> (16x16 with wraparound)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">global</span> <span class="pre">batch</span> <span class="pre">&gt;</span> <span class="pre">40k</span></code> (in tokens)</p></li>
+</ul>
+<p>We also need a single layer of weights to fit into memory which can be an issue for medium/large MoE models, e.g. DeepSeek has roughly 10B params per layer, which corresponds to 40GiB of bf16 weights and gradients, which will not fit into Trillium’s 32GiB of HBM. So the use of pure FSDP on Trillium is feasible for models with layers not exceeding roughly 5B parameters. For these larger models need Expert or Tensor Parallelism.</p>
+</section>
+<section id="mix-fsdp">
+<h4>Mix FSDP<a class="headerlink" href="#mix-fsdp" title="Link to this heading">#</a></h4>
+<p>For sparse models, large models, or when scaling to a large number of chips FSDP can be used in conjunction with other sharding strategies, such as Expert Parallelism (EP), Tensor Parallelism (TP), and Pipeline Parallelism (PP).</p>
+<p>The same AI as derived in the Pure FSDP section above still hold, we need <code class="docutils literal notranslate"><span class="pre">global</span> <span class="pre">batch</span> <span class="pre">/</span> <span class="pre">sparsity</span> <span class="pre">*</span> <span class="pre">FSDP</span> <span class="pre">&gt;</span> <span class="pre">hardware</span> <span class="pre">AI</span></code> which is equivalently to <code class="docutils literal notranslate"><span class="pre">per</span> <span class="pre">device</span> <span class="pre">batch</span> <span class="pre">(pdb)</span> <span class="pre">/</span> <span class="pre">sparsity</span> <span class="pre">*</span> <span class="pre">TP</span> <span class="pre">*</span> <span class="pre">EP</span> <span class="pre">*</span> <span class="pre">PP</span> <span class="pre">&gt;</span> <span class="pre">hardware</span> <span class="pre">AI</span></code>.</p>
+<p><strong>Example with EP=16, FSDP=16, and sparsity=32</strong>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">pdb</span> <span class="pre">*</span> <span class="pre">EP</span> <span class="pre">/</span> <span class="pre">sparsity</span> <span class="pre">&gt;</span> <span class="pre">hardware</span> <span class="pre">AI</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pdb</span> <span class="pre">*</span> <span class="pre">16</span> <span class="pre">/</span> <span class="pre">32</span> <span class="pre">&gt;</span> <span class="pre">5100</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pdb</span> <span class="pre">&gt;</span> <span class="pre">5100</span> <span class="pre">*</span> <span class="pre">32</span> <span class="pre">/</span> <span class="pre">16</span> <span class="pre">=</span> <span class="pre">10200</span></code> (in tokens)</p></li>
+</ul>
+<p>We need a per device batch of at least 10200 in this case.</p>
+</section>
+</section>
+<section id="expert-parallelism-ep">
+<h3>Expert Parallelism (EP)<a class="headerlink" href="#expert-parallelism-ep" title="Link to this heading">#</a></h3>
+<p>If pure FSDP doesn’t work either due to AI or to fit in layer weights, EP is generally the way to go for sparse models (large dense models should use TP).</p>
+<p>AI of 1D EP on ICI rings <code class="docutils literal notranslate"><span class="pre">=</span> <span class="pre">4</span> <span class="pre">*</span> <span class="pre">mlp_dim</span> <span class="pre">/</span> <span class="pre">EP</span></code>. Communication cost of all-to-all is roughly 1/4 of all-gather and reduce-scatter.</p>
+<p><strong>Example with EP=4</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">4</span> <span class="pre">*</span> <span class="pre">M</span> <span class="pre">&gt;</span> <span class="pre">5100</span> <span class="pre">*</span> <span class="pre">4</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">M</span> <span class="pre">&gt;</span> <span class="pre">5,100</span> <span class="pre">*</span> <span class="pre">4</span> <span class="pre">=</span> <span class="pre">5,100</span></code></p></li>
+</ul>
+<p><strong>Example with EP=16</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">4</span> <span class="pre">*</span> <span class="pre">M</span> <span class="pre">&gt;</span> <span class="pre">5,100</span> <span class="pre">*</span> <span class="pre">16</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">M</span> <span class="pre">&gt;</span> <span class="pre">5,100</span> <span class="pre">*</span> <span class="pre">4</span> <span class="pre">=</span> <span class="pre">20,400</span></code></p></li>
+</ul>
+<p>These examples show that to use EP, we need a large enough mlp dimension.</p>
+<p>It’s important to note that this is only a roofline analysis. A nocap strategy with a high degree of EP introduces additional overhead - load balancing across expert groups becomes more challenging.</p>
+</section>
+<section id="tensor-parallelism-tp">
+<h3>Tensor Parallelism (TP)<a class="headerlink" href="#tensor-parallelism-tp" title="Link to this heading">#</a></h3>
+<p>Tensor parallelism can be used for large dense models or super large sparse models, particularly helpful when a small per device batch is needed and to be used with PP.</p>
+<p>AI of TP: M / TP</p>
+<p><strong>Example with TP=4</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">M</span> <span class="pre">/</span> <span class="pre">TP</span> <span class="pre">&gt;</span> <span class="pre">hardware</span> <span class="pre">AI</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">M</span> <span class="pre">/</span> <span class="pre">4</span> <span class="pre">&gt;</span> <span class="pre">5100</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">M</span> <span class="pre">&gt;</span> <span class="pre">20400</span></code></p></li>
+</ul>
+<p>We have seen in practice M should be even larger- ideally 40k+. This is what we use for Llama-405B (M=53k), and was used for a custom sparse 10T model (M=40k, 64 experts).</p>
+<p>TP=4 corresponds to a custom Trillium mesh, an 8x8 ring of 2x2 subrings (the TP communication operates on the 2x2 ring). This 2x2 ring performs well (near roofline), but the 8x8 rings perform poorly (0.5 x 1 axis). E.g. if we use FSDP=64, TP=4, the FSDP=64 communications will be slower than the hardware ICI roofline, so we prefer to use the full 16 axis when M is large enough.</p>
+<p><strong>Example with TP=16</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">M</span> <span class="pre">/</span> <span class="pre">TP</span> <span class="pre">&gt;</span> <span class="pre">hardware</span> <span class="pre">AI</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">M</span> <span class="pre">/</span> <span class="pre">16</span> <span class="pre">&gt;</span> <span class="pre">5100</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">M</span> <span class="pre">&gt;</span> <span class="pre">81600</span></code></p></li>
+</ul>
+<p>To use TP=16, we need M &gt; 80k (ideally larger, 100k+). We have used this in a custom dense model (900B, M=131k), which performs very well even at 1k per device tokens (scaling to 25k+ with a reasonable global batch).</p>
+</section>
+</section>
+<section id="step-4-analyze-experiments">
+<h2>Step 4. Analyze Experiments<a class="headerlink" href="#step-4-analyze-experiments" title="Link to this heading">#</a></h2>
+<p>With your configs, begin experimenting to evaluate the model’s performance. We strongly recommend capturing a profile by following these <a class="reference external" href="https://docs.jax.dev/en/latest/profiling.html#">instructions</a>. If you are using MaxText, this can be done by simply setting <code class="docutils literal notranslate"><span class="pre">profiler=xplane</span></code> in your configuration.</p>
+<p>After generating the profile, use a tool, like <a class="reference external" href="https://github.com/openxla/xprof">xprof</a>, <a class="reference external" href="https://github.com/AI-Hypercomputer/cloud-diagnostics-xprof">xprofiler</a>, or <a class="reference external" href="https://github.com/tensorflow/tensorboard">tensorboard</a> to analyze the results. This example (<a class="reference external" href="https://jax-ml.github.io/scaling-book/profiling/">Profile TPU Programs</a> can serve as your guide. A key principle for maximizing training throughput is to ensure you are fully utilizing the available HBM. Once you achieve satisfactory performance, you can proceed with full training runs. Continue to analyze your model and refine your configurations as needed.</p>
+</section>
+<section id="example-of-dense-model">
+<h2>Example of dense model<a class="headerlink" href="#example-of-dense-model" title="Link to this heading">#</a></h2>
+<section id="b-dense-model-on-trillium">
+<h3>900B dense model on Trillium<a class="headerlink" href="#b-dense-model-on-trillium" title="Link to this heading">#</a></h3>
+<p>To use Trillium’s 16x16 mesh efficiently for a large dense model, we would like to use TP=16. This requires a huge MLP dimension, of at least 5k * 16 = 80k. With a per-device batch size of 4k tokens, this model achieved 39.8% MFU. The model demonstrated excellent scalability, maintaining 37% MFU even when the batch size was reduced to just 1k tokens per device.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p></p></th>
+<th class="head"><p>Final Configs</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>emb_dim</p></td>
+<td><p>16384</p></td>
+</tr>
+<tr class="row-odd"><td><p>mlp_dim</p></td>
+<td><p>131072</p></td>
+</tr>
+<tr class="row-even"><td><p>head_dim</p></td>
+<td><p>256</p></td>
+</tr>
+<tr class="row-odd"><td><p>num_query_head</p></td>
+<td><p>64</p></td>
+</tr>
+<tr class="row-even"><td><p>num_kv_head</p></td>
+<td><p>16</p></td>
+</tr>
+<tr class="row-odd"><td><p>num_decoder_layers</p></td>
+<td><p>128</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Total Params</strong></p></td>
+<td><p>9.15E+11</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>MFU (1 pod Trillium)</strong></p></td>
+<td><p>39.8%</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</section>
+<section id="example-of-moe-model">
+<h2>Example of MoE model<a class="headerlink" href="#example-of-moe-model" title="Link to this heading">#</a></h2>
+<section id="b-mixtral-like-moe-on-trillium">
+<h3>700B Mixtral-like MoE on Trillium<a class="headerlink" href="#b-mixtral-like-moe-on-trillium" title="Link to this heading">#</a></h3>
+<p>Our objective was to develop a custom Mixtral-like MoE model capable of high MFU on Trillium TPUs, targeting a 1.5 capacity factor (The <strong>capacity factor</strong> is a multiplier used to determine the processing capacity of each expert. it is used as Expert Capacity = (Tokens in Batch / Number of Experts) * Capacity Factor). We established an initial baseline of 43.1% MFU with a 1.0 capacity factor. Profiling revealed this configuration utilized approximately 20GiB HBM. To better leverage Trillium’s 32GiB HBM and avoid potential convergence issues with large global batch sizes during scaling (maintaining a per device batch size of 8k), we made the following architectural adjustments:</p>
+<ul class="simple">
+<li><p>Increased the MLP dimension from 3x to 4x of the model dimension (32,768 : 8,192).</p></li>
+<li><p>Increased query heads from 32 to 128 for each layer, while reducing the number of layers from 72 to 56 to preserve overall model size around 700B.</p></li>
+</ul>
+<p>These changes, without updating sharding strategies, initially yielded nearly 50% MFU. Upon increasing the capacity factor to 1.5 (adding a buffer to allow experts to handle imbalance in token routing), MFU slightly decreased to 38.1% and scaling to 4 pods to get 35.3% MFU, which still exceeded our target of 35%. More detailed configs can be found <a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/blob/3662540ee852d0d8f8333a36c04ddc0f1316ebfb/benchmarks/maxtext_trillium_model_configs.py#L1743">here</a> in the repo.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p></p></th>
+<th class="head"><p>Initial Configs</p></th>
+<th class="head"><p>Experimental Config</p></th>
+<th class="head"><p>Final Configs</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>emb_dim</p></td>
+<td><p>8192</p></td>
+<td><p>8192</p></td>
+<td><p>8192</p></td>
+</tr>
+<tr class="row-odd"><td><p>mlp_dim</p></td>
+<td><p><strong>24576</strong></p></td>
+<td><p><strong>32768</strong></p></td>
+<td><p><strong>32768</strong></p></td>
+</tr>
+<tr class="row-even"><td><p>num_experts</p></td>
+<td><p>16</p></td>
+<td><p>16</p></td>
+<td><p>16</p></td>
+</tr>
+<tr class="row-odd"><td><p>num_experts_per_tok</p></td>
+<td><p>2</p></td>
+<td><p>2</p></td>
+<td><p>2</p></td>
+</tr>
+<tr class="row-even"><td><p>sparsity</p></td>
+<td><p>8</p></td>
+<td><p>8</p></td>
+<td><p>8</p></td>
+</tr>
+<tr class="row-odd"><td><p>head_dim</p></td>
+<td><p>256</p></td>
+<td><p>256</p></td>
+<td><p>256</p></td>
+</tr>
+<tr class="row-even"><td><p>num_query_head</p></td>
+<td><p><strong>32</strong></p></td>
+<td><p><strong>128</strong></p></td>
+<td><p><strong>128</strong></p></td>
+</tr>
+<tr class="row-odd"><td><p>num_kv_head</p></td>
+<td><p>8</p></td>
+<td><p>8</p></td>
+<td><p>8</p></td>
+</tr>
+<tr class="row-even"><td><p>num_decoder_layers</p></td>
+<td><p><strong>72</strong></p></td>
+<td><p><strong>56</strong></p></td>
+<td><p><strong>56</strong></p></td>
+</tr>
+<tr class="row-odd"><td><p>capacity_factor</p></td>
+<td><p><strong>1.0</strong></p></td>
+<td><p><strong>1.0</strong></p></td>
+<td><p><strong>1.5</strong></p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Total Params</strong></p></td>
+<td><p>7.08E+11</p></td>
+<td><p>7.54E+11</p></td>
+<td><p>7.54E+11</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Active Params</strong></p></td>
+<td><p>9.96E+10</p></td>
+<td><p>1.23E+11</p></td>
+<td><p>1.23E+11</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>MFU (1 pod Trillium)</strong></p></td>
+<td><p>43.1%</p></td>
+<td><p>49.8%</p></td>
+<td><p>38.1%</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>MFU (4 pod Trillium)</strong></p></td>
+<td><p>n/a</p></td>
+<td><p>n/a</p></td>
+<td><p>35.3%</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="t-mixtral-like-moe-on-trillium">
+<h3>10T Mixtral-like MoE on Trillium<a class="headerlink" href="#t-mixtral-like-moe-on-trillium" title="Link to this heading">#</a></h3>
+<p>Objective was to demonstrate achieving reasonable MFU on a low batch setting (2k tokens per device) for a highly sparse (sparsity=32) model on Trillium. This requires using pipeline parallelism over DCN, which in turn calls for EP+TP over ICI (EP=64, TP=4). This model achieved 26% MFU on 16 pods (PP=16), and degrades only by a few percent when adding in more DP replicas (24% MFU with PP=8 and DP=2), even at a small per device batch size of only 2k (scaling to 25k+ chips and maintaining a reasonable global batch size).</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p></p></th>
+<th class="head"><p>Final Configs</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>emb_dim</p></td>
+<td><p>10240</p></td>
+</tr>
+<tr class="row-odd"><td><p>mlp_dim</p></td>
+<td><p>40960</p></td>
+</tr>
+<tr class="row-even"><td><p>num_experts</p></td>
+<td><p>64</p></td>
+</tr>
+<tr class="row-odd"><td><p>num_experts_per_tok</p></td>
+<td><p>2</p></td>
+</tr>
+<tr class="row-even"><td><p>sparsity</p></td>
+<td><p>32</p></td>
+</tr>
+<tr class="row-odd"><td><p>head_dim</p></td>
+<td><p>256</p></td>
+</tr>
+<tr class="row-even"><td><p>num_query_head</p></td>
+<td><p>64</p></td>
+</tr>
+<tr class="row-odd"><td><p>num_kv_head</p></td>
+<td><p>16</p></td>
+</tr>
+<tr class="row-even"><td><p>num_decoder_layers</p></td>
+<td><p>128</p></td>
+</tr>
+<tr class="row-odd"><td><p>capacity_factor</p></td>
+<td><p>1.0</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Total Params</strong></p></td>
+<td><p>1.04E+13</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Active Params</strong></p></td>
+<td><p>3.76E+11</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>MFU (1 pod Trillium)</strong></p></td>
+<td><p>34.5%</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>MFU(16 pods Trillium)</strong></p></td>
+<td><p>26.2%</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="checkpoints.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Checkpoints</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="run_maxtext_localhost.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Run MaxText on Localhost or Single Host VM</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#introduction">Introduction</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-1-identify-initial-configs">Step 1. Identify Initial Configs</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-2-consider-tpu-best-practices">Step 2. Consider TPU Best Practices</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#model-configs">Model configs</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#performance-configs">Performance configs</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-3-choose-efficient-sharding-strategies-using-roofline-analysis">Step 3. Choose Efficient Sharding Strategies Using Roofline Analysis</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#fully-sharded-data-parallelism-fsdp">Fully Sharded Data Parallelism (FSDP)</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pure-fsdp">Pure FSDP</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#mix-fsdp">Mix FSDP</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#expert-parallelism-ep">Expert Parallelism (EP)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tensor-parallelism-tp">Tensor Parallelism (TP)</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-4-analyze-experiments">Step 4. Analyze Experiments</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-of-dense-model">Example of dense model</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#b-dense-model-on-trillium">900B dense model on Trillium</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-of-moe-model">Example of MoE model</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#b-mixtral-like-moe-on-trillium">700B Mixtral-like MoE on Trillium</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#t-mixtral-like-moe-on-trillium">10T Mixtral-like MoE on Trillium</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By MaxText developers
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2025, MaxText developers.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

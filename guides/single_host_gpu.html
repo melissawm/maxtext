@@ -1,0 +1,709 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Maxtext on Single host GPU &#8212; MaxText  documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=3ac9c114" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/documentation_options.js?v=c73c0f3e"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'guides/single_host_gpu';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Knowledge Distillation" href="knowledge_distillation.html" />
+    <link rel="prev" title="TFDS pipeline" href="data_input_tfds.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/maxtext.png" class="logo__image only-light" alt="MaxText  documentation - Home"/>
+    <script>document.write(`<img src="../_static/maxtext.png" class="logo__image only-dark" alt="MaxText  documentation - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../index.html">
+                    MaxText
+                </a>
+            </li>
+        </ul>
+        <ul class="current nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../tutorials.html">Tutorials</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/first_run.html">Getting Started: First Run</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/full_finetuning.html">Full Finetuning LLama3-8B  Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/run_llama2.html">About Llama2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/grpo.html">Try GRPO!</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/sft.html">Try SFT!</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../guides.html">How-to Guides</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="checkpoints.html">Checkpoints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="custom_model.html">How to customize your model configs on TPU</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_maxtext_localhost.html">Run MaxText on Localhost or Single Host VM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_maxtext_via_xpk.html">Running MaxText at Scale with XPK</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_maxtext_via_pathways.html">Guide: Running MaxText via Pathways</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="data_input_pipeline.html">Manage the data input pipeline</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="data_input_grain.html">Grain pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data_input_hf.html">Hugging Face pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data_input_tfds.html">TFDS pipeline</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Maxtext on Single host GPU</a></li>
+<li class="toctree-l2"><a class="reference internal" href="knowledge_distillation.html">Knowledge Distillation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gcp_workload_observability.html">Enable GCP Workload Observabiltiy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="monitor_goodput.html">ML Goodput Measurement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="use_vertex_ai_tensorboard.html">Use Vertex AI Tensorboard</a></li>
+<li class="toctree-l2"><a class="reference internal" href="features_and_diagnostics.html">Features and Diagnostics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pallas_kernels_performance.html">Performance Optimizations with Pallas Kernels</a></li>
+<li class="toctree-l2"><a class="reference internal" href="performance_metrics.html">Performance Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="understand_logs_and_metrics.html">Understand Logs and Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="checkpointing_solutions/gcs_checkpointing.html">GCS bucket-based checkpointing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="checkpointing_solutions/emergency_checkpointing.html">Emergency Checkpointing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="checkpointing_solutions/multi_tier_checkpointing.html">Multi-Tier Checkpointing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="jax_ai_libraries_chosen.html">The JAX Ecosystem in MaxText: An Opinionated Guide</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../explanations.html">Explanations</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/steps_model.html">Steps to build a Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/quantization.html">Quantization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/sharding.html">Sharding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/data_pipeline_perf.html">Data input pipeline performance</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../reference.html">Reference documentation</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../reference/terminology.html">Terminology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/supported_models_and_architectures.html">Supported Models &amp; Architectures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/alternatives.html">Comparison to Alternatives</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/benchmark_and_performance.html">Benchmark and Performance Tuning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/architecture_overview.html">MaxText architecture overview</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">How to Contribute</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+<a href="https://github.com/AI-Hypercomputer/maxtext" target="_blank"
+   class="btn btn-sm btn-source-repository-button"
+   title="Source repository"
+   data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+
+</a>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/guides/single_host_gpu.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Maxtext on Single host GPU</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#create-a-gpu-vm">Create a GPU VM</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#install-the-cuda-libraries">Install the CUDA libraries</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#install-docker">Install Docker</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#install-nvidia-container-toolkit">Install NVIDIA Container Toolkit</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#install-maxtext">Install MaxText</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#build-maxtext-docker-image">Build Maxtext Docker Image</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#test">Test</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#ssh-into-the-docker">SSH into the docker</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#test-a-1b-model-training">Test a 1B model training</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#test-a-llama2-7b-model-training">Test a LLama2-7B model training</a></li>
+</ul>
+</li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <!--
+ Copyright 2024 Google LLC
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+      https://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+ -->
+<section class="tex2jax_ignore mathjax_ignore" id="maxtext-on-single-host-gpu">
+<h1>Maxtext on Single host GPU<a class="headerlink" href="#maxtext-on-single-host-gpu" title="Link to this heading">#</a></h1>
+<p>This is a short guide to run Maxtext on GPU. For this current set of instructions the GPUs used are A3-high. This is a single node 8 H100 instruction.</p>
+<section id="create-a-gpu-vm">
+<h2>Create a GPU VM<a class="headerlink" href="#create-a-gpu-vm" title="Link to this heading">#</a></h2>
+<p>Follow the instructions to create a3 high or an a3 Mega VM</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://cloud.google.com/compute/docs/gpus/create-gpu-vm-accelerator-optimized#console">https://cloud.google.com/compute/docs/gpus/create-gpu-vm-accelerator-optimized#console</a></p></li>
+<li><p>Add enough disk space to work through the examples (at least 500GB)</p></li>
+</ul>
+<p>Ssh into your host:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>gcloud<span class="w"> </span>compute<span class="w"> </span>ssh<span class="w"> </span>--zone<span class="w"> </span><span class="s2">&quot;xxx&quot;</span><span class="w"> </span><span class="s2">&quot;hostname&quot;</span><span class="w"> </span>--project<span class="w"> </span><span class="s2">&quot;project name&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="install-the-cuda-libraries">
+<h2>Install the CUDA libraries<a class="headerlink" href="#install-the-cuda-libraries" title="Link to this heading">#</a></h2>
+<p>Install CUDA prior to starting:</p>
+<ul class="simple">
+<li><p>Follow the <a class="reference external" href="https://cloud.google.com/compute/docs/gpus/install-drivers-gpu">instructions</a> to install CUDA</p></li>
+<li><p>Check nvida-smi is working</p></li>
+<li><p>Check nvcc</p></li>
+</ul>
+<p>Related NVIDIA Content:</p>
+<ul class="simple">
+<li><p>NVIDIA JAX Session:</p></li>
+<li><p>Learn more about Jax on GPUs:</p>
+<ul>
+<li><p><a class="reference external" href="https://www.nvidia.com/en-us/on-demand/session/gtc24-s62246/">https://www.nvidia.com/en-us/on-demand/session/gtc24-s62246/</a></p></li>
+</ul>
+</li>
+<li><p>NVIDIA JAX Toolbox:</p>
+<ul>
+<li><p><a class="github reference external" href="https://github.com/NVIDIA/JAX-Toolbox">NVIDIA/JAX-Toolbox</a></p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="install-docker">
+<h2>Install Docker<a class="headerlink" href="#install-docker" title="Link to this heading">#</a></h2>
+<p>Follow the following steps to install docker
+<a class="reference external" href="https://docs.docker.com/engine/install/debian/">https://docs.docker.com/engine/install/debian/</a></p>
+</section>
+<section id="install-nvidia-container-toolkit">
+<h2>Install NVIDIA Container Toolkit<a class="headerlink" href="#install-nvidia-container-toolkit" title="Link to this heading">#</a></h2>
+<p><a class="reference external" href="https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html">https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html</a></p>
+<p>If you get the NVML Error: Please follow these instructions.</p>
+<p><a class="reference external" href="https://stackoverflow.com/questions/72932940/failed-to-initialize-nvml-unknown-error-in-docker-after-few-hours">https://stackoverflow.com/questions/72932940/failed-to-initialize-nvml-unknown-error-in-docker-after-few-hours</a></p>
+</section>
+<section id="install-maxtext">
+<h2>Install MaxText<a class="headerlink" href="#install-maxtext" title="Link to this heading">#</a></h2>
+<p>Clone Maxtext:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/AI-Hypercomputer/maxtext.git
+</pre></div>
+</div>
+</section>
+<section id="build-maxtext-docker-image">
+<h2>Build Maxtext Docker Image<a class="headerlink" href="#build-maxtext-docker-image" title="Link to this heading">#</a></h2>
+<p>This builds a docker image called <code class="docutils literal notranslate"><span class="pre">maxtext_base_image</span></code>. You can retag to a different name.</p>
+<ol class="arabic simple">
+<li><p>Check out the code changes:</p></li>
+</ol>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>maxtext
+</pre></div>
+</div>
+<ol class="arabic simple" start="2">
+<li><p>Run the following commands to build and push the docker image:</p></li>
+</ol>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">LOCAL_IMAGE_NAME</span><span class="o">=</span>&lt;docker_image_name&gt;
+sudo<span class="w"> </span>bash<span class="w"> </span>docker_build_dependency_image.sh<span class="w"> </span><span class="nv">DEVICE</span><span class="o">=</span>gpu<span class="w"> </span>
+docker<span class="w"> </span>tag<span class="w"> </span>maxtext_base_image<span class="w"> </span><span class="nv">$LOCAL_IMAGE_NAME</span>
+docker<span class="w"> </span>push<span class="w"> </span><span class="nv">$LOCAL_IMAGE_NAME</span>
+</pre></div>
+</div>
+<p>Note that when running <code class="docutils literal notranslate"><span class="pre">bash</span> <span class="pre">docker_build_dependency_image.sh</span> <span class="pre">DEVICE=gpu</span></code>, it
+uses <code class="docutils literal notranslate"><span class="pre">MODE=stable</span></code> by default. If you want to use other modes, you need to
+specify it explicitly:</p>
+<ul class="simple">
+<li><p>using nightly mode: <code class="docutils literal notranslate"><span class="pre">bash</span> <span class="pre">docker_build_dependency_image.sh</span> <span class="pre">DEVICE=gpu</span> <span class="pre">MODE=nightly</span></code></p></li>
+<li><p>using pinned mode: <code class="docutils literal notranslate"><span class="pre">bash</span> <span class="pre">docker_build_dependency_image.sh</span> <span class="pre">DEVICE=gpu</span> <span class="pre">MODE=pinned</span></code></p></li>
+</ul>
+</section>
+<section id="test">
+<h2>Test<a class="headerlink" href="#test" title="Link to this heading">#</a></h2>
+<p>Test the docker, to see if jax can see all the 8 GPUs</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>docker<span class="w"> </span>run<span class="w"> </span>maxtext_base_image:latest<span class="w">  </span>python3<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import jax; print(jax.devices())&quot;</span>
+</pre></div>
+</div>
+<p>You should see the following:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">CudaDevice</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">CudaDevice</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="n">CudaDevice</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span> <span class="n">CudaDevice</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="mi">3</span><span class="p">),</span> <span class="n">CudaDevice</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="mi">4</span><span class="p">),</span> <span class="n">CudaDevice</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="mi">5</span><span class="p">),</span> <span class="n">CudaDevice</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="mi">6</span><span class="p">),</span> <span class="n">CudaDevice</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="mi">7</span><span class="p">)]</span>
+</pre></div>
+</div>
+<p>Note: If you only see CPUDevice, that means there is a issue with NVIDIA Container and you need to stop and fix the issue.</p>
+<p>We will Run the next commands from inside the docker for convenience.</p>
+</section>
+<section id="ssh-into-the-docker">
+<h2>SSH into the docker<a class="headerlink" href="#ssh-into-the-docker" title="Link to this heading">#</a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>docker<span class="w"> </span>run<span class="w"> </span>--runtime<span class="o">=</span>nvidia<span class="w"> </span>--gpus<span class="w"> </span>all<span class="w"> </span>-it<span class="w"> </span>maxtext_base_image:latest<span class="w">  </span>bash
+</pre></div>
+</div>
+<p>If you do not wish to ssh execute the next set of commands by pre-pending the following:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>docker<span class="w"> </span>run<span class="w"> </span>--runtime<span class="o">=</span>nvidia<span class="w"> </span>--gpus<span class="w"> </span>all<span class="w"> </span>-it<span class="w"> </span>maxtext_base_image:latest<span class="w"> </span>....
+</pre></div>
+</div>
+<section id="test-a-1b-model-training">
+<h3>Test a 1B model training<a class="headerlink" href="#test-a-1b-model-training" title="Link to this heading">#</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">JAX_COORDINATOR_ADDRESS</span><span class="o">=</span>localhost
+<span class="nb">export</span><span class="w"> </span><span class="nv">JAX_COORDINATOR_PORT</span><span class="o">=</span><span class="m">2222</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">GPUS_PER_NODE</span><span class="o">=</span><span class="m">8</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">NODE_RANK</span><span class="o">=</span><span class="m">0</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">NNODES</span><span class="o">=</span><span class="m">1</span>
+</pre></div>
+</div>
+<p>Update script and run the command with synthetic data:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">base_output_directory</span><span class="p">:</span> <span class="n">A</span> <span class="n">GCS</span> <span class="n">Bucket</span> 
+<span class="n">dataset_type</span><span class="p">:</span> <span class="n">Synthetic</span> <span class="ow">or</span> <span class="k">pass</span> <span class="n">a</span> <span class="n">real</span> <span class="n">bucket</span>
+<span class="n">attention</span><span class="p">:</span><span class="n">cudnn_flash_te</span> <span class="p">(</span><span class="n">The</span> <span class="n">default</span> <span class="ow">in</span> <span class="n">maxtext</span> <span class="ow">is</span> <span class="n">flash</span><span class="o">.</span> <span class="n">Flash</span> <span class="n">does</span> <span class="ow">not</span> <span class="n">work</span> <span class="n">on</span> <span class="n">GPUs</span><span class="p">)</span>
+<span class="n">scan_layers</span><span class="o">=</span><span class="kc">False</span> 
+<span class="n">use_iota_embed</span><span class="o">=</span><span class="kc">True</span> 
+<span class="n">hardware</span><span class="o">=</span><span class="n">gpu</span>
+<span class="n">per_device_batch_size</span><span class="o">=</span><span class="mi">12</span> <span class="p">[</span><span class="n">Update</span> <span class="n">this</span> <span class="n">to</span> <span class="n">get</span> <span class="n">a</span> <span class="n">better</span> <span class="n">MFU</span><span class="p">]</span>
+<span class="n">Hardware</span><span class="p">:</span> <span class="n">GPU</span>
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>MaxText.train<span class="w"> </span>src/MaxText/configs/base.yml<span class="w">   </span><span class="nv">run_name</span><span class="o">=</span>gpu01<span class="w">   </span><span class="nv">base_output_directory</span><span class="o">=</span>/deps/output<span class="w">  </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">dataset_type</span><span class="o">=</span>synthetic<span class="w">   </span><span class="nv">enable_checkpointing</span><span class="o">=</span>True<span class="w">  </span><span class="nv">steps</span><span class="o">=</span><span class="m">10</span><span class="w"> </span><span class="nv">attention</span><span class="o">=</span>cudnn_flash_te<span class="w"> </span><span class="nv">scan_layers</span><span class="o">=</span>False<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">use_iota_embed</span><span class="o">=</span>True<span class="w"> </span><span class="nv">hardware</span><span class="o">=</span>gpu<span class="w"> </span><span class="nv">per_device_batch_size</span><span class="o">=</span><span class="m">12</span>
+</pre></div>
+</div>
+</section>
+<section id="test-a-llama2-7b-model-training">
+<h3>Test a LLama2-7B model training<a class="headerlink" href="#test-a-llama2-7b-model-training" title="Link to this heading">#</a></h3>
+<p>You can find the optimized running of LLama Models for various host configurations here:</p>
+<p><a class="github reference external" href="https://github.com/AI-Hypercomputer/maxtext/tree/main/MaxText/configs/a3/llama_2_7b">AI-Hypercomputer/maxtext</a></p>
+<p><code class="docutils literal notranslate"><span class="pre">1vm.sh</span></code> modified script below:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Running 1vm.sh&quot;</span>
+
+<span class="c1"># Example command to invoke this script via XPK</span>
+<span class="c1"># python3 xpk/xpk.py workload create --cluster ${CLUSTER_NAME} \</span>
+<span class="c1"># --workload ${WORKLOAD_NAME} --docker-image=gcr.io/supercomputer-testing/${LOCAL_IMAGE_NAME} \</span>
+<span class="c1"># --device-type ${DEVICE_TYPE} --num-slices 1 \</span>
+<span class="c1"># --command &quot;bash src/MaxText/configs/a3/llama_2_7b/1vm.sh&quot;</span>
+
+<span class="c1"># Stop execution if any command exits with error</span>
+<span class="nb">set</span><span class="w"> </span>-e
+
+<span class="nb">export</span><span class="w"> </span><span class="nv">OUTPUT_PATH</span><span class="o">=</span><span class="s2">&quot;provide an output path&quot;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">RUN_NAME</span><span class="o">=</span><span class="s2">&quot;llama-2-1vm-</span><span class="k">$(</span>date<span class="w"> </span>+%Y-%m-%d-%H-%M<span class="k">)</span><span class="s2">&quot;</span>
+
+<span class="c1"># Set environment variables</span>
+<span class="k">for</span><span class="w"> </span>ARGUMENT<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$@</span><span class="s2">&quot;</span><span class="p">;</span><span class="w"> </span><span class="k">do</span>
+<span class="w">    </span><span class="nv">IFS</span><span class="o">=</span><span class="s1">&#39;=&#39;</span><span class="w"> </span><span class="nb">read</span><span class="w"> </span>-r<span class="w"> </span>KEY<span class="w"> </span>VALUE<span class="w"> </span><span class="o">&lt;&lt;&lt;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$ARGUMENT</span><span class="s2">&quot;</span>
+<span class="w">    </span><span class="nb">export</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$KEY</span><span class="s2">&quot;</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$VALUE</span><span class="s2">&quot;</span>
+<span class="k">done</span>
+
+<span class="nb">export</span><span class="w"> </span><span class="nv">XLA_FLAGS</span><span class="o">=</span><span class="s2">&quot;--xla_dump_to=</span><span class="nv">$OUTPUT_PATH</span><span class="s2">/</span><span class="nv">$RUN_NAME</span><span class="s2">/HLO_dumps/</span>
+<span class="s2">--xla_gpu_enable_latency_hiding_scheduler=true --xla_gpu_enable_triton_gemm=false</span>
+<span class="s2"> --xla_gpu_enable_command_buffer=&#39;&#39; --xla_gpu_enable_highest_priority_async_stream=true</span>
+<span class="s2"> --xla_gpu_all_reduce_combine_threshold_bytes=134217728 --xla_gpu_all_gather_combine_threshold_bytes=134217728</span>
+<span class="s2"> --xla_gpu_reduce_scatter_combine_threshold_bytes=67108864 --xla_gpu_enable_pipelined_all_gather=true</span>
+<span class="s2"> --xla_gpu_enable_pipelined_reduce_scatter=true --xla_gpu_enable_pipelined_all_reduce=true</span>
+<span class="s2"> --xla_gpu_enable_while_loop_double_buffering=true --xla_gpu_enable_triton_softmax_fusion=false</span>
+<span class="s2"> --xla_gpu_enable_all_gather_combine_by_dim=false --xla_gpu_enable_reduce_scatter_combine_by_dim=false</span>
+<span class="s2"> --xla_disable_hlo_passes=rematerialization&quot;</span>
+
+
+<span class="c1"># 1 node, DATA_DP=1, ICI_FSDP=8</span>
+python3<span class="w"> </span>-m<span class="w"> </span>MaxText.train<span class="w"> </span>src/MaxText/configs/models/gpu/llama2_7b.yml<span class="w"> </span><span class="nv">run_name</span><span class="o">=</span><span class="nv">$RUN_NAME</span><span class="w"> </span><span class="nv">dcn_data_parallelism</span><span class="o">=</span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">ici_fsdp_parallelism</span><span class="o">=</span><span class="m">8</span><span class="w"> </span><span class="nv">base_output_directory</span><span class="o">=</span><span class="nv">$OUTPUT_PATH</span><span class="w"> </span><span class="nv">attention</span><span class="o">=</span>cudnn_flash_te<span class="w"> </span><span class="nv">scan_layers</span><span class="o">=</span>False<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">use_iota_embed</span><span class="o">=</span>True<span class="w"> </span><span class="nv">hardware</span><span class="o">=</span>gpu
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="data_input_tfds.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">TFDS pipeline</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="knowledge_distillation.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Knowledge Distillation</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#create-a-gpu-vm">Create a GPU VM</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#install-the-cuda-libraries">Install the CUDA libraries</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#install-docker">Install Docker</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#install-nvidia-container-toolkit">Install NVIDIA Container Toolkit</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#install-maxtext">Install MaxText</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#build-maxtext-docker-image">Build Maxtext Docker Image</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#test">Test</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#ssh-into-the-docker">SSH into the docker</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#test-a-1b-model-training">Test a 1B model training</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#test-a-llama2-7b-model-training">Test a LLama2-7B model training</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By MaxText developers
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2025, MaxText developers.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

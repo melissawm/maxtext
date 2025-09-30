@@ -1,0 +1,598 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Grain pipeline &#8212; MaxText  documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=3ac9c114" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/documentation_options.js?v=c73c0f3e"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'guides/data_input_grain';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Hugging Face pipeline" href="data_input_hf.html" />
+    <link rel="prev" title="Manage the data input pipeline" href="data_input_pipeline.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/maxtext.png" class="logo__image only-light" alt="MaxText  documentation - Home"/>
+    <script>document.write(`<img src="../_static/maxtext.png" class="logo__image only-dark" alt="MaxText  documentation - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../index.html">
+                    MaxText
+                </a>
+            </li>
+        </ul>
+        <ul class="current nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../tutorials.html">Tutorials</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/first_run.html">Getting Started: First Run</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/full_finetuning.html">Full Finetuning LLama3-8B  Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/run_llama2.html">About Llama2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/grpo.html">Try GRPO!</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/sft.html">Try SFT!</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../guides.html">How-to Guides</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="checkpoints.html">Checkpoints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="custom_model.html">How to customize your model configs on TPU</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_maxtext_localhost.html">Run MaxText on Localhost or Single Host VM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_maxtext_via_xpk.html">Running MaxText at Scale with XPK</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_maxtext_via_pathways.html">Guide: Running MaxText via Pathways</a></li>
+<li class="toctree-l2 current active has-children"><a class="reference internal" href="data_input_pipeline.html">Manage the data input pipeline</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l3 current active"><a class="current reference internal" href="#">Grain pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data_input_hf.html">Hugging Face pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data_input_tfds.html">TFDS pipeline</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="single_host_gpu.html">Maxtext on Single host GPU</a></li>
+<li class="toctree-l2"><a class="reference internal" href="knowledge_distillation.html">Knowledge Distillation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gcp_workload_observability.html">Enable GCP Workload Observabiltiy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="monitor_goodput.html">ML Goodput Measurement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="use_vertex_ai_tensorboard.html">Use Vertex AI Tensorboard</a></li>
+<li class="toctree-l2"><a class="reference internal" href="features_and_diagnostics.html">Features and Diagnostics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pallas_kernels_performance.html">Performance Optimizations with Pallas Kernels</a></li>
+<li class="toctree-l2"><a class="reference internal" href="performance_metrics.html">Performance Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="understand_logs_and_metrics.html">Understand Logs and Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="checkpointing_solutions/gcs_checkpointing.html">GCS bucket-based checkpointing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="checkpointing_solutions/emergency_checkpointing.html">Emergency Checkpointing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="checkpointing_solutions/multi_tier_checkpointing.html">Multi-Tier Checkpointing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="jax_ai_libraries_chosen.html">The JAX Ecosystem in MaxText: An Opinionated Guide</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../explanations.html">Explanations</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/steps_model.html">Steps to build a Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/quantization.html">Quantization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/sharding.html">Sharding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/data_pipeline_perf.html">Data input pipeline performance</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../reference.html">Reference documentation</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../reference/terminology.html">Terminology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/supported_models_and_architectures.html">Supported Models &amp; Architectures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/alternatives.html">Comparison to Alternatives</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/benchmark_and_performance.html">Benchmark and Performance Tuning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/architecture_overview.html">MaxText architecture overview</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">How to Contribute</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+<a href="https://github.com/AI-Hypercomputer/maxtext" target="_blank"
+   class="btn btn-sm btn-source-repository-button"
+   title="Source repository"
+   data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+
+</a>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/guides/data_input_grain.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Grain pipeline</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-recommended-input-pipeline-for-determinism-and-resilience">The recommended input pipeline for determinism and resilience!</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#why-determinism-is-important-for-data-input-pipeline">Why determinism is important for data input pipeline?</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#how-grain-achieves-determinism">How Grain achieves determinism</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cases-where-determinism-is-crucial">Cases where determinism is crucial</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#data-shuffling">Data shuffling</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#using-grain">Using Grain</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="grain-pipeline">
+<h1>Grain pipeline<a class="headerlink" href="#grain-pipeline" title="Link to this heading">#</a></h1>
+<section id="the-recommended-input-pipeline-for-determinism-and-resilience">
+<h2>The recommended input pipeline for determinism and resilience!<a class="headerlink" href="#the-recommended-input-pipeline-for-determinism-and-resilience" title="Link to this heading">#</a></h2>
+<p>Grain is a library for reading data for training and evaluating JAX models. It’s designed to be:</p>
+<ul class="simple">
+<li><p><strong>Powerful</strong>: Users can bring arbitrary Python transformations.</p></li>
+<li><p><strong>Flexible</strong>: Users can readily override Grain components for their needs.</p></li>
+<li><p><strong>Deterministic</strong>: Multiple runs of the same pipeline will produce the same outputs.</p></li>
+<li><p><strong>Resilient to preemptions</strong>: With minimal-sized checkpoints, users can resume the dataloader from the point at which it was preempted and produce the same output as if it was never preempted.</p></li>
+<li><p><strong>Performant</strong>: Achieved with multiprocessing with shared memory. Tested on multiple data modalities.</p></li>
+<li><p><strong>With minimal dependencies</strong>: Does not depend on ML frameworks (Tensorflow).</p></li>
+</ul>
+<p>Reference links: <a class="reference external" href="https://github.com/google/grain"><strong>Grain repo</strong></a> | <a class="reference external" href="https://google-grain.readthedocs.io/en/latest/index.html"><strong>Grain-Read the Docs</strong></a></p>
+</section>
+<section id="why-determinism-is-important-for-data-input-pipeline">
+<h2>Why determinism is important for data input pipeline?<a class="headerlink" href="#why-determinism-is-important-for-data-input-pipeline" title="Link to this heading">#</a></h2>
+<p>Determinism in a data input pipeline means that the same input data always results in the same sequence of batches at each step. This is typically achieved by setting a fixed shuffle seed during pipeline initialization. In an ideal scenario, where training runs uninterrupted, this determinism is straightforward (deterministic without preemption). However, real-world distributed training environments often face preemptions due to maintenance, hardware failures, or resource constraints.
+When a preempted training run resumes, the data input pipeline is re-initialized. If the same shuffle seed is used, the pipeline restarts from the beginning, potentially re-training the model on initial data. Conversely, a new seed produces a different batch sequence, making it difficult to track which data has been seen and how often each example is used for training. This lack of control can impact model performance and reproducibility.</p>
+</section>
+<section id="how-grain-achieves-determinism">
+<h2>How Grain achieves determinism<a class="headerlink" href="#how-grain-achieves-determinism" title="Link to this heading">#</a></h2>
+<p>Grain ensures determinism in data input pipelines by saving the pipeline’s state, including dataset metadata and processed data indices, within a small JSON file in checkpoints. When a training run is resumed with the same dataset and shuffle seed, Grain restores the pipeline’s exact state from the checkpoint. This enables fully deterministic, reproducible training that is resilient to disruptions.</p>
+</section>
+<section id="cases-where-determinism-is-crucial">
+<h2>Cases where determinism is crucial<a class="headerlink" href="#cases-where-determinism-is-crucial" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>Model sensitive to repetition</strong>: When models are sensitive to the frequency with which they encounter specific examples, precise control over the order and repetition of data during training is essential. All LLMs belong to this category.</p></li>
+<li><p><strong>Convergence comparison</strong>: In sensitive convergence experiments like testing quantization techniques, maintaining identical data batches between runs (e.g., quantized vs. unquantized) is essential for comparison. Determinism ensures consistency even when the runs are long and undergo saving/resuming at different steps.</p></li>
+<li><p><strong>Debug training anomalies</strong>: When troubleshooting training spikes or anomalies, the ability to replay the exact data sequence helps distinguish between bad data batches and underlying hardware or software issues.</p></li>
+</ul>
+</section>
+<section id="data-shuffling">
+<h2>Data shuffling<a class="headerlink" href="#data-shuffling" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>Global shuffle</strong>: This feature is only available when using Grain with <a class="reference external" href="https://github.com/google/array_record">ArrayRecord</a> (random access) format, achieved by shuffling indices globally at the beginning of each epoch and then reading the elements according to the random order. This shuffle method effectively prevents local overfitting, leading to better training results.</p></li>
+<li><p><strong>Hierarchical shuffle</strong>: For sequential access format <a class="reference external" href="https://arrow.apache.org/docs/python/parquet.html">Parquet</a>, shuffle is performed by these steps: file shuffling, interleave from files, and window shuffle using a fixed size buffer.</p></li>
+</ul>
+</section>
+<section id="using-grain">
+<h2>Using Grain<a class="headerlink" href="#using-grain" title="Link to this heading">#</a></h2>
+<ol class="arabic simple">
+<li><p>Grain currently supports two data formats: <a class="reference external" href="https://github.com/google/array_record">ArrayRecord</a> (random access) and <a class="reference external" href="https://arrow.apache.org/docs/python/parquet.html">Parquet</a> (partial random-access through row groups). Only the ArrayRecord format supports the global shuffle mentioned above. For converting a dataset into ArrayRecord, see <a class="reference external" href="https://github.com/google/array_record/tree/main/beam">Apache Beam Integration for ArrayRecord</a>. Additionally, other random access data sources can be supported via a custom <a class="reference external" href="https://google-grain.readthedocs.io/en/latest/data_sources.html">data source</a> class.</p></li>
+<li><p>When the dataset is hosted on a Cloud Storage bucket, Grain can read it through <a class="reference external" href="https://cloud.google.com/storage/docs/gcs-fuse">Cloud Storage FUSE</a>. The installation of Cloud Storage FUSE is included in <a class="reference external" href="https://github.com/google/maxtext/blob/main/setup.sh">setup.sh</a>. The user then needs to mount the Cloud Storage bucket to a local path for each worker, using the script <a class="reference external" href="https://github.com/google/maxtext/blob/main/setup_gcsfuse.sh">setup_gcsfuse.sh</a>. The script configures some parameters for the mount.</p></li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>bash setup_gcsfuse.sh \
+DATASET_GCS_BUCKET=$BUCKET_NAME \
+MOUNT_PATH=$MOUNT_PATH \
+[FILE_PATH=$MOUNT_PATH/my_dataset]
+# FILE_PATH is optional, when provided, the script runs &quot;ls -R&quot; for pre-filling the metadata cache
+# https://cloud.google.com/storage/docs/cloud-storage-fuse/performance#improve-first-time-reads
+</pre></div>
+</div>
+<ol class="arabic simple" start="3">
+<li><p>Set <code class="docutils literal notranslate"><span class="pre">dataset_type=grain</span></code>, <code class="docutils literal notranslate"><span class="pre">grain_file_type={arrayrecord|parquet}</span></code>, <code class="docutils literal notranslate"><span class="pre">grain_train_files</span></code> to match the file pattern on the mounted local path.</p></li>
+<li><p>Tune <code class="docutils literal notranslate"><span class="pre">grain_worker_count</span></code> for performance. This parameter controls the number of child processes used by Grain (more details in <a class="reference external" href="https://google-grain.readthedocs.io/en/latest/behind_the_scenes.html">behind_the_scenes</a>, <a class="reference external" href="https://github.com/google/grain/blob/main/grain/_src/python/grain_pool.py">grain_pool.py</a>). If you use a large number of workers, check your config for gcsfuse in <a class="reference external" href="https://github.com/google/maxtext/blob/main/setup_gcsfuse.sh">setup_gcsfuse.sh</a> to avoid gcsfuse throttling.</p></li>
+<li><p>For multi-source blending, you can specify multiple data sources with their respective weights using semicolon (;) as a separator and colon (:) for weights. The weights will be automatically normalized to sum to 1.0. For example:</p></li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Blend two data sources with 30% from first source and 70% from second source</span>
+<span class="n">grain_train_files</span><span class="o">=/</span><span class="n">tmp</span><span class="o">/</span><span class="n">gcsfuse</span><span class="o">/</span><span class="n">dataset1</span><span class="o">.</span><span class="n">array_record</span><span class="o">*</span><span class="p">:</span><span class="mf">0.3</span><span class="p">;</span><span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">gcsfuse</span><span class="o">/</span><span class="n">dataset2</span><span class="o">.</span><span class="n">array_record</span><span class="o">*</span><span class="p">:</span><span class="mf">0.7</span>
+
+<span class="c1"># Blend three data sources with equal weights (will be normalized to 0.33 each)</span>
+<span class="n">grain_train_files</span><span class="o">=/</span><span class="n">tmp</span><span class="o">/</span><span class="n">gcsfuse</span><span class="o">/</span><span class="n">dataset1</span><span class="o">.</span><span class="n">array_record</span><span class="o">*</span><span class="p">:</span><span class="mi">1</span><span class="p">;</span><span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">gcsfuse</span><span class="o">/</span><span class="n">dataset2</span><span class="o">.</span><span class="n">array_record</span><span class="o">*</span><span class="p">:</span><span class="mi">1</span><span class="p">;</span><span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">gcsfuse</span><span class="o">/</span><span class="n">dataset3</span><span class="o">.</span><span class="n">array_record</span><span class="o">*</span><span class="p">:</span><span class="mi">1</span>
+</pre></div>
+</div>
+<p>Note: When using multiple data sources, only the ArrayRecord format is supported.</p>
+<ol class="arabic simple" start="6">
+<li><p>Example command:</p></li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">bash</span> <span class="n">setup_gcsfuse</span><span class="o">.</span><span class="n">sh</span> \
+<span class="n">DATASET_GCS_BUCKET</span><span class="o">=</span><span class="n">maxtext</span><span class="o">-</span><span class="n">dataset</span> \
+<span class="n">MOUNT_PATH</span><span class="o">=/</span><span class="n">tmp</span><span class="o">/</span><span class="n">gcsfuse</span> <span class="o">&amp;&amp;</span> \
+<span class="n">python3</span> <span class="o">-</span><span class="n">m</span> <span class="n">MaxText</span><span class="o">.</span><span class="n">train</span> <span class="n">src</span><span class="o">/</span><span class="n">MaxText</span><span class="o">/</span><span class="n">configs</span><span class="o">/</span><span class="n">base</span><span class="o">.</span><span class="n">yml</span> \
+<span class="n">run_name</span><span class="o">=&lt;</span><span class="n">RUN_NAME</span><span class="o">&gt;</span> <span class="n">base_output_directory</span><span class="o">=</span><span class="n">gs</span><span class="p">:</span><span class="o">//&lt;</span><span class="n">MY_BUCKET</span><span class="o">&gt;</span>  \
+<span class="n">dataset_type</span><span class="o">=</span><span class="n">grain</span> \
+<span class="n">grain_file_type</span><span class="o">=</span><span class="n">arrayrecord</span> <span class="c1"># or parquet \ </span>
+<span class="n">grain_train_files</span><span class="o">=/</span><span class="n">tmp</span><span class="o">/</span><span class="n">gcsfuse</span><span class="o">/</span><span class="n">array</span><span class="o">-</span><span class="n">record</span><span class="o">/</span><span class="n">c4</span><span class="o">/</span><span class="n">en</span><span class="o">/</span><span class="mf">3.0.1</span><span class="o">/</span><span class="n">c4</span><span class="o">-</span><span class="n">train</span><span class="o">.</span><span class="n">array_record</span><span class="o">*</span> \
+<span class="n">grain_worker_count</span><span class="o">=</span><span class="mi">2</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="7">
+<li><p>Using validation set for evaluation
+When setting eval_interval &gt; 0, evaluation will be run with a specified eval dataset. Example config (set in <code class="docutils literal notranslate"><span class="pre">src/MaxText/configs/base.yml</span></code> or through command line):</p></li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">eval_interval</span><span class="p">:</span> <span class="mi">10000</span>
+<span class="n">eval_steps</span><span class="p">:</span> <span class="mi">50</span>
+<span class="n">grain_eval_files</span><span class="p">:</span> <span class="s1">&#39;/tmp/gcsfuse/array-record/c4/en/3.0.1/c4-validation.array_record*&#39;</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="data_input_pipeline.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Manage the data input pipeline</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="data_input_hf.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Hugging Face pipeline</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-recommended-input-pipeline-for-determinism-and-resilience">The recommended input pipeline for determinism and resilience!</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#why-determinism-is-important-for-data-input-pipeline">Why determinism is important for data input pipeline?</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#how-grain-achieves-determinism">How Grain achieves determinism</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cases-where-determinism-is-crucial">Cases where determinism is crucial</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#data-shuffling">Data shuffling</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#using-grain">Using Grain</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By MaxText developers
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2025, MaxText developers.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

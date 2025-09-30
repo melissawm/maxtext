@@ -1,0 +1,748 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>MaxText architecture overview &#8212; MaxText  documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=3ac9c114" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/documentation_options.js?v=c73c0f3e"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'reference/architecture_overview';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="How to Contribute" href="../development.html" />
+    <link rel="prev" title="Benchmark and Performance Tuning" href="benchmark_and_performance.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/maxtext.png" class="logo__image only-light" alt="MaxText  documentation - Home"/>
+    <script>document.write(`<img src="../_static/maxtext.png" class="logo__image only-dark" alt="MaxText  documentation - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../index.html">
+                    MaxText
+                </a>
+            </li>
+        </ul>
+        <ul class="current nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../tutorials.html">Tutorials</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/first_run.html">Getting Started: First Run</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/full_finetuning.html">Full Finetuning LLama3-8B  Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/run_llama2.html">About Llama2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/grpo.html">Try GRPO!</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/sft.html">Try SFT!</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../guides.html">How-to Guides</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../guides/checkpoints.html">Checkpoints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/custom_model.html">How to customize your model configs on TPU</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/run_maxtext_localhost.html">Run MaxText on Localhost or Single Host VM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/run_maxtext_via_xpk.html">Running MaxText at Scale with XPK</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/run_maxtext_via_pathways.html">Guide: Running MaxText via Pathways</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../guides/data_input_pipeline.html">Manage the data input pipeline</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../guides/data_input_grain.html">Grain pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../guides/data_input_hf.html">Hugging Face pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../guides/data_input_tfds.html">TFDS pipeline</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/single_host_gpu.html">Maxtext on Single host GPU</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/knowledge_distillation.html">Knowledge Distillation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/gcp_workload_observability.html">Enable GCP Workload Observabiltiy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/monitor_goodput.html">ML Goodput Measurement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/use_vertex_ai_tensorboard.html">Use Vertex AI Tensorboard</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/features_and_diagnostics.html">Features and Diagnostics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/pallas_kernels_performance.html">Performance Optimizations with Pallas Kernels</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/performance_metrics.html">Performance Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/understand_logs_and_metrics.html">Understand Logs and Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/checkpointing_solutions/gcs_checkpointing.html">GCS bucket-based checkpointing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/checkpointing_solutions/emergency_checkpointing.html">Emergency Checkpointing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/checkpointing_solutions/multi_tier_checkpointing.html">Multi-Tier Checkpointing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/jax_ai_libraries_chosen.html">The JAX Ecosystem in MaxText: An Opinionated Guide</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../explanations.html">Explanations</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/steps_model.html">Steps to build a Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/quantization.html">Quantization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/sharding.html">Sharding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/data_pipeline_perf.html">Data input pipeline performance</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../reference.html">Reference documentation</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="terminology.html">Terminology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="supported_models_and_architectures.html">Supported Models &amp; Architectures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="alternatives.html">Comparison to Alternatives</a></li>
+<li class="toctree-l2"><a class="reference internal" href="benchmark_and_performance.html">Benchmark and Performance Tuning</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">MaxText architecture overview</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">How to Contribute</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+<a href="https://github.com/AI-Hypercomputer/maxtext" target="_blank"
+   class="btn btn-sm btn-source-repository-button"
+   title="Source repository"
+   data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+
+</a>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/reference/architecture_overview.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>MaxText architecture overview</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-maxtext-philosophy">The MaxText philosophy</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#trusting-the-compiler">Trusting the compiler</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-control-plane-configuration-and-orchestration">The control plane: configuration and orchestration</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#base-yml-the-central-configuration-hub">base.yml: the central configuration hub</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#simple-local-or-distributed-execution">Simple local or distributed execution</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#summary">Summary</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#core-architectural-components">Core architectural components</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#model-definition">Model definition</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#data-ingestion-input-pipeline-py">Data ingestion (input_pipeline.py)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#state-management-and-persistence-checkpointing-py">State management and persistence (checkpointing.py)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#utilities-and-distributed-setup-max-utils-py">Utilities and distributed setup (max_utils.py)</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scaling-and-performance-optimization">Scaling and performance optimization</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#parallelism-via-jax-distributed-arrays">Parallelism via JAX distributed arrays</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#hardware-abstraction-and-performance-via-xla">Hardware abstraction and performance via XLA</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantization-for-throughput-boost">Quantization for throughput boost</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-ecosystem-interoperability-and-advanced-features">The ecosystem: interoperability and advanced features</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#a-hub-for-open-source-model-training">A hub for open-source model training</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#diagnostics-for-debugging-at-scale">Diagnostics for debugging at scale</a></li>
+</ul>
+</li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="maxtext-architecture-overview">
+<h1>MaxText architecture overview<a class="headerlink" href="#maxtext-architecture-overview" title="Link to this heading">#</a></h1>
+<section id="the-maxtext-philosophy">
+<h2>The MaxText philosophy<a class="headerlink" href="#the-maxtext-philosophy" title="Link to this heading">#</a></h2>
+<p>The architecture of MaxText is guided by a distinct and deliberate philosophy that prioritizes accessibility and scalability by deeply leveraging the power of the XLA compiler. This approach marks a strategic departure from frameworks that rely on extensive manual optimization. Instead, MaxText achieves its goals through a pure Python/JAX implementation that trusts the underlying compiler to handle the complexities of hardware optimization. Only for the most performance-critical operations, such as custom attention mechanisms or Mixture-of-Experts (MoE) routing, does MaxText use custom kernels written in  Pallas.</p>
+</section>
+<section id="trusting-the-compiler">
+<h2>Trusting the compiler<a class="headerlink" href="#trusting-the-compiler" title="Link to this heading">#</a></h2>
+<p>The MaxText framework is intentionally written as much as possible in pure Python and JAX, offloading the burden of performance optimization to the XLA (Accelerated Linear Algebra) compiler. This allows MaxText to achieve high Model FLOPs Utilization (MFU) and scale from a single host to tens of thousands of accelerator chips without requiring developers to write low-level, hardware-specific code.</p>
+<p>This philosophy stands in stark contrast to alternative high-performance frameworks which lean heavily on custom accelerator-specific kernels. MaxText abstracts much of this layer away, relying on kernels just for the most complex, performance-sensitive code. By relying on XLA, the same high-level Python/JAX codebase can be efficiently compiled to target diverse hardware platforms, including both Google Cloud TPUs and NVIDIA GPUs, a key advantage for portability.</p>
+<p>The practical application of this principle is evident throughout the codebase, most notably in the use of JAX’s <code class="docutils literal notranslate"><span class="pre">jit</span></code> (just-in-time) compilation decorator. A core function, such as the <code class="docutils literal notranslate"><span class="pre">train_step</span></code>, is defined in Python and then wrapped with <a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.jit.html"><code class="docutils literal notranslate"><span class="pre">&#64;jax.jit</span></code></a>. This simple decorator instructs JAX to trace the function, convert it into its own intermediate representation, and then pass it to the XLA compiler. XLA performs a host of advanced optimizations—such as operator fusion, memory layout optimization, and parallelization—to generate highly efficient machine code tailored for the specific accelerator hardware.</p>
+<p>For example, the functional training step in <a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/blob/01c7137d4e13878e38baae44dc99e588eaa50a70/src/MaxText/train.py#L193"><code class="docutils literal notranslate"><span class="pre">train.py</span></code></a> is compiled using <code class="docutils literal notranslate"><span class="pre">jax.jit</span></code> before being executed in the main training loop.</p>
+<div class="highlight-py notranslate"><div class="highlight"><pre><span></span>
+<span class="c1"># A simplified representation of the JIT compilation in MaxText/train.py</span>
+<span class="n">p_train_step</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">jit</span><span class="p">(</span>
+  <span class="n">functional_train</span><span class="p">,</span>
+  <span class="n">in_shardings</span><span class="o">=</span><span class="n">in_shard_train</span><span class="p">,</span>
+  <span class="n">out_shardings</span><span class="o">=</span><span class="n">out_shard_train</span><span class="p">,</span>
+  <span class="n">static_argnums</span><span class="o">=</span><span class="n">static_argnums_train</span><span class="p">,</span>
+  <span class="n">donate_argnums</span><span class="o">=</span><span class="n">donate_argnums_train</span><span class="p">,</span>
+<span class="p">)</span>
+
+</pre></div>
+</div>
+<p>This code snippet demonstrates how much of the complexity of optimizing a training step, including forward pass, loss calculation, and gradient computation, is handed off to the compiler. The developer works with high-level Python and JAX primitives, while the compiler manages the low-level performance details. This strategic decision to trade the fine-grained control of custom kernels for the automated optimization and hardware portability of a compiler is central to MaxText’s identity. It shifts the cognitive load from the end-user (the ML engineer) to the compiler development team, making high-performance computing more accessible to a broader audience proficient in Python.</p>
+</section>
+<section id="the-control-plane-configuration-and-orchestration">
+<h2>The control plane: configuration and orchestration<a class="headerlink" href="#the-control-plane-configuration-and-orchestration" title="Link to this heading">#</a></h2>
+<p>The control plane of MaxText provides a structured yet flexible interface for users to define, configure, and launch training and inference jobs. It is designed to scale with the user’s needs, offering simple command-line execution for local development and sophisticated orchestration tools for production-level runs on large-scale clusters. This system is centered around a primary YAML configuration file and a tiered set of execution scripts.</p>
+<section id="base-yml-the-central-configuration-hub">
+<h3>base.yml: the central configuration hub<a class="headerlink" href="#base-yml-the-central-configuration-hub" title="Link to this heading">#</a></h3>
+<p>Every MaxText job is governed by the same base YAML configuration file (<a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/blob/01c7137d4e13878e38baae44dc99e588eaa50a70/src/MaxText/configs/base.yml"><code class="docutils literal notranslate"><span class="pre">src/MaxText/configs/base.yml</span></code></a>) with model-specific details and overrides passed through a second config (e.g. <a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/blob/01c7137d4e13878e38baae44dc99e588eaa50a70/src/MaxText/configs/models/deepseek3-671b.yml"><code class="docutils literal notranslate"><span class="pre">src/MaxText/configs/models/deepseek3-671b.yml</span></code></a>). Finally, experiment-specific settings are passed on the command line. The contents of these together comprise all the hyperparameters and settings that define a run:</p>
+<ul class="simple">
+<li><p>Model architecture: Defines the core transformer structure, with parameters like <code class="docutils literal notranslate"><span class="pre">model_name</span></code> (e.g., ‘llama2-7b’), <code class="docutils literal notranslate"><span class="pre">global_parameter_scale</span></code> for size, <code class="docutils literal notranslate"><span class="pre">base_emb_dim</span></code>, <code class="docutils literal notranslate"><span class="pre">base_num_heads</span></code>, the type of attention mechanism, and <code class="docutils literal notranslate"><span class="pre">quantization</span></code> settings (e.g., ‘int8’).</p></li>
+<li><p>Training and optimization: Controls the training process with settings like <code class="docutils literal notranslate"><span class="pre">steps</span></code>, <code class="docutils literal notranslate"><span class="pre">learning_rate</span></code>, optimizer parameters such as <code class="docutils literal notranslate"><span class="pre">adam_b1</span></code>, and the <code class="docutils literal notranslate"><span class="pre">per_device_batch_size</span></code>.</p></li>
+<li><p>Data pipeline: Specifies the data source via <code class="docutils literal notranslate"><span class="pre">dataset_type</span></code> (‘tfds’, ‘grain’, ‘hf’), the <code class="docutils literal notranslate"><span class="pre">dataset_path</span></code> on Cloud Storage, and Hugging Face-specific parameters like <code class="docutils literal notranslate"><span class="pre">hf_path</span></code> and <code class="docutils literal notranslate"><span class="pre">hf_train_files</span></code>.</p></li>
+<li><p>Hardware and parallelism: Defines the physical and logical device layout with <code class="docutils literal notranslate"><span class="pre">ici_parallelism</span></code> (intra-chip interconnect), <code class="docutils literal notranslate"><span class="pre">dcn_parallelism</span></code> (data center network), and <code class="docutils literal notranslate"><span class="pre">compile_topology</span></code> for ahead-of-time compilation.</p></li>
+<li><p>Checkpointing and logging: Manages run artifacts with <code class="docutils literal notranslate"><span class="pre">enable_checkpointing</span></code>, <code class="docutils literal notranslate"><span class="pre">async_checkpointing</span></code>, the <code class="docutils literal notranslate"><span class="pre">base_output_directory</span></code> in a Cloud Storage bucket, and a unique <code class="docutils literal notranslate"><span class="pre">run_name</span></code>.</p></li>
+</ul>
+<p>A critical feature of this system is its flexibility. While <code class="docutils literal notranslate"><span class="pre">base.yml</span></code> provides the default values, any parameter can be overridden at runtime via command-line arguments. This allows for easy scripting of experiments and hyperparameter sweeps without needing to modify the configuration file for every run. At the same time, reproducibility can of course be maintained, by storing command line overrides in .sh files.</p>
+</section>
+<section id="simple-local-or-distributed-execution">
+<h3>Simple local or distributed execution<a class="headerlink" href="#simple-local-or-distributed-execution" title="Link to this heading">#</a></h3>
+<p>MaxText can be executed trivially on a single TPU VM host and surprisingly easily on multi-host setups.</p>
+<ul class="simple">
+<li><p>Single-host development: This is the simplest entry point, designed for running MaxText on a single TPU VM (e.g., v5p-8) or a single GPU machine. It is ideal for initial setup, dependency installation, and small-scale debugging or experimentation.</p></li>
+<li><p>GKE with XPK (recommended for production): This is the most scalable and robust method for running MaxText. It leverages the Accelerated Processing Kit (XPK) on Google Kubernetes Engine (GKE). XPK is an orchestration tool that standardizes best practices for large-scale ML jobs. It decouples the provisioning of compute capacity from the execution of the training job, allowing for more efficient resource management. This approach is recommended for production-grade training and serving due to its scalability, fault tolerance, and integration with the broader Google Cloud ecosystem.</p></li>
+</ul>
+</section>
+<section id="summary">
+<h3>Summary<a class="headerlink" href="#summary" title="Link to this heading">#</a></h3>
+<p>The table below summarizes some of the most critical parameters in base.yml and the components of the architecture they control, serving as a quick reference for configuring a MaxText run.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head text-left"><p>Parameter</p></th>
+<th class="head text-left"><p>Module(s) Affected</p></th>
+<th class="head text-left"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td class="text-left"><p>model_name</p></td>
+<td class="text-left"><p>models.py, train.py</p></td>
+<td class="text-left"><p>Selects the transformer architecture as specified in the corresponding model config file (e.g., ‘llama2-7b’).</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>per_device_batch_size</p></td>
+<td class="text-left"><p>train.py, input_pipeline.py</p></td>
+<td class="text-left"><p>Sets the local batch size per accelerator chip.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>ici_parallelism, dcn_parallelism</p></td>
+<td class="text-left"><p>max_utils.py, train.py</p></td>
+<td class="text-left"><p>Defines the device mesh shape for intra-chip and data center network parallelism.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>dataset_type</p></td>
+<td class="text-left"><p>input_pipeline.py</p></td>
+<td class="text-left"><p>Specifies the data loader backend (‘tfds’, ‘grain’, ‘hf’).</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>enable_checkpointing</p></td>
+<td class="text-left"><p>checkpointing.py, train.py</p></td>
+<td class="text-left"><p>Enables or disables saving model state.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>async_checkpointing</p></td>
+<td class="text-left"><p>checkpointing.py, train.py</p></td>
+<td class="text-left"><p>If True, saves checkpoints without blocking the training loop.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>quantization</p></td>
+<td class="text-left"><p>layers.py, optimizers.py</p></td>
+<td class="text-left"><p>Enables quantization, e.g., ‘int8’ for AQT or Qwix.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>compile_topology</p></td>
+<td class="text-left"><p>train_compile.py</p></td>
+<td class="text-left"><p>Specifies the target hardware topology for AOT compilation.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</section>
+<section id="core-architectural-components">
+<h2>Core architectural components<a class="headerlink" href="#core-architectural-components" title="Link to this heading">#</a></h2>
+<p>MaxText is constructed from a set of modular Python components. Each module is responsible for one part of a distinct aspect of the LLM lifecycle, from model definition and data loading to state persistence and distributed setup.</p>
+<section id="model-definition">
+<h3>Model definition<a class="headerlink" href="#model-definition" title="Link to this heading">#</a></h3>
+<p>MaxText’s model implementations are captured in a set of shared and model-specific modules. The core transformer is defined in <code class="docutils literal notranslate"><span class="pre">MaxText/layers/models.py</span></code>, the transformer decoder in <code class="docutils literal notranslate"><span class="pre">decoders.py</span></code> and a model-specific <code class="docutils literal notranslate"><span class="pre">DecoderLayer</span></code> such as <code class="docutils literal notranslate"><span class="pre">deepseek.py</span></code> implements the core of a given model. Shared modules such as <code class="docutils literal notranslate"><span class="pre">embeddings.py</span></code> and <code class="docutils literal notranslate"><span class="pre">attentions.py</span></code> capture the inner layer building blocks used by most or all models, with some occasional awareness of the model context in which they operate (this balance of sharing code vs. the increased need for model-specific branching that can entail is a balancing act we’re continuously revisiting).</p>
+<p>The typical model comprises a decoder-only autoregressive transformer, but MaxText also supports multi-modal models such as Llama 4 and Gemma 3, and as such the transformer module (in <code class="docutils literal notranslate"><span class="pre">models.py</span></code>) makes use of a Vision Encoder where appropriate.</p>
+<p>While the base model implementations are typically simple, MaxText is equipped to handle a wide range of advanced, industry-standard features necessary for state-of-the-art performance and efficiency:</p>
+<ul class="simple">
+<li><p>Mixture-of-Experts (MoE): MaxText provides native support for sparse MoE models, such as DeepSeek. This includes efficient “dropping” and “dropless” MoE implementations leveraging the MegaBlox <a class="reference external" href="https://docs.jax.dev/en/latest/pallas/index.html">Pallas</a> kernel, which can be enabled via configuration flags.</p></li>
+<li><p>Advanced attention mechanisms: The architecture is not limited to standard self-attention. It supports variants like Grouped-Query Attention (GQA), Multi-Query Attention (MQA) and Multi-headed Latent Attention (MLA). Since, like MoE, attention can be a performance hot-spot in transformers, attention is typically implemented in <a class="reference external" href="https://docs.jax.dev/en/latest/pallas/index.html">Pallas</a> kernels, with Splash (Sparse, Flash) Attention being the default for training.</p></li>
+<li><p>Quantization: The framework seamlessly integrates with Google’s Accurate Quantized Training (AQT) and Qwix libraries. Quantization logic is applied at the layer level.</p></li>
+</ul>
+<p>The modularity of this design is clearly demonstrated by third-party extensions. For instance, the NVIDIA maxtext-jaxpp fork was able to add support for pipeline parallelism by inserting jaxpp.pipeline_enter_stage hooks directly into the __call__ method of the Decoder class, a testament to the codebase’s modularity and extensibility.</p>
+</section>
+<section id="data-ingestion-input-pipeline-py">
+<h3>Data ingestion (input_pipeline.py)<a class="headerlink" href="#data-ingestion-input-pipeline-py" title="Link to this heading">#</a></h3>
+<p><a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/blob/main/docs/guides/data_input_pipeline.md">The data ingestion pipeline</a> is a critical component for performance at scale. In MaxText, the main training loop interfaces with the data pipeline through the create_data_iterator function, which is called from train.py. This function acts as a facade, abstracting the specific data loading implementation from the rest of the training logic.</p>
+<p>MaxText supports three primary data loading backends:</p>
+<ol class="arabic simple">
+<li><p>Hugging Face datasets: For streaming data directly from the Hugging Face Hub.</p></li>
+<li><p>TFDS (TensorFlow Datasets): For using datasets in the TFRecord format.</p></li>
+<li><p>Grain: A data loading library optimized for large-scale, distributed environments.</p></li>
+</ol>
+<p>While all three are supported, MaxText recommends the use of Grain, particularly for multi-host training scenarios. The rationale stems from performance and determinism considerations, at which Grain excels. Grain uses a data format called ArrayRecord, which supports efficient random access by index. This allows for true global shuffling of data across all hosts and eliminates the performance bottleneck associated with sequential reading.</p>
+</section>
+<section id="state-management-and-persistence-checkpointing-py">
+<h3>State management and persistence (checkpointing.py)<a class="headerlink" href="#state-management-and-persistence-checkpointing-py" title="Link to this heading">#</a></h3>
+<p>MaxText’s state management and persistence layer is built on <a class="reference external" href="https://orbax.readthedocs.io/en/latest/">Orbax</a>, a flexible and powerful open-source checkpointing library for JAX applications. The core logic is encapsulated within the
+checkpointing.py module, which provides a comprehensive suite of tools for saving and loading training state with high performance and resilience.</p>
+<p>The central function is create_orbax_checkpoint_manager, which configures and returns an Orbax CheckpointManager instance. This manager handles the core checkpointing operations and is configured with several key features:</p>
+<ul class="simple">
+<li><p>Asynchronous checkpointing: By setting the <code class="docutils literal notranslate"><span class="pre">async_checkpointing</span></code> flag to true, users can enable non-blocking checkpoint saves. This is a critical performance optimization. The training loop can proceed with the next step on the accelerators while the CPU on each host handles the process of serializing the previous step’s state and writing it to Google Cloud Storage. This effectively hides the I/O latency of checkpointing and maximizes accelerator utilization.</p></li>
+<li><p>Flexible state restoration: The load_state_if_possible function implements a sophisticated, prioritized logic for resuming a run. When a job starts, it first attempts to find and load a full checkpoint from the current run’s output directory. If that fails, it checks if a path to a full state checkpoint from a different run has been provided via the <code class="docutils literal notranslate"><span class="pre">load_full_state_from_path</span></code> argument. If that also fails, it looks for a parameter-only checkpoint (without training/optimizer state) specified by <code class="docutils literal notranslate"><span class="pre">load_parameters_from_path</span></code>.</p></li>
+<li><p>Emergency and replicated checkpointing: For maximum resilience and rapid job resumption in large-scale, production environments like GKE, the module includes support for advanced Orbax features.</p></li>
+</ul>
+<p>A fundamental aspect of the MaxText workflow is the conversion of checkpoints between different formats. Scripts are provided to handle both ingestion and egress of model weights:</p>
+<ul class="simple">
+<li><p>Ingestion: Utilities like convert_gemma_chkpt.py and llama_or_mistral_ckpt.py are used to transform checkpoints from standard frameworks (e.g., Hugging Face PyTorch) into the native MaxText Orbax format, which includes the full PyTree structure required for training.</p></li>
+<li><p>Preparation for inference: Conversely, the generate_param_only_checkpoint.py script serves a crucial role in the path to deployment. It takes a full training checkpoint (which contains model parameters, optimizer state, and other metadata) and strips it down to only the essential model parameters. This script also performs a critical transformation from the “scanned” format used during training (an optimization where layers are stacked into a single tensor for efficient compilation) to the “unscanned” format required for autoregressive decoding. The resulting lightweight, parameter-only checkpoint is optimized for use with the decode.py script or for deployment with the JetStream inference engine.</p></li>
+<li><p>There also exist conversion scripts to convert weights to Hugging Face, e.g. <code class="docutils literal notranslate"><span class="pre">llama_mistral_mixtral_orbax_to_hf.py</span></code></p></li>
+</ul>
+</section>
+<section id="utilities-and-distributed-setup-max-utils-py">
+<h3>Utilities and distributed setup (max_utils.py)<a class="headerlink" href="#utilities-and-distributed-setup-max-utils-py" title="Link to this heading">#</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">max_utils.py</span></code> module serves as a collection of common helper functions used across the MaxText codebase, but its most critical function is to abstract away the initialization of the JAX distributed environment.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">maybe_initialize_jax_distributed_system</span></code> function is one example of this abstraction. This single function encapsulates the logic required to correctly call <code class="docutils literal notranslate"><span class="pre">jax.distributed.initialize()</span></code> in various deployment scenarios. It inspects the configuration and environment to determine the correct initialization parameters, handling cases for:</p>
+<ul class="simple">
+<li><p>Different hardware types, such as <code class="docutils literal notranslate"><span class="pre">gpu_multiprocess</span></code>.</p></li>
+<li><p>Configurations involving asynchronous checkpointing and multi-controller setups, which have specific distributed system requirements.</p></li>
+<li><p>Specialized environments like GKE with emergency checkpointing enabled. In this scenario, the JAX process ID and the coordinator’s network address are not known beforehand but are written to a file by the GKE orchestrator. The function contains logic to poll for this file and parse the necessary information to initialize the distributed system correctly.</p></li>
+</ul>
+<p>By centralizing this complex, environment-dependent logic into a single utility function, MaxText keeps the main training script cleaner and shields the end-user from the low-level details of distributed system bootstrapping.</p>
+<p>In addition to distributed setup, the module provides other essential utilities, such as a function to calculate the total number of parameters in a model’s PyTree, helpers for creating and managing TensorBoard summary writers for logging, and the implementation of a stabilized cross-entropy loss function.</p>
+</section>
+</section>
+<section id="scaling-and-performance-optimization">
+<h2>Scaling and performance optimization<a class="headerlink" href="#scaling-and-performance-optimization" title="Link to this heading">#</a></h2>
+<p>MaxText is engineered from the ground up to deliver state-of-the-art performance and to scale efficiently to massive accelerator clusters comprising tens of thousands of chips. This is achieved through a combination of JAX’s parallelism features, deep reliance on the XLA compiler for hardware-specific optimization, and the integration of advanced techniques like quantized training.</p>
+<section id="parallelism-via-jax-distributed-arrays">
+<h3>Parallelism via JAX distributed arrays<a class="headerlink" href="#parallelism-via-jax-distributed-arrays" title="Link to this heading">#</a></h3>
+<p>The foundation of MaxText’s scaling strategy is JAX’s <code class="docutils literal notranslate"><span class="pre">jit</span></code> transformation, which allows for the automatic distribution of computations across a logical grid, or “mesh,” of accelerator devices. The shape and dimensions of this mesh are defined by the user in command line overrides to the base.yml configuration file through parameters like <code class="docutils literal notranslate"><span class="pre">ici_fsdp_parallelism</span></code> (for devices connected by high-speed Inter-Chip Interconnect) or <code class="docutils literal notranslate"><span class="pre">dcn_data_parallelism</span></code> (for devices connected across the Data Center Network).</p>
+<p>This logical mesh abstraction enables the implementation of the standard parallelism strategies required for training large language models:</p>
+<ul class="simple">
+<li><p>Data parallelism (DP): The simplest form, where the entire model is replicated on each device (or group of devices), and the global data batch is split among the replicas.</p></li>
+<li><p>Fully sharded data parallelism (FSDP): An optimization over DP where the model’s parameters, gradients, and optimizer states are sharded (split) across the data-parallel replicas, significantly reducing the memory footprint on each device.</p></li>
+<li><p>Tensor parallelism (TP): A model parallelism technique where individual operations within a transformer layer (such as large matrix multiplications) are split across multiple devices within a replica.</p></li>
+<li><p>Pipeline parallelism (PP): splitting multiple stages of the network (groups of layers) across devices</p></li>
+</ul>
+<p>In MaxText, these strategies are implemented by annotating the model’s PyTrees (the nested Python structures of arrays that hold the parameters and state) with sharding specifications. This is done using Flax’s partitioning utilities, such as nn_partitioning. These annotations provide requirements and hints to the compiler, telling it how each tensor should be distributed across the axes of the device mesh. The compiler then generates the appropriate collective communication operations (e.g., all-reduce, all-gather) needed to execute the parallel computation correctly and efficiently.</p>
+<p>For more information on sharding see <a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/blob/main/docs/explanations/sharding.md">our sharding documentation</a>.</p>
+</section>
+<section id="hardware-abstraction-and-performance-via-xla">
+<h3>Hardware abstraction and performance via XLA<a class="headerlink" href="#hardware-abstraction-and-performance-via-xla" title="Link to this heading">#</a></h3>
+<p>As established previously, the XLA compiler is the linchpin of MaxText’s performance and portability. It acts as a powerful abstraction layer, taking the hardware-agnostic computation graph generated by JAX and compiling it into highly optimized, device-specific machine code. This allows the same MaxText codebase to run with high performance on both Google TPUs and NVIDIA GPUs.</p>
+<p>The effectiveness of this compiler-centric approach is validated by impressive performance results. Google has successfully used MaxText to run a single training job across a cluster of 50,944 Cloud TPU v5e chips, demonstrating near-linear scaling. The framework consistently achieves high Model FLOPs Utilization (MFU) across various models and hardware configurations. For example, public benchmarks show Llama2-70B achieving 65% MFU on a v5p-128 pod and Mixtral 8x7B achieving 54.89% MFU on the same hardware.</p>
+<p>Performance can be further tuned by setting specific XLA flags in the configuration scripts. These flags can enable or disable specific compiler passes, such as those that combine multiple collective communication operations (e.g., <code class="docutils literal notranslate"><span class="pre">xla_gpu_enable_all_gather_combine_by_dim</span></code> and <code class="docutils literal notranslate"><span class="pre">xla_gpu_enable_reduce_scatter_combine_by_dim</span></code>) to reduce network overhead and improve throughput.</p>
+</section>
+<section id="quantization-for-throughput-boost">
+<h3>Quantization for throughput boost<a class="headerlink" href="#quantization-for-throughput-boost" title="Link to this heading">#</a></h3>
+<p>One of the most significant performance levers available in MaxText is the integration of Google’s Accurate Quantized Training (AQT) and Qwix libraries. These enable training with reduced numerical precision, reducing memory requirements and often increasing FLOPS, while maintaining model quality and convergence characteristics that are very close to the full-precision baseline.</p>
+<p>Integration into MaxText is seamless for the user. Quantization can be enabled by simply setting, for example, <code class="docutils literal notranslate"><span class="pre">quantization:</span> <span class="pre">'int8'</span></code> in the configuration file. This flag activates quantization-aware layers (defined in
+<a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/blob/db7b85be153e6b7ca387a8d02c991f9d35bae6bd/src/MaxText/layers/quantizations.py"><code class="docutils literal notranslate"><span class="pre">src/MaxText/layers/quantizations.py</span></code></a>) that are applied to the relevant dense layers within the model’s Flax definition. The quantization library handles the complexities of simulating quantization during the forward and backward passes, allowing the model to learn weights that are robust to the reduced precision.</p>
+</section>
+</section>
+<section id="the-ecosystem-interoperability-and-advanced-features">
+<h2>The ecosystem: interoperability and advanced features<a class="headerlink" href="#the-ecosystem-interoperability-and-advanced-features" title="Link to this heading">#</a></h2>
+<p>MaxText is not merely a standalone training framework; it is a central component within Google’s open-source AI ecosystem. Its architecture is designed for interoperability, supporting a seamless workflow from ingesting popular open models to deploying them for high-throughput inference. Furthermore, it includes a suite of advanced diagnostic tools essential for debugging and optimizing performance at a massive scale.</p>
+<section id="a-hub-for-open-source-model-training">
+<h3>A hub for open-source model training<a class="headerlink" href="#a-hub-for-open-source-model-training" title="Link to this heading">#</a></h3>
+<p>A primary strategic goal of MaxText is to serve as a high-performance platform for training and fine-tuning the world’s most popular open-source LLMs on Google’s advanced AI infrastructure. The framework maintains support for a wide and actively growing list of model families, including Google’s Gemma, Meta’s Llama, Alibaba’s Qwen, DeepSeek, Mistral AI’s Mistral and Mixtral, Open AI’s gpt-oss, and Moonshot AI’s Kimi K2.</p>
+<p>The critical technology enabling this strategy is the suite of checkpoint conversion scripts included with the repository. These scripts act as bridges, allowing users to import standard model weights from their original frameworks (which are often PyTorch-based) into the MaxText/Orbax format required for training with JAX. Utilities like <code class="docutils literal notranslate"><span class="pre">llama_or_mistral_ckpt.py</span></code> and <code class="docutils literal notranslate"><span class="pre">convert_gemma_chkpt.py</span></code> handle the complex task of remapping weight names and structures, making it straightforward for users to begin a fine-tuning run with a state-of-the-art pretrained model.</p>
+</section>
+<section id="diagnostics-for-debugging-at-scale">
+<h3>Diagnostics for debugging at scale<a class="headerlink" href="#diagnostics-for-debugging-at-scale" title="Link to this heading">#</a></h3>
+<p>Debugging performance issues in a distributed system with thousands of accelerators is a notoriously difficult challenge. MaxText incorporates several built-in diagnostic features designed to provide visibility into the system’s behavior at scale.</p>
+<ul class="simple">
+<li><p>Stack trace collection: To diagnose program hangs or faults, users can set <code class="docutils literal notranslate"><span class="pre">collect_stack_trace:</span> <span class="pre">True</span></code> in the configuration. This feature will periodically dump the Python stack traces from all worker processes. The traces can be directed to the console for immediate inspection or, more scalably, uploaded to Cloud Logging, where they can be aggregated and queried to identify misbehaving nodes.</p></li>
+<li><p>HLO dumping: For deep, low-level performance analysis, MaxText allows users to dump the XLA High-Level Optimizer (HLO) graph. By setting the <code class="docutils literal notranslate"><span class="pre">dump_hlo</span></code> flag, the compiled graph for a specific training step can be saved to a local directory or uploaded to Cloud Storage. This HLO representation is invaluable for compiler engineers and advanced users who need to understand exactly how XLA is interpreting and optimizing the model, making it possible to debug subtle performance regressions or compiler-related issues.</p></li>
+<li><p>Goodput monitoring: The framework integrates with the ml-goodput-measurement library, which provides a more holistic view of job efficiency than simple TFLOPs calculations. This allows for the tracking of metrics that capture overall “goodput,” accounting for factors like data loading time, compilation overhead, and idle time, giving a truer picture of end-to-end performance.</p></li>
+</ul>
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="benchmark_and_performance.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Benchmark and Performance Tuning</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../development.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">How to Contribute</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-maxtext-philosophy">The MaxText philosophy</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#trusting-the-compiler">Trusting the compiler</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-control-plane-configuration-and-orchestration">The control plane: configuration and orchestration</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#base-yml-the-central-configuration-hub">base.yml: the central configuration hub</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#simple-local-or-distributed-execution">Simple local or distributed execution</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#summary">Summary</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#core-architectural-components">Core architectural components</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#model-definition">Model definition</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#data-ingestion-input-pipeline-py">Data ingestion (input_pipeline.py)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#state-management-and-persistence-checkpointing-py">State management and persistence (checkpointing.py)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#utilities-and-distributed-setup-max-utils-py">Utilities and distributed setup (max_utils.py)</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scaling-and-performance-optimization">Scaling and performance optimization</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#parallelism-via-jax-distributed-arrays">Parallelism via JAX distributed arrays</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#hardware-abstraction-and-performance-via-xla">Hardware abstraction and performance via XLA</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantization-for-throughput-boost">Quantization for throughput boost</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-ecosystem-interoperability-and-advanced-features">The ecosystem: interoperability and advanced features</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#a-hub-for-open-source-model-training">A hub for open-source model training</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#diagnostics-for-debugging-at-scale">Diagnostics for debugging at scale</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By MaxText developers
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2025, MaxText developers.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

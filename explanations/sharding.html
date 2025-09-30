@@ -1,0 +1,961 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Sharding &#8212; MaxText  documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=3ac9c114" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/documentation_options.js?v=c73c0f3e"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'explanations/sharding';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Data input pipeline performance" href="data_pipeline_perf.html" />
+    <link rel="prev" title="Quantization" href="quantization.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/maxtext.png" class="logo__image only-light" alt="MaxText  documentation - Home"/>
+    <script>document.write(`<img src="../_static/maxtext.png" class="logo__image only-dark" alt="MaxText  documentation - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../index.html">
+                    MaxText
+                </a>
+            </li>
+        </ul>
+        <ul class="current nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../tutorials.html">Tutorials</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/first_run.html">Getting Started: First Run</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/full_finetuning.html">Full Finetuning LLama3-8B  Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/run_llama2.html">About Llama2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/grpo.html">Try GRPO!</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/sft.html">Try SFT!</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../guides.html">How-to Guides</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../guides/checkpoints.html">Checkpoints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/custom_model.html">How to customize your model configs on TPU</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/run_maxtext_localhost.html">Run MaxText on Localhost or Single Host VM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/run_maxtext_via_xpk.html">Running MaxText at Scale with XPK</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/run_maxtext_via_pathways.html">Guide: Running MaxText via Pathways</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../guides/data_input_pipeline.html">Manage the data input pipeline</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../guides/data_input_grain.html">Grain pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../guides/data_input_hf.html">Hugging Face pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../guides/data_input_tfds.html">TFDS pipeline</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/single_host_gpu.html">Maxtext on Single host GPU</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/knowledge_distillation.html">Knowledge Distillation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/gcp_workload_observability.html">Enable GCP Workload Observabiltiy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/monitor_goodput.html">ML Goodput Measurement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/use_vertex_ai_tensorboard.html">Use Vertex AI Tensorboard</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/features_and_diagnostics.html">Features and Diagnostics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/pallas_kernels_performance.html">Performance Optimizations with Pallas Kernels</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/performance_metrics.html">Performance Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/understand_logs_and_metrics.html">Understand Logs and Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/checkpointing_solutions/gcs_checkpointing.html">GCS bucket-based checkpointing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/checkpointing_solutions/emergency_checkpointing.html">Emergency Checkpointing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/checkpointing_solutions/multi_tier_checkpointing.html">Multi-Tier Checkpointing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/jax_ai_libraries_chosen.html">The JAX Ecosystem in MaxText: An Opinionated Guide</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../explanations.html">Explanations</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="steps_model.html">Steps to build a Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quantization.html">Quantization</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Sharding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data_pipeline_perf.html">Data input pipeline performance</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../reference.html">Reference documentation</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../reference/terminology.html">Terminology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/supported_models_and_architectures.html">Supported Models &amp; Architectures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/alternatives.html">Comparison to Alternatives</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/benchmark_and_performance.html">Benchmark and Performance Tuning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/architecture_overview.html">MaxText architecture overview</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">How to Contribute</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+<a href="https://github.com/AI-Hypercomputer/maxtext" target="_blank"
+   class="btn btn-sm btn-source-repository-button"
+   title="Source repository"
+   data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+
+</a>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/explanations/sharding.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Sharding</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sharding-notation">Sharding notation</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#axis-labels">Axis labels</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#arithmetic-intensity-whirlwind-introduction-example">Arithmetic Intensity whirlwind introduction example</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#arithmetic-intensity-mixed-sharding-strategies">Arithmetic Intensity: Mixed sharding strategies</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#code-implementation-of-sharding-in-maxtext">Code implementation of sharding in MaxText</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#hierarchical-mesh">Hierarchical Mesh</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#data-parallelism-dp">Data Parallelism (DP)</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dp-arithmetic-intensity-dense">DP Arithmetic Intensity (Dense)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dp-arithmetic-intensity-sparse">DP Arithmetic Intensity (Sparse)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dp-arithmetic-intensity-hierarchical">DP Arithmetic Intensity (Hierarchical)</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#fully-sharded-data-parallelism-fsdp">Fully Sharded Data Parallelism (FSDP)</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#fsdp-arithmetic-intensity">FSDP Arithmetic Intensity</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#fully-sharded-data-parallelism-transpose">Fully Sharded Data Parallelism (transpose)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#context-parallelism-cp">Context Parallelism (CP)</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cp-arithmetic-intensity">CP Arithmetic Intensity</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sequence-parallelism-sp">Sequence Parallelism (SP)</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#sp-arithmetic-intensity">SP Arithmetic Intensity</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#sp-extra-a2a-cost">SP Extra A2A cost</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#tensor-parallelism-tp">Tensor Parallelism (TP)</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tp-arithmetic-intensity">TP Arithmetic Intensity</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#tensor-sequence-parallelism">Tensor Sequence Parallelism</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tensor-sequence-arithmetic-intensity">Tensor Sequence Arithmetic Intensity</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#tensor-parallelism-transpose-tp-transpose">Tensor Parallelism Transpose (TP Transpose)</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tp-transpose-arithmetic-intensity">TP Transpose Arithmetic Intensity</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#expert-parallelism-ep">Expert Parallelism (EP)</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#ep-arithmetic-intensity">EP Arithmetic Intensity</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pipeline-parallelism-pp">Pipeline Parallelism (PP)</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#why-pipeline-parallelism">Why Pipeline Parallelism?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#gpipe">gPipe</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#circular-pipelining">Circular Pipelining</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#other-pipeline-schedules">Other Pipeline Schedules</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pp-fsdp-dp">PP + FSDP/DP</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pp-arithmetic-intensity">PP Arithmetic Intensity</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#context-autoregressive">Context Autoregressive</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#autoregressive">Autoregressive</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <!--
+ Copyright 2024 Google LLC
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+      https://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+ -->
+<section class="tex2jax_ignore mathjax_ignore" id="sharding">
+<span id="id1"></span><h1>Sharding<a class="headerlink" href="#sharding" title="Link to this heading">#</a></h1>
+<p>Choosing efficient sharding strategies is key to achieving good performance, especially at scale. In general there are other related knobs to optimize performance - you should make use of all your HBM (by tuning batch size and rematerialization policies), but here we discuss the various sharding strategies we support in maxtext.</p>
+<p>When considering different sharding strategies, the main concern is the amount of communication executed between chips. Different sharding strategies will require different patterns of communication - how often communication is needed and the amount of data needed to communicate. A very helpful tool to understand the performance implications of these communications is <strong>arithmetic intensity</strong> - which roughly gives the ratio of useful computation to the communication cost. We highly recommend understanding arithmetic intensity if you are serious about optimizing performance - we recommend both the <a class="reference external" href="https://jax-ml.github.io/scaling-book/sharding/">“Jax Train your LLM”</a> document and a MaxText HighPerformanceLLM <a class="reference external" href="https://github.com/rwitten/HighPerfLLMs2024">class</a> (specifically classes 1-4). We briefly describe how to compute arithmetic intensities, and then explain the various sharding strategies we support in maxtext below, starting with some notation.</p>
+<section id="sharding-notation">
+<h2>Sharding notation<a class="headerlink" href="#sharding-notation" title="Link to this heading">#</a></h2>
+<p>We illustrate our sharding notation with an example matmul:</p>
+<div class="math notranslate nohighlight">
+\[B_xE  \times  EM = B_xM\]</div>
+<p>Where B, E and M are names of dimensions and a subscript denotes sharding. For example, <span class="math notranslate nohighlight">\(B_xE\)</span> is a 2-dimensional matrix sharded along the <span class="math notranslate nohighlight">\(B\)</span> dimension, using the <span class="math notranslate nohighlight">\(x\)</span> mesh axis. Dimensions without a subscript are not sharded.
+This example is of standard data parallelism, only the batch dimension is sharded. Note that <span class="math notranslate nohighlight">\(B\)</span> refers to the batch dimension, <span class="math notranslate nohighlight">\(B_x\)</span> to the local shard of this dimension, whereas we use <span class="math notranslate nohighlight">\(\left|B\right|\)</span> and <span class="math notranslate nohighlight">\(\left|B_x\right|\)</span> to refer to the lengths of single axes, and <span class="math notranslate nohighlight">\(\left|x\right|\)</span> as the degree of sharding on the x axis, e.g. <span class="math notranslate nohighlight">\(\left|B_x\right| = \left|B\right|/\left|x\right|\)</span>. We drop this <span class="math notranslate nohighlight">\(\left|\cdot\right|\)</span> notation when there is a product to reduce clutter, e.g. we use <span class="math notranslate nohighlight">\(BEM_x\)</span> instead of <span class="math notranslate nohighlight">\(\left|B\right|\left|E\right|\left|M_x\right|\)</span>.</p>
+<p>We illustrate this notation on model parallelism as well:</p>
+<p><span class="math notranslate nohighlight">\(BM_x \times M_xE = BE \rightarrow \text{Reduce-Scatter (RS) over x} \rightarrow BE_x\)</span></p>
+<p>Explanation: Both the activations (<span class="math notranslate nohighlight">\(BM\)</span>) and weights (<span class="math notranslate nohighlight">\(ME\)</span>) are sharded on the M dimension. Thus each device is able to perform the matmul locally with its shard of the <span class="math notranslate nohighlight">\(M_x\)</span> dimension, the local result is of the right global shape (<span class="math notranslate nohighlight">\(BE\)</span>) but is only a partial result - it needs to be summed with the other shards to get the full result. This is achieved with a reduce scatter (which does the summation and additionally shards the activations). Note that some flavors of tensor parallelism call for an all reduce instead a reduce scatter, but generally in maxtext we use a reduce scatter here.</p>
+<section id="axis-labels">
+<h3>Axis labels<a class="headerlink" href="#axis-labels" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head text-left"><p>Symbol</p></th>
+<th class="head text-left"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td class="text-left"><p><span class="math notranslate nohighlight">\(B\)</span></p></td>
+<td class="text-left"><p>batch (either in tokens or sequences)</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p><span class="math notranslate nohighlight">\(S\)</span></p></td>
+<td class="text-left"><p>sequence</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p><span class="math notranslate nohighlight">\(E\)</span></p></td>
+<td class="text-left"><p>emb_dim (aka model dim)</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p><span class="math notranslate nohighlight">\(M\)</span></p></td>
+<td class="text-left"><p>mlp_dim  (aka intermediate dim)</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p><span class="math notranslate nohighlight">\(X\)</span></p></td>
+<td class="text-left"><p>expert</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Note for the feed forward computation the batch and sequence dimensions act the same and thus we use only one <span class="math notranslate nohighlight">\(B\)</span> axis (which you can think of as a token batch dimension, a reshaping of batch and sequence into one axis), but for context and sequence parallelism they act differently and thus we use both a <span class="math notranslate nohighlight">\(B\)</span> and <span class="math notranslate nohighlight">\(S\)</span> dimension and the <span class="math notranslate nohighlight">\(B\)</span> dimension is really batch in sequences. For example a matmul with an explicit sequence dimension might look like</p>
+<div class="math notranslate nohighlight">
+\[BSE \times EM = BSM\]</div>
+<p>But for arithmetic intensity roofline analysis purposes the <span class="math notranslate nohighlight">\(B\)</span> and <span class="math notranslate nohighlight">\(S\)</span> axis act as one, and generally we omit the <span class="math notranslate nohighlight">\(S\)</span> axis except for when its needed (context/sequence parallelism), thus we only write</p>
+<div class="math notranslate nohighlight">
+\[BE \times EM = BM\]</div>
+<p>We recognize this overloads the definition of <span class="math notranslate nohighlight">\(B\)</span> but for arithmetic intensity purposes the only batch size that matters is batch in tokens - which imagines combining the <span class="math notranslate nohighlight">\(B\)</span> and <span class="math notranslate nohighlight">\(S\)</span> axis into one.</p>
+</section>
+</section>
+<section id="arithmetic-intensity-whirlwind-introduction-example">
+<h2>Arithmetic Intensity whirlwind introduction example<a class="headerlink" href="#arithmetic-intensity-whirlwind-introduction-example" title="Link to this heading">#</a></h2>
+<p>Arithmetic Intensity has a simple definition</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Arithmetic</span> <span class="n">Intensity</span><span class="o">:=</span> <span class="n">Flops</span> <span class="o">/</span> <span class="n">Comms</span>
+</pre></div>
+</div>
+<p>We will see why this is a useful definition by walking through an example.</p>
+<p>We want to be compute bound (because there is a fixed amount of compute to perform), which means we want the compute to take longer than the communication. Consider the above example (model parallelism aka tensor parallelism)</p>
+<div class="math notranslate nohighlight">
+\[ BM_x \times M_xE = BE \text{ (partial result)} \rightarrow \text{RS over x} \rightarrow BE_x \]</div>
+<p>The compute is <span class="math notranslate nohighlight">\(BM_x \times M_xE = BE\)</span> matmul, which takes <span class="math notranslate nohighlight">\(2BM_xE\)</span> flops (you can think of this as <span class="math notranslate nohighlight">\(\left|B\right| * \left|E\right|\)</span> dot products each of length <span class="math notranslate nohighlight">\(\left|M_x\right|\)</span>, thus there are <span class="math notranslate nohighlight">\(BEM_x\)</span> multiplications and additions to perform.</p>
+<p><strong>Compute time</strong> = Flops / compute speed = <span class="math notranslate nohighlight">\(2BEM_x\)</span> / compute speed</p>
+<p>The required communication is the RS from <span class="math notranslate nohighlight">\(BE\)</span> to <span class="math notranslate nohighlight">\(BE_x\)</span>. It turns out an optimal reduce scatter algorithm in <code class="docutils literal notranslate"><span class="pre">bf16</span></code> would take <span class="math notranslate nohighlight">\(2BE\)</span> bytes communicated per device</p>
+<p><strong>Comm time</strong> = comms bytes / comm speed = <span class="math notranslate nohighlight">\(2BE\)</span> bytes / comm speed</p>
+<p>We want to be compute bound, so we want:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Compute</span> <span class="n">time</span> <span class="o">&gt;</span> <span class="n">Communication</span> <span class="n">time</span>
+<span class="n">Compute</span> <span class="n">Flops</span> <span class="o">/</span> <span class="n">compute</span> <span class="n">speed</span> <span class="o">&gt;</span> <span class="n">Comm</span> <span class="nb">bytes</span> <span class="o">/</span> <span class="n">comm</span> <span class="n">speed</span>
+</pre></div>
+</div>
+<p>Arithmetic Intensity simplifies and generalizes this analysis by re-arranging this inequality to put everything about the model on one side, and everything about the hardware on the other:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Compute</span> <span class="n">Flops</span> <span class="o">/</span> <span class="n">Comm</span> <span class="nb">bytes</span> <span class="o">&gt;</span> <span class="n">Compute</span> <span class="n">Speed</span> <span class="o">/</span> <span class="n">comm</span> <span class="n">speed</span>
+<span class="n">Operation</span> <span class="n">Arithmetic</span> <span class="n">Intensity</span> <span class="o">&gt;</span> <span class="n">Hardware</span> <span class="n">Arithmetic</span> <span class="n">Intensity</span>
+</pre></div>
+</div>
+<p>The LHS (Compute Flops / Comm bytes) is the “Operation” or “Model” arithmetic intensity, whereas the RHS (Compute Speed / comm speed) is the hardware arithmetic intensity. This re-arrangement has a huge benefit in that it separates model from hardware - the operational intensity is independent of the hardware. Note however that arithmetic has this funky unity of flops/byte - intuitively you can think of this as the amount of flops unlocked by communicating a certain amount of bytes.</p>
+<p>Operation Arithmetic Intensity for this example: <span class="math notranslate nohighlight">\(2BM_xE\)</span> flops / <span class="math notranslate nohighlight">\(2BE\)</span> bytes = <span class="math notranslate nohighlight">\(\left|M_x\right|\)</span> flops/byte</p>
+<p>Hardware Arithmetic Intensity: Compute speed / comm speed</p>
+<p>Example hardware for trillium (See <a class="reference external" href="https://cloud.google.com/tpu/docs/v6e">https://cloud.google.com/tpu/docs/v6e</a>), compute speed = <span class="math notranslate nohighlight">\(917\)</span> TFLOPs, and comm speed of 1 ICI axis is <span class="math notranslate nohighlight">\(180\)</span> GB/s so the ratio <span class="math notranslate nohighlight">\(917 * 10^12 / 180 * 10^ 9 = 5100\)</span>. Thus we would need <span class="math notranslate nohighlight">\(\left|M_x\right| &gt; 5100\)</span> (Operational AI &gt; Hardware AI) to be compute bound for this operation. This is an example of key insights that arithmetic intensity gives us - it tells us we need a large <span class="math notranslate nohighlight">\(\left|M\right|\)</span> to achieve high utilization for model parallelism because the operational intensity is proportional to <span class="math notranslate nohighlight">\(\left|M\right|\)</span>.</p>
+</section>
+<section id="arithmetic-intensity-mixed-sharding-strategies">
+<h2>Arithmetic Intensity: Mixed sharding strategies<a class="headerlink" href="#arithmetic-intensity-mixed-sharding-strategies" title="Link to this heading">#</a></h2>
+<p>When we use multiple sharding strategies together it seems intractable to keep track of all of the compute vs communication ratios. However it turns out (not obvious at first), that the arithmetic intensity analysis of a “pure” sharding strategy generalizes to when it’s used in a mix. For instance, if we added data parallelism to the above tensor parallelism example then  the batch dimension <span class="math notranslate nohighlight">\(B\)</span> would also be sharded by a new mesh axes <span class="math notranslate nohighlight">\(y\)</span>. Both the compute and communication would decrease by this sharding factor <span class="math notranslate nohighlight">\(\left|y\right|\)</span>, and thus the ratio of compute to comms for tensor parallelism would remain the same (<span class="math notranslate nohighlight">\(\left|M\right|\left|x\right|\)</span>, independent of <span class="math notranslate nohighlight">\(\left|y\right|\)</span>). Concretely this would look like</p>
+<div class="math notranslate nohighlight">
+\[B_yM_x \times M_xE = B_yE \rightarrow \text{RS over x } \rightarrow B_yE_x  \]</div>
+<p><strong>Compute:</strong> = <span class="math notranslate nohighlight">\(2B_yM_xE\)</span> Flops</p>
+<p><strong>TP comms (RS)</strong> = <span class="math notranslate nohighlight">\(2B_yE\)</span> bytes</p>
+<p><strong>Ratio (Arithmetic Intensity)</strong> = <span class="math notranslate nohighlight">\(\left|M_x\right|\)</span> Flops/byte</p>
+<p>This “independence” of sharding strategies is true for the main four parallelisms (data, model (tensor), pipeline, and expert). Note that data, fsdp, context and sequence parallelism are all roughly the same for the purpose of
+arithmetic intensity analysis since they shard the batch, as we will illustrate in the individual sections below. In addition both data and pipeline parallelism (microbatches) shard the batch which decreases the HBM arithmetic intensity.</p>
+</section>
+<section id="code-implementation-of-sharding-in-maxtext">
+<h2>Code implementation of sharding in MaxText<a class="headerlink" href="#code-implementation-of-sharding-in-maxtext" title="Link to this heading">#</a></h2>
+<p>Sharding in maxtext is split into 3 layers</p>
+<ul class="simple">
+<li><p><strong>Physical</strong> mesh axes (e.g. <code class="docutils literal notranslate"><span class="pre">data</span></code>, <code class="docutils literal notranslate"><span class="pre">fsdp</span></code>, <code class="docutils literal notranslate"><span class="pre">tensor</span></code>) defined <a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/blob/f269268bd622f6d2f40d38632ede7a7834a6024e/MaxText/configs/base.yml#L269">here</a></p>
+<ul>
+<li><p>Mesh is created via <a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/blob/f269268bd622f6d2f40d38632ede7a7834a6024e/MaxText/max_utils.py#L576-L580">create_device_mesh</a></p></li>
+<li><p>Mesh given names in train.py via <a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/blob/f269268bd622f6d2f40d38632ede7a7834a6024e/MaxText/train.py#L594">Mesh</a></p></li>
+</ul>
+</li>
+<li><p><strong>Logical</strong> axes which map a meaningful axes name to physical axes defined <a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/blob/f269268bd622f6d2f40d38632ede7a7834a6024e/MaxText/configs/base.yml#L270">here</a></p>
+<ul>
+<li><p>E.g. logical axes <code class="docutils literal notranslate"><span class="pre">activation_batch</span></code> is sharded by the physical axes of <code class="docutils literal notranslate"><span class="pre">data</span></code> and <code class="docutils literal notranslate"><span class="pre">fsdp</span></code> (among others) since those sharding strategies shard the batch. <code class="docutils literal notranslate"><span class="pre">Activation_batch</span></code> is a common axis among most activation tensors. Note that if we use <code class="docutils literal notranslate"><span class="pre">data_parallelism=4</span></code> and <code class="docutils literal notranslate"><span class="pre">fsdp_parallelism=2</span></code>, then the <code class="docutils literal notranslate"><span class="pre">activation_batch</span></code> dimension will get sharded over both, e.g. <span class="math notranslate nohighlight">\(4*2=8\)</span> ways.</p></li>
+</ul>
+</li>
+<li><p><strong>Individual tensors</strong> have sharding constraints - generally specified by logical rules</p>
+<ul>
+<li><p>Example for weights using <code class="docutils literal notranslate"><span class="pre">kernel_axes</span></code> in <code class="docutils literal notranslate"><span class="pre">MlpBlock</span></code> <a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/blob/f269268bd622f6d2f40d38632ede7a7834a6024e/MaxText/layers/linears.py#L240">here</a> which in turns relies on flax’s param argument <code class="docutils literal notranslate"><span class="pre">nn.with_logical_partitioning</span></code> <a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/blob/f269268bd622f6d2f40d38632ede7a7834a6024e/MaxText/layers/linears.py#L135">here</a></p></li>
+<li><p>For activations we use <code class="docutils literal notranslate"><span class="pre">nn.with_logical_constraint</span></code> to give sharding hints for the compiler - here is an <a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/blob/f269268bd622f6d2f40d38632ede7a7834a6024e/MaxText/layers/llama2.py#L85">example</a>. Sharding hints for the activations is not strictly necessary but the compiler may do funky/inefficient things without these hints.</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="hierarchical-mesh">
+<h2>Hierarchical Mesh<a class="headerlink" href="#hierarchical-mesh" title="Link to this heading">#</a></h2>
+<p>Constructing a hierarchical mesh and specifying shardings is very similar to a “flat” mesh except we use the nice API <a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/blob/f269268bd622f6d2f40d38632ede7a7834a6024e/MaxText/max_utils.py#L558">create_hybrid_device_mesh</a> and specify both the degree of lower level faster network (e.g. <code class="docutils literal notranslate"><span class="pre">TPU</span> <span class="pre">ICI</span></code>) and higher level slower network (e.g. <code class="docutils literal notranslate"><span class="pre">DCN</span></code>) separately. For example if we want to use 4x fsdp parallelism over <code class="docutils literal notranslate"><span class="pre">ICI</span></code> and 2x data parallelism over <code class="docutils literal notranslate"><span class="pre">DCN</span></code> then we specify</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mesh</span> <span class="o">=</span> <span class="n">mesh_utils</span><span class="o">.</span><span class="n">create_hybrid_device_mesh</span><span class="p">(</span>
+    <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">4</span><span class="p">),</span> <span class="c1"># (1 data, 4 fsdp) over ICI</span>
+    <span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="c1"># (2 data, 1 fsdp) over DCN</span>
+    <span class="n">devices</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>For TPUs this two level hierarchy is (within-slice, across slices) using (ICI, DCN). For <code class="docutils literal notranslate"><span class="pre">v5e</span></code> and <code class="docutils literal notranslate"><span class="pre">trillium</span></code> there are at most 256 chips within a slice, whereas for <code class="docutils literal notranslate"><span class="pre">v4</span></code>, <code class="docutils literal notranslate"><span class="pre">v5p</span></code>, and the upcoming <code class="docutils literal notranslate"><span class="pre">ironwood</span></code> can span up to 8k/9k chips within a slice.</p>
+<p>For GPUs this two level hierarchy is (within NVL domain, across NVL Domains) using (NVLink, DCN). Starting with  Grace Blackwell chips these NVL domains can span multiple hosts (e.g. 72 hosts or 576 chips).</p>
+<p>XLA will perform efficient hierarchical
+collectives (all-gather, all-reduces, reduce-scatters) that communicate the minimal amount of information over the slower upper layer of the network. See the <a class="reference internal" href="#dp-arithmetic-intensity-hierarchical">Data Parallel Hierarchal Section</a> for an analysis of these communications.</p>
+</section>
+<section id="data-parallelism-dp">
+<h2>Data Parallelism (DP)<a class="headerlink" href="#data-parallelism-dp" title="Link to this heading">#</a></h2>
+<p>The simplest parallelization is data parallelization. Each chip works on a different batch of data, and the forward pass is embarrassingly parallel. No communication is needed in the forward pass. The gradients are synchronized in the backward pass (averaged or summed) - which is typically achieved with an all reduce.</p>
+<section id="dp-arithmetic-intensity-dense">
+<h3>DP Arithmetic Intensity (Dense)<a class="headerlink" href="#dp-arithmetic-intensity-dense" title="Link to this heading">#</a></h3>
+<p>Roughly approximate the entire backward pass:</p>
+<p><strong>Compute</strong>: <span class="math notranslate nohighlight">\(4 * \text{local batch} * \text{params}\)</span></p>
+<p>We saw above that each matmul performs <span class="math notranslate nohighlight">\(2 * \text{local batch} * \text{params}\)</span> flops, it turns out that the backward pass requires twice as many flops as the forward pass. We don’t derive this here but highly recommend reading these <a class="reference external" href="https://www.cs.toronto.edu/~rgrosse/courses/csc321_2017/slides/lec6.pdf">slides</a> from University of Toronto to explain the mathematics and implementation of backprop.</p>
+<p><strong>Communicate</strong>: All reduce size of params (<code class="docutils literal notranslate"><span class="pre">bf16</span></code>) : <span class="math notranslate nohighlight">\(4 * \text{params}\)</span> (<code class="docutils literal notranslate"><span class="pre">2*</span></code> since <code class="docutils literal notranslate"><span class="pre">bf16</span></code>, another <code class="docutils literal notranslate"><span class="pre">2*</span></code> since an optimal all reduce algorithm turns out to require two passes of communicating data (generally a reduce scatter followed by an all-gather))</p>
+<p><strong>Ratio (arithmetic intensity)</strong>: <code class="docutils literal notranslate"><span class="pre">local_batch</span></code></p>
+</section>
+<section id="dp-arithmetic-intensity-sparse">
+<h3>DP Arithmetic Intensity (Sparse)<a class="headerlink" href="#dp-arithmetic-intensity-sparse" title="Link to this heading">#</a></h3>
+<p>For an MoE architecture, we can imagine the <code class="docutils literal notranslate"><span class="pre">batch</span></code> axis is reshaped into <code class="docutils literal notranslate"><span class="pre">[batch_per_expert,</span> <span class="pre">expert]</span></code>, where the</p>
+<p><code class="docutils literal notranslate"><span class="pre">batch_per_expert</span></code> * <code class="docutils literal notranslate"><span class="pre">expert</span></code> = <code class="docutils literal notranslate"><span class="pre">batch</span></code> * <code class="docutils literal notranslate"><span class="pre">expert_per_token</span></code></p>
+<p>e.g. the original activations have grown by a factor of <code class="docutils literal notranslate"><span class="pre">expert_per_token</span></code> and after reshaping the new batch axis is:</p>
+<p><code class="docutils literal notranslate"><span class="pre">batch_per_expert</span></code> = <code class="docutils literal notranslate"><span class="pre">batch</span></code> * (<code class="docutils literal notranslate"><span class="pre">expert_per_token</span></code>/<code class="docutils literal notranslate"><span class="pre">expert</span></code>) = <code class="docutils literal notranslate"><span class="pre">batch</span></code> / <code class="docutils literal notranslate"><span class="pre">sparsity</span></code></p>
+<p>We denote the local <code class="docutils literal notranslate"><span class="pre">batch_per_expert</span></code> with <span class="math notranslate nohighlight">\(\beta\)</span> and analyze an MoE feedfoward matmul to calculate arithmetic intensity:</p>
+<div class="math notranslate nohighlight">
+\[\beta EX \times EMX = \beta MX\]</div>
+<p><strong>Compute:</strong> <span class="math notranslate nohighlight">\(4\beta EMX\)</span> Flops (2x in backward pass)</p>
+<p><strong>Comms:</strong> All Reduce Gradient of size <span class="math notranslate nohighlight">\(EMX\)</span>: <span class="math notranslate nohighlight">\(4EMX\)</span> bytes</p>
+<p><strong>Ratio (arithmetic intensity):</strong> <span class="math notranslate nohighlight">\(\left|\beta\right| = \text{local batch} / \text{sparsity}\)</span></p>
+</section>
+<section id="dp-arithmetic-intensity-hierarchical">
+<h3>DP Arithmetic Intensity (Hierarchical)<a class="headerlink" href="#dp-arithmetic-intensity-hierarchical" title="Link to this heading">#</a></h3>
+<p>For a hierarchal mesh (TPU: within slice ICI, across slice DCN, GPU: within NVL domain, across NVL Domains), only one set of gradients need to be communicated
+across the slower network per slice/NVL Domain (as opposed to one set per chip). This is generally achieved for us automatically by the XLA compiler:</p>
+<p>Reduce Scatter grads on fast network <span class="math notranslate nohighlight">\(\rightarrow\)</span> All Reduce across slow <span class="math notranslate nohighlight">\(\rightarrow\)</span> All Gather on faster network</p>
+<p>We can compute the arithmetic intensity of these cross slice/NVL Domain comms by imagining the chips forming a slice or NVL Domain as one “super chip”. This “super chip” processes all of the tokens within its domain, but it only
+has to share one copy of the gradients to its super chip neighbors.</p>
+<p>If the local per device batch size is <code class="docutils literal notranslate"><span class="pre">local</span> <span class="pre">batch</span></code>, then we can imagine each “super chip” has a batch of</p>
+<p><code class="docutils literal notranslate"><span class="pre">super</span> <span class="pre">batch</span></code> = <code class="docutils literal notranslate"><span class="pre">#</span> <span class="pre">devices</span> <span class="pre">per</span> <span class="pre">slice</span></code> * <code class="docutils literal notranslate"><span class="pre">local</span> <span class="pre">batch</span></code></p>
+<p>We can then perform the same arithmetic intensity analysis as before, and indeed get the same result:</p>
+<p><strong>Compute (per super chip):</strong> <span class="math notranslate nohighlight">\(4 * \text{super batch} * \text{params}\)</span> flops</p>
+<p><strong>Comms (per super chip):</strong> All reduce params <span class="math notranslate nohighlight">\(\rightarrow 4 * \text{params}\)</span> bytes</p>
+<p><strong>Ratio (arithmetic intensity):</strong> <span class="math notranslate nohighlight">\(\text{super batch } (\text{super batch} / \text{sparsity} \text{ for sparse models})\)</span></p>
+<p>This illustrates there are more than one way to calculate arithmetic intensity - we could also derive the same expression
+from the chip level as long as we are consistent for the compute and comms - either both the compute and comms should be at the super chip level, or both should be at the regular chip level.</p>
+</section>
+</section>
+<section id="fully-sharded-data-parallelism-fsdp">
+<h2>Fully Sharded Data Parallelism (FSDP)<a class="headerlink" href="#fully-sharded-data-parallelism-fsdp" title="Link to this heading">#</a></h2>
+<p>Similar to data parallelism, except the model weights are also sharded to save memory. Generally the weights must get all-gathered before computation.</p>
+<p>In addition to the weights all-gathering, the gradient communications are synchronized in the backward pass similar to DP (optimally will be synchronized with a reduce scatter which is 2x faster than an all-reduce, but only certain sizes of weight matrices allow for this efficient reduce scatter operation). The arithmetic intensity of this grad comm is thus either the same or 2x better than in the DP case, which has an arithmetic intensity of local_batch.</p>
+<p>Fully sharded data parallelism (aka zero3) is used when the full model weights do not fit into HBM memory and thus they should be sharded as well. Generally we recommend using FSDP on TPU ICI or GPU NVLINK and DP across slices for TPUs or across hosts for NVLINK, although for large models even more FSDP may be required.</p>
+<section id="fsdp-arithmetic-intensity">
+<h3>FSDP Arithmetic Intensity<a class="headerlink" href="#fsdp-arithmetic-intensity" title="Link to this heading">#</a></h3>
+<p>Approximate a typical weight &#64; activation = activation matmul:</p>
+<p>Start with activations sharded like <span class="math notranslate nohighlight">\(B_xE\)</span> and weights sharded like <span class="math notranslate nohighlight">\(E_xM\)</span> (it doesn’t matter which axis of weights is sharded). We must first All Gather (AG) the weights</p>
+<div class="math notranslate nohighlight">
+\[E_xM \rightarrow \text{AG } x \rightarrow  EM\]</div>
+<p><strong>Compute</strong>: <span class="math notranslate nohighlight">\(B_xE \times EM = B_xM\)</span></p>
+<p>This takes <span class="math notranslate nohighlight">\(2B_xEM\)</span> flops</p>
+<p>Note that <span class="math notranslate nohighlight">\(B\)</span> is the global batch (unsharded), whereas <span class="math notranslate nohighlight">\(B_x\)</span> is the <code class="docutils literal notranslate"><span class="pre">local_batch</span></code>.</p>
+<p><strong>Communicate</strong>: All gather params <span class="math notranslate nohighlight">\(EM\)</span> in (<code class="docutils literal notranslate"><span class="pre">bf16</span></code>): <span class="math notranslate nohighlight">\(2EM\)</span> bytes</p>
+<p><strong>Ratio (arithmetic intensity)</strong> <span class="math notranslate nohighlight">\(B_x\)</span> = <code class="docutils literal notranslate"><span class="pre">local_batch</span></code> flops/byte (<code class="docutils literal notranslate"><span class="pre">local_batch</span></code> / <code class="docutils literal notranslate"><span class="pre">sparsity</span></code> for sparse)</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">sparsity</span></code> factor for sparse models shows up for the same reason as derived in the <a class="reference internal" href="#dp-arithmetic-intensity-sparse">DP Sparse Section</a></p>
+<p><em>Note</em>: You may notice that in the DP arithmetic intensity we analyzed the <em>entire</em> backward pass whereas here we analyzed a single matmul. Both approaches should give the same answer, it is useful to understand both ways. Certain shardings are easier to analyze with a global view, whereas others are better analyzed with a local view, it is useful to practice switching between them.</p>
+</section>
+</section>
+<section id="fully-sharded-data-parallelism-transpose">
+<h2>Fully Sharded Data Parallelism (transpose)<a class="headerlink" href="#fully-sharded-data-parallelism-transpose" title="Link to this heading">#</a></h2>
+<p>This is nearly identical to FSDP above except we choose to shard the main feedforward weights on the larger mlp dim instead of embed dim. This can be useful when the embed dim cannot be sharded further or does not have enough powers of 2 for efficient reduce scatter algorithms on TPUs. You may try swapping between <code class="docutils literal notranslate"><span class="pre">FSDP</span></code> and <code class="docutils literal notranslate"><span class="pre">FSDP_transpose</span></code>, their performance should be very similar, but one may offer a ~1% MFU improvement.</p>
+</section>
+<section id="context-parallelism-cp">
+<h2>Context Parallelism (CP)<a class="headerlink" href="#context-parallelism-cp" title="Link to this heading">#</a></h2>
+<p>Context parallelism is similar to FSDP except we shard the sequence dimension of activations instead of batch to allow for smaller batch dimensions (correspondingly smaller per device batch, including fractional per device batch sizes). A smaller per device batch dimension is often  needed for large sequence lengths so that the activations fit into memory. Also a smaller per device batch size is needed so that the global token count (global batch size) stays under some desired global batch size limit for optimal training - generally smaller global batch sizes can achieve better losses given a fixed number of total tokens (e.g. Llama3 used 16M global batch in tokens, DeepSeek uses 61M).</p>
+<p>Care needs to be taken to shard the sequence dimension for attention - only the queries are sharded by sequence, the keys and values need to be all-gathered to perform the full computation. Additionally if we naively shard the sequence dimension then the attention computation is not evenly distributed due to the lower triangular causal mask - shards corresponding to later queries have more non-zero mask and thus become the bottleneck. Instead we “stripe” the inputs, so that the first shard has the first and last chunk of the sequence, the second shard has the second and second to last, etc. This striping is done on the initial data inputs (instead of every layer), so it is a small cost.</p>
+<p>Note in general there are many flavors of CP such as ring attention, which in theory can hide all of the comms (as opposed to this implementation where the KV all gathers are probably exposed). This all gather is relatively cheap so we have implementd this flavor for now, a good trade-off of complexity and performance.</p>
+<p>Currently Context Parallelism is only supported for GPUs (Sequence parallelism below is supported on TPUs). We plan to land context parallelism on TPUs shortly.</p>
+<section id="cp-arithmetic-intensity">
+<h3>CP Arithmetic Intensity<a class="headerlink" href="#cp-arithmetic-intensity" title="Link to this heading">#</a></h3>
+<p>The main communications are the same as FSDP (all gather weights and synchronize gradients), with an arithmetic intensity of <code class="docutils literal notranslate"><span class="pre">local_batch</span></code> / <code class="docutils literal notranslate"><span class="pre">sparsity</span></code>.</p>
+<p>The extra cost of all gathering of keys and values is small, especially for long sequences, analyzed below assuming group query attention:</p>
+<p><strong>Compute</strong>: Attention - <code class="docutils literal notranslate"><span class="pre">4</span> <span class="pre">*</span> <span class="pre">batch</span> <span class="pre">*</span> <span class="pre">seq_len^2</span> <span class="pre">*</span> <span class="pre">query_heads</span> <span class="pre">*</span> <span class="pre">head_dim/|CP|</span></code></p>
+<p><strong>Communicate (KV all gather)</strong>: All-gather keys and values  - <code class="docutils literal notranslate"><span class="pre">4</span> <span class="pre">*</span> <span class="pre">batch</span> <span class="pre">*</span> <span class="pre">seq_len</span> <span class="pre">*</span> <span class="pre">kv_heads</span> <span class="pre">*</span> <span class="pre">head_dim</span></code></p>
+<p><strong>Ratio</strong>: <code class="docutils literal notranslate"><span class="pre">seq_len</span> <span class="pre">*</span> <span class="pre">query_heads</span> <span class="pre">/</span> <span class="pre">(kv_heads</span> <span class="pre">*</span> <span class="pre">|CP|)</span></code></p>
+</section>
+</section>
+<section id="sequence-parallelism-sp">
+<h2>Sequence Parallelism (SP)<a class="headerlink" href="#sequence-parallelism-sp" title="Link to this heading">#</a></h2>
+<p>Sequence parallelism is very similar to context parallelism - we shard the layer inputs and feed forward activations along the sequence dimension. The difference is for attention - we shard the queries, keys, and values along the head dimension instead of sequence dimension (this is fairly MaxText specific, you might not see this in other codebases). This is because the head dimension is easy to shard on for attention (it is not a contracting dimension), and thus can be more efficient than context parallelism as long as there are enough heads. Both sequence parallelism and tensor parallelism shard the heads, so we are constrained by <code class="docutils literal notranslate"><span class="pre">tensor_parallelism</span> <span class="pre">*</span> <span class="pre">sequence_parallelism</span> <span class="pre">&lt;</span> <span class="pre">kv_heads</span></code>. E.g. if there are only 8 <code class="docutils literal notranslate"><span class="pre">kv_heads</span></code> as for llama3 and we use <code class="docutils literal notranslate"><span class="pre">tensor_parallelism=8</span></code>, then we cannot use any <code class="docutils literal notranslate"><span class="pre">sequence_parallelism</span></code> (e.g. <code class="docutils literal notranslate"><span class="pre">sequence_parallelism=1</span></code>)</p>
+<p>Sequence parallelism is currently only supported with TPUs attention kernel, for GPUs we recommend context parallelism above.</p>
+<section id="sp-arithmetic-intensity">
+<h3>SP Arithmetic Intensity<a class="headerlink" href="#sp-arithmetic-intensity" title="Link to this heading">#</a></h3>
+<p>The main communications are the same as <code class="docutils literal notranslate"><span class="pre">FSDP</span></code> (all gather weights and synchronize gradients), with an arithmetic intensity of <code class="docutils literal notranslate"><span class="pre">local_batch</span></code> / <code class="docutils literal notranslate"><span class="pre">sparsity</span></code></p>
+<section id="sp-extra-a2a-cost">
+<h4>SP Extra A2A cost<a class="headerlink" href="#sp-extra-a2a-cost" title="Link to this heading">#</a></h4>
+<p>Sequence parallelism has an additional cost of transferring the sharding from sequence to heads (and back again) for attention. This is executed via and all-to-all which are generally cheap operations, analyzed below:</p>
+<p><strong>Compute</strong>: Attention (<code class="docutils literal notranslate"><span class="pre">4</span> <span class="pre">*</span> <span class="pre">batch</span> <span class="pre">*</span> <span class="pre">seq_len^2</span> <span class="pre">*</span> <span class="pre">heads</span> <span class="pre">*</span> <span class="pre">head_dim</span> <span class="pre">\</span> <span class="pre">|SP|</span></code>)</p>
+<p><strong>Communicate:</strong> A2A QKV activations and output activations (roughly <code class="docutils literal notranslate"><span class="pre">4</span> <span class="pre">*</span> <span class="pre">batch</span> <span class="pre">*</span> <span class="pre">seq_len</span> <span class="pre">*</span> <span class="pre">heads</span> <span class="pre">*</span> <span class="pre">head_dim</span></code>)</p>
+<p><strong>Ratio (Arithmetic Intensity)</strong>: Proportional to <code class="docutils literal notranslate"><span class="pre">seq_len</span> <span class="pre">/</span> <span class="pre">|SP|</span></code></p>
+<p>The exact ratio depends on MHA vs GQA, how many kv heads there are and the efficiency of an all-to-all on the given hardware.</p>
+</section>
+</section>
+</section>
+<section id="tensor-parallelism-tp">
+<h2>Tensor Parallelism (TP)<a class="headerlink" href="#tensor-parallelism-tp" title="Link to this heading">#</a></h2>
+<p>Shard the activations along the feature dimensions (e.g. model or <code class="docutils literal notranslate"><span class="pre">embed</span></code> dimension and intermediate or <code class="docutils literal notranslate"><span class="pre">mlp</span></code> dimension) instead of the batch dimension. Tensor parallelism communicates the activations as opposed to the weights as in DP/FSDP. Tensor parallelism can be used to replace some amount of DP/FSDP when the batch size is small and/or when the model is large (when the <code class="docutils literal notranslate"><span class="pre">mlp</span></code> dim is large). Tensor parallelism is needed to run with small batches, such as fraction <code class="docutils literal notranslate"><span class="pre">per_device_batch_size</span></code> &lt; 1. For instance if we use <code class="docutils literal notranslate"><span class="pre">TP=4</span></code> then we can use the rest with FSDP and set <code class="docutils literal notranslate"><span class="pre">per_device_batch_size=0.25</span></code> since the <code class="docutils literal notranslate"><span class="pre">global_batch</span> <span class="pre">=</span> <span class="pre">per_device_batch_size</span> <span class="pre">*</span> <span class="pre">TP</span> <span class="pre">*</span> <span class="pre">FSDP</span> <span class="pre">=</span> <span class="pre">0.25</span> <span class="pre">*</span> <span class="pre">4</span> <span class="pre">*</span> <span class="pre">FSDP</span> <span class="pre">=</span> <span class="pre">FSDP</span></code>, and this is shardable among <code class="docutils literal notranslate"><span class="pre">FSDP</span></code> devices (each device will get a shard of <code class="docutils literal notranslate"><span class="pre">FSDP/FSDP</span> <span class="pre">=</span> <span class="pre">1</span></code> of the batch axis in this case). For the attention activations (query, key, value), we shard the heads on <code class="docutils literal notranslate"><span class="pre">TP</span></code> since that is the easiest dimension to shard on and use an attention kernel like flash attention (the heads are not a contracting dimension during the attention computation).</p>
+<section id="tp-arithmetic-intensity">
+<h3>TP Arithmetic Intensity<a class="headerlink" href="#tp-arithmetic-intensity" title="Link to this heading">#</a></h3>
+<p>Analyze one pattern of TP as given above</p>
+<div class="math notranslate nohighlight">
+\[ BM_x \times M_xE = BE \text{ (local partial result) } \rightarrow \text{ Reduce-Scatter (RS) } x \rightarrow BE_x \]</div>
+<p><strong>Compute:</strong> <span class="math notranslate nohighlight">\(2BM_xE\)</span> Flops</p>
+<p><strong>Communicate:</strong> Reduce scatter  <span class="math notranslate nohighlight">\(BE\)</span> (<code class="docutils literal notranslate"><span class="pre">bf16</span></code>): <span class="math notranslate nohighlight">\(2BE\)</span> bytes</p>
+<p><strong>Ratio (arithmetic intensity)</strong></p>
+<p><span class="math notranslate nohighlight">\(\left|M_x\right| = \left|M\right|/\left|TP\right|\)</span></p>
+<p>Note this is one pattern of TP where the contracting dimension is sharded. By contrast for the initial feed forward matmul the non-contracting weight dimension is sharded:</p>
+<div class="math notranslate nohighlight">
+\[BE_x \times EM_x \rightarrow \text{AG activations over } x\rightarrow BE \times EM_x = BM_x\]</div>
+<p>This is the same amount of compute, and also the same amount of communication - again activations of <span class="math notranslate nohighlight">\(BE\)</span> are communicated, but in this case it is an initial all-gathering instead of secondary all-reduce. Ideally these activations (all-gather or reduce scatter) can be overlapped with the compute by the XLA compiler - an idea called a <strong>collective matmul</strong>. This is fairly challenging for the compiler since the comms and compute do depend on each other - to achieve overlap the computation and communication have to be chunked into smaller pieces and pipelined.</p>
+</section>
+</section>
+<section id="tensor-sequence-parallelism">
+<h2>Tensor Sequence Parallelism<a class="headerlink" href="#tensor-sequence-parallelism" title="Link to this heading">#</a></h2>
+<p>This sharding strategy is very similar to tensor parallelism, except we shard the initial feed forward (FF) activations on the  sequence dimension as opposed to the model dimension. The activations have to get all-gathered at the start of the FF and reduce-scattered at the end, but it’s the same amount of total comms, just a different axis (see above analysis for TP). The intermediate activations of shape [batch, sequence, mlp] are still sharded by mlp (since the weights are sharded on mlp). The benefits are explained in more detail in this <a class="reference external" href="https://arxiv.org/pdf/2205.05198">paper</a>, TL;DR is that all-reduces for small normalizations are not needed since the feature dimension is not sharded with <code class="docutils literal notranslate"><span class="pre">TP</span> <span class="pre">sequence</span></code> as opposed to when its sharded with regular <code class="docutils literal notranslate"><span class="pre">TP</span></code>. This is generally recommended for GPUs over tensor parallelism. See <a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/pull/1136">PR #1136</a> which introduces this parallelism.</p>
+<section id="tensor-sequence-arithmetic-intensity">
+<h3>Tensor Sequence Arithmetic Intensity<a class="headerlink" href="#tensor-sequence-arithmetic-intensity" title="Link to this heading">#</a></h3>
+<p>Near identical to tensor parallelism above except a different axis gets all-gathered and reduce-scattered on:  thus <code class="docutils literal notranslate"><span class="pre">MLP/TP</span></code></p>
+</section>
+</section>
+<section id="tensor-parallelism-transpose-tp-transpose">
+<h2>Tensor Parallelism Transpose (TP Transpose)<a class="headerlink" href="#tensor-parallelism-transpose-tp-transpose" title="Link to this heading">#</a></h2>
+<p>Similar to tensor parallelism, but instead of sharding the feed forward weights along the <code class="docutils literal notranslate"><span class="pre">mlp_dim</span></code>, shard them along the <code class="docutils literal notranslate"><span class="pre">embed_dim</span></code>. This will require communicating activations of the <code class="docutils literal notranslate"><span class="pre">mlp_dim</span></code> as opposed to the <code class="docutils literal notranslate"><span class="pre">embed_dim</span></code>, and thus is useful when the <code class="docutils literal notranslate"><span class="pre">mlp_dim</span></code> &lt; <code class="docutils literal notranslate"><span class="pre">embed_dim</span></code> which is unusual but is true for some models such as DeepSeek V3.</p>
+<p><code class="docutils literal notranslate"><span class="pre">TP</span></code> and <code class="docutils literal notranslate"><span class="pre">TP</span> <span class="pre">transpose</span></code> can be used together called “2D TP” which can be more efficient than using purely one of them for inference decoding, although this is still a work in progress/largely untested.</p>
+<section id="tp-transpose-arithmetic-intensity">
+<h3>TP Transpose Arithmetic Intensity<a class="headerlink" href="#tp-transpose-arithmetic-intensity" title="Link to this heading">#</a></h3>
+<p>This is really just swapping <span class="math notranslate nohighlight">\(E\)</span> and <span class="math notranslate nohighlight">\(M\)</span> of the TP analysis above, but we will include it here:</p>
+<div class="math notranslate nohighlight">
+\[BE_x \times E_xM = BM_x\]</div>
+<p><strong>Compute:</strong> <span class="math notranslate nohighlight">\(2BE_xM\)</span> FLOPS</p>
+<p><strong>Communicate:</strong> Reduce scatter  <span class="math notranslate nohighlight">\(BM\)</span> (<code class="docutils literal notranslate"><span class="pre">bf16</span></code>): <span class="math notranslate nohighlight">\(2BM\)</span> bytes</p>
+<p><strong>Ratio (arithmetic intensity):</strong> <span class="math notranslate nohighlight">\(\left|E_x\right|=\left|E\right|/\left|TP\right|\)</span></p>
+</section>
+</section>
+<section id="expert-parallelism-ep">
+<h2>Expert Parallelism (EP)<a class="headerlink" href="#expert-parallelism-ep" title="Link to this heading">#</a></h2>
+<p>Shard expert feed forward computation (both weights and activations) by expert!</p>
+<p>The feedforward layer is the only one that has experts - for this layer we shard the weights and the activations on the experts dimensions by <code class="docutils literal notranslate"><span class="pre">EP</span></code>. For attention operations (including projections) the <code class="docutils literal notranslate"><span class="pre">EP</span></code> dimension acts like <code class="docutils literal notranslate"><span class="pre">FSDP</span></code>. This is the default choice by MaxText. There is an option for <code class="docutils literal notranslate"><span class="pre">EP</span></code> to act like <code class="docutils literal notranslate"><span class="pre">CP</span></code> in training. We may implement more options in the future where instead <code class="docutils literal notranslate"><span class="pre">EP</span></code> could act like <code class="docutils literal notranslate"><span class="pre">DP</span></code> or <code class="docutils literal notranslate"><span class="pre">SP</span></code> as well.</p>
+<p>When using dropless strategies you may want to ensure that the shards are balanced. The balance can be improved by using less <code class="docutils literal notranslate"><span class="pre">EP</span></code> so that each shard is averaged over more experts. For instance imagine a scenario where expert 1 gets 10x more tokens routed to it than the rest. If <code class="docutils literal notranslate"><span class="pre">EP</span> <span class="pre">=</span> <span class="pre">#</span> <span class="pre">experts</span> <span class="pre">=</span> <span class="pre">64</span></code>  than we will get terrible performance waiting for this one expert to finish its computation which is 3x slower. However if we set <code class="docutils literal notranslate"><span class="pre">EP</span> <span class="pre">=</span> <span class="pre">1/4</span> <span class="pre">*</span> <span class="pre">#</span> <span class="pre">experts</span></code> than the EP rank with expert 1 will have 4 experts, so we will have <code class="docutils literal notranslate"><span class="pre">3</span> <span class="pre">+</span> <span class="pre">1</span> <span class="pre">+</span> <span class="pre">1</span> <span class="pre">+</span> <span class="pre">1</span> <span class="pre">=</span> <span class="pre">6</span></code> compute to do compared to the average of <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">+</span> <span class="pre">1</span> <span class="pre">+</span> <span class="pre">1</span> <span class="pre">+</span> <span class="pre">1</span> <span class="pre">=</span> <span class="pre">4</span></code>, a ratio of <code class="docutils literal notranslate"><span class="pre">6/4</span> <span class="pre">=</span> <span class="pre">1.5x</span></code> slower, which is a huge improvement over the <code class="docutils literal notranslate"><span class="pre">3x</span></code> slower.</p>
+<section id="ep-arithmetic-intensity">
+<h3>EP Arithmetic Intensity<a class="headerlink" href="#ep-arithmetic-intensity" title="Link to this heading">#</a></h3>
+<p>An all-to-all (A2A) is needed to move between data sharding (fsdp) prior to the feed forward and the expert sharding during the feed forward. We denote <span class="math notranslate nohighlight">\(X\)</span> as the expert tensor axis, and keep <span class="math notranslate nohighlight">\(x\)</span> as the mesh axes</p>
+<p><strong>Compute</strong></p>
+<p>Analyze only 1 feed forward matmul</p>
+<div class="math notranslate nohighlight">
+\[ BEX_x \times EMX_x = BMX_x \]</div>
+<div class="math notranslate nohighlight">
+\[ 2BEX_x \text{ Flops} \]</div>
+<p><strong>Communicate</strong></p>
+<div class="math notranslate nohighlight">
+\[ B_xEX \rightarrow A2A \rightarrow BEX_x \]</div>
+<p>Ideally this <code class="docutils literal notranslate"><span class="pre">A2A</span></code> only requires moving around <span class="math notranslate nohighlight">\(BEX_x\)</span> elements per shard, but it depends on if the hardware is connected with an all to all network (true for <code class="docutils literal notranslate"><span class="pre">GPUs</span></code> and <code class="docutils literal notranslate"><span class="pre">TPU</span> <span class="pre">DCN</span></code> but not for <code class="docutils literal notranslate"><span class="pre">TPU</span> <span class="pre">ICI</span></code>)</p>
+<p>With a true all-to-all network this takes <span class="math notranslate nohighlight">\(2BEX_x\)</span> bytes. Over TPU ICI, an all-to-all is instead as costly as <code class="docutils literal notranslate"><span class="pre">1/4</span></code> of all gathering the entire activation as nicely drawn <a class="reference external" href="https://jax-ml.github.io/scaling-book/sharding/#our-final-communication-primitive-the-alltoall">here</a> in jax’s sharding doc.</p>
+<p><strong>Ratio (arithmetic intensity)</strong>: <span class="math notranslate nohighlight">\(2BEMX_x / 2BEX_x = \left|M\right|\)</span></p>
+<p>Note: The batch <span class="math notranslate nohighlight">\(B\)</span> cancels in above arithmetic intensity - the batch dimension is present in both the compute and communication since we are communicating activations so cancels from the arithmetic intensity ratio regardless of how it is shaped (e.g.<code class="docutils literal notranslate"><span class="pre">batch</span></code> or <code class="docutils literal notranslate"><span class="pre">batch_per_exp</span></code>)</p>
+</section>
+</section>
+<section id="pipeline-parallelism-pp">
+<h2>Pipeline Parallelism (PP)<a class="headerlink" href="#pipeline-parallelism-pp" title="Link to this heading">#</a></h2>
+<p>Shard the weights and computation by layers. There are many flavors of pipelining, MaxText current supports <code class="docutils literal notranslate"><span class="pre">gPipe</span></code> and <code class="docutils literal notranslate"><span class="pre">circular</span> <span class="pre">pipelines</span></code>, which are discussed below</p>
+<section id="why-pipeline-parallelism">
+<h3>Why Pipeline Parallelism?<a class="headerlink" href="#why-pipeline-parallelism" title="Link to this heading">#</a></h3>
+<p>Pipeline parallelism is generally needed when the <code class="docutils literal notranslate"><span class="pre">per_device_batch</span></code> size is too small for data parallelism to be efficient. Recall above the arithmetic intensity of data parallelism is given by the <code class="docutils literal notranslate"><span class="pre">local_batch/sparsity</span></code>, so when this becomes too small then the communications associated with data parallelism will be very costly. This occurs either for very sparse models (e.g. DeepSeek), or when scaling to a large number of chips and maintaining a fixed global batch size (and thus the per device batch size is small).</p>
+</section>
+<section id="gpipe">
+<h3>gPipe<a class="headerlink" href="#gpipe" title="Link to this heading">#</a></h3>
+<p>gPipe style pipelining (<a class="reference external" href="https://arxiv.org/abs/1811.06965">reference</a>) shards layers across stages, where each stage can have multiple layers. E.g. if there are four stages and twelve layers, stage 0 will perform layers 0, 1, and 2, then pass the results to stage 1 which will perform layers 3, 4, and 5, etc. Naively implemented this isn’t parallel since stage 1 has to wait for stage 0 to finish, however we can break the batch into microbatches to enable parallelism. E.g. as stage 1 works on microbatch 0, stage 0 can start working on a new microbatch 1. There is still a “bubble” - an amount of time each stage is idle while either waiting for the first microbatch or once it has finished all of its microbatches. This “bubble” time goes down with the amount of microbatches:</p>
+<p><code class="docutils literal notranslate"><span class="pre">Bubble</span> <span class="pre">=</span> <span class="pre">(PP</span> <span class="pre">-</span> <span class="pre">1)</span> <span class="pre">/</span> <span class="pre">(Microbatches</span> <span class="pre">+</span> <span class="pre">PP</span> <span class="pre">-</span> <span class="pre">1)</span></code></p>
+</section>
+<section id="circular-pipelining">
+<h3>Circular Pipelining<a class="headerlink" href="#circular-pipelining" title="Link to this heading">#</a></h3>
+<p>Circular pipelining also shards layers across stages, but the layers “wrap” back around. E.g. if we have 24 layers, 4 stages, and 2 repeats, then stage 0 will perform layers 0, 1, 2 and also layers 12, 13, 14. Stage 1 will perform layers 3, 4, 5 and also 15, 16, 17 etc. This pattern helps to reduce the bubble: stage 1 is able to start its set of layers earlier (only need to wait for a microbatch to finish 3 layers instead of 6 since there are two repeats).</p>
+<p><code class="docutils literal notranslate"><span class="pre">Bubble</span> <span class="pre">=</span> <span class="pre">(PP</span> <span class="pre">-</span> <span class="pre">1)</span> <span class="pre">/</span> <span class="pre">(repeats</span> <span class="pre">*</span> <span class="pre">Microbatches</span> <span class="pre">+</span> <span class="pre">PP</span> <span class="pre">-</span> <span class="pre">1)</span></code></p>
+<p>There is a tradeoff of using many <code class="docutils literal notranslate"><span class="pre">repeats</span></code> - more <code class="docutils literal notranslate"><span class="pre">repeats</span></code> creates a schedule with a smaller bubble, however it also requires more <code class="docutils literal notranslate"><span class="pre">PP</span></code> comms between stages. The limiting case <code class="docutils literal notranslate"><span class="pre">repeats=1</span></code> is a gPipe schedule with minimal communication overhead, but maximal bubble. Ideally the <code class="docutils literal notranslate"><span class="pre">PP</span></code> comms are overlapped as long as there is enough compute, however achieving overlap is a challenging problem for the compiler. To break the data dependency of the circular transfer (last stage to first), the number of microbatches must exceed the number of stages, and thus we generally recommend <code class="docutils literal notranslate"><span class="pre">num_pipeline_microbatches</span> <span class="pre">=</span> <span class="pre">2</span> <span class="pre">*</span> <span class="pre">PP</span></code>.</p>
+</section>
+<section id="other-pipeline-schedules">
+<h3>Other Pipeline Schedules<a class="headerlink" href="#other-pipeline-schedules" title="Link to this heading">#</a></h3>
+<p>We are actively investing in Multiple Program Multiple Data (<code class="docutils literal notranslate"><span class="pre">MPMD</span></code>) style jax to support fancier pipeline schedules such as 1F1B and dualpipe which can achieve smaller bubbles while using less <code class="docutils literal notranslate"><span class="pre">PP</span></code> comms. Currently we only support <code class="docutils literal notranslate"><span class="pre">gPipe</span></code> and <code class="docutils literal notranslate"><span class="pre">circular</span> <span class="pre">pipelines</span></code>.</p>
+</section>
+<section id="pp-fsdp-dp">
+<h3>PP + FSDP/DP<a class="headerlink" href="#pp-fsdp-dp" title="Link to this heading">#</a></h3>
+<p>Pipelining and FSDP/DP interactions have to be considered together to achieve optimal performance. Generally we want to reduce the gradients across DP replicas only once outside of the pipeline loop as opposed to every microbatch (we want the gradient reduction performed locally across microbatches first and only once across DP replicas). We rely on the XLA compiler for this optimization. Similarly for FSDP we want to all-gather the weights across FSDP only once before the pipeline loop as opposed to every microbatch - we have implemented this in maxtext with <code class="docutils literal notranslate"><span class="pre">pipeline_fsdp_ag_once</span></code> and generally recommend this with small batch sizes. However this comes with a huge memory cost - the weights and gradients are not sharded by FSDP, and thus a significant amount of other sharding (PP, EP, TP) must be used. This is roughly equivalent  0-1 sharding, FSDP only shards the optimizer state, not the weights and gradients.</p>
+</section>
+<section id="pp-arithmetic-intensity">
+<h3>PP Arithmetic Intensity<a class="headerlink" href="#pp-arithmetic-intensity" title="Link to this heading">#</a></h3>
+<p>The arithmetic intensity is a bit harder to define for PP, and depends on the pipeline flavor. We analyze the circular pipeline below.</p>
+<p><strong>Compute</strong></p>
+<p>One stage worth. A stage can consist of multiple layers, if <code class="docutils literal notranslate"><span class="pre">layers_per_pipeline_stage</span> <span class="pre">&gt;</span> <span class="pre">1</span></code>. Each layer generally is a combination of a fully connected feed forward block and an attention block. Let’s ignore attention since it’s generally significantly smaller than the <code class="docutils literal notranslate"><span class="pre">FF</span></code> (for sequence length of <code class="docutils literal notranslate"><span class="pre">8k</span></code>). A typical <code class="docutils literal notranslate"><span class="pre">FF</span></code> has 3 matmuls (2 in for silu, 1 out), for a total of <span class="math notranslate nohighlight">\(6BME\)</span>. Thus there are <code class="docutils literal notranslate"><span class="pre">layers_per_pipeline_stage</span> <span class="pre">*</span> <span class="pre">6</span> <span class="pre">*</span> <span class="pre">B</span> <span class="pre">*</span> <span class="pre">M</span> <span class="pre">*</span> <span class="pre">E</span></code> flops</p>
+<p><strong>Communicate</strong></p>
+<p>The layer outputs between stages of size <span class="math notranslate nohighlight">\(BE\)</span>. These are collectively permuted (stage 0 → 1 → 2 → 3 → 0). Our current implementation of pipelining also rotates the inputs to stage 0 around so there are two collective permutes per stage, so <span class="math notranslate nohighlight">\(4BE\)</span> bytes per stage.</p>
+<p><strong>Ratio (arithmetic intensity)</strong></p>
+<p><code class="docutils literal notranslate"><span class="pre">3/2</span> <span class="pre">*</span> <span class="pre">layers_per_pipeline_stage</span> <span class="pre">*</span> <span class="pre">M</span> <span class="pre">*</span> <span class="pre">experts_per_token</span></code></p>
+<p>Note that for MoE models, this arithmetic intensity grows by a factor of <code class="docutils literal notranslate"><span class="pre">experts_per_token</span></code> since the compute grows by this factor, but the communication is independent of this factor.</p>
+</section>
+</section>
+<section id="context-autoregressive">
+<h2>Context Autoregressive<a class="headerlink" href="#context-autoregressive" title="Link to this heading">#</a></h2>
+<p>Context Autoregressive shards the KV cache on the sequence dimension. It shards feed forward layer by experts for both activations and weights. This is used for inference only, see <a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/blob/353a45d57eb1f1cc02e5c8d9e7b18eaf634d7edc/MaxText/configs/inference.yml#L4">inference.yml</a> for the modified logical axis rules for inference.</p>
+</section>
+<section id="autoregressive">
+<h2>Autoregressive<a class="headerlink" href="#autoregressive" title="Link to this heading">#</a></h2>
+<p>Autoregressive shards weights, but not activations. This is used for inference only. See <a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/blob/353a45d57eb1f1cc02e5c8d9e7b18eaf634d7edc/MaxText/configs/inference.yml#L4">inference.yml</a> for the modified logical axis rules for inference.</p>
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="quantization.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Quantization</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="data_pipeline_perf.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Data input pipeline performance</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sharding-notation">Sharding notation</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#axis-labels">Axis labels</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#arithmetic-intensity-whirlwind-introduction-example">Arithmetic Intensity whirlwind introduction example</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#arithmetic-intensity-mixed-sharding-strategies">Arithmetic Intensity: Mixed sharding strategies</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#code-implementation-of-sharding-in-maxtext">Code implementation of sharding in MaxText</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#hierarchical-mesh">Hierarchical Mesh</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#data-parallelism-dp">Data Parallelism (DP)</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dp-arithmetic-intensity-dense">DP Arithmetic Intensity (Dense)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dp-arithmetic-intensity-sparse">DP Arithmetic Intensity (Sparse)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dp-arithmetic-intensity-hierarchical">DP Arithmetic Intensity (Hierarchical)</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#fully-sharded-data-parallelism-fsdp">Fully Sharded Data Parallelism (FSDP)</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#fsdp-arithmetic-intensity">FSDP Arithmetic Intensity</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#fully-sharded-data-parallelism-transpose">Fully Sharded Data Parallelism (transpose)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#context-parallelism-cp">Context Parallelism (CP)</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cp-arithmetic-intensity">CP Arithmetic Intensity</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sequence-parallelism-sp">Sequence Parallelism (SP)</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#sp-arithmetic-intensity">SP Arithmetic Intensity</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#sp-extra-a2a-cost">SP Extra A2A cost</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#tensor-parallelism-tp">Tensor Parallelism (TP)</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tp-arithmetic-intensity">TP Arithmetic Intensity</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#tensor-sequence-parallelism">Tensor Sequence Parallelism</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tensor-sequence-arithmetic-intensity">Tensor Sequence Arithmetic Intensity</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#tensor-parallelism-transpose-tp-transpose">Tensor Parallelism Transpose (TP Transpose)</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tp-transpose-arithmetic-intensity">TP Transpose Arithmetic Intensity</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#expert-parallelism-ep">Expert Parallelism (EP)</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#ep-arithmetic-intensity">EP Arithmetic Intensity</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pipeline-parallelism-pp">Pipeline Parallelism (PP)</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#why-pipeline-parallelism">Why Pipeline Parallelism?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#gpipe">gPipe</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#circular-pipelining">Circular Pipelining</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#other-pipeline-schedules">Other Pipeline Schedules</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pp-fsdp-dp">PP + FSDP/DP</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pp-arithmetic-intensity">PP Arithmetic Intensity</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#context-autoregressive">Context Autoregressive</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#autoregressive">Autoregressive</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By MaxText developers
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2025, MaxText developers.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

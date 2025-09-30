@@ -1,0 +1,637 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Supported Models &amp; Architectures &#8212; MaxText  documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=3ac9c114" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/documentation_options.js?v=c73c0f3e"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'reference/supported_models_and_architectures';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Comparison to Alternatives" href="alternatives.html" />
+    <link rel="prev" title="Terminology" href="terminology.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/maxtext.png" class="logo__image only-light" alt="MaxText  documentation - Home"/>
+    <script>document.write(`<img src="../_static/maxtext.png" class="logo__image only-dark" alt="MaxText  documentation - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../index.html">
+                    MaxText
+                </a>
+            </li>
+        </ul>
+        <ul class="current nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../tutorials.html">Tutorials</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/first_run.html">Getting Started: First Run</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/full_finetuning.html">Full Finetuning LLama3-8B  Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/run_llama2.html">About Llama2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/grpo.html">Try GRPO!</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/sft.html">Try SFT!</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../guides.html">How-to Guides</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../guides/checkpoints.html">Checkpoints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/custom_model.html">How to customize your model configs on TPU</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/run_maxtext_localhost.html">Run MaxText on Localhost or Single Host VM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/run_maxtext_via_xpk.html">Running MaxText at Scale with XPK</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/run_maxtext_via_pathways.html">Guide: Running MaxText via Pathways</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../guides/data_input_pipeline.html">Manage the data input pipeline</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../guides/data_input_grain.html">Grain pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../guides/data_input_hf.html">Hugging Face pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../guides/data_input_tfds.html">TFDS pipeline</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/single_host_gpu.html">Maxtext on Single host GPU</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/knowledge_distillation.html">Knowledge Distillation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/gcp_workload_observability.html">Enable GCP Workload Observabiltiy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/monitor_goodput.html">ML Goodput Measurement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/use_vertex_ai_tensorboard.html">Use Vertex AI Tensorboard</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/features_and_diagnostics.html">Features and Diagnostics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/pallas_kernels_performance.html">Performance Optimizations with Pallas Kernels</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/performance_metrics.html">Performance Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/understand_logs_and_metrics.html">Understand Logs and Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/checkpointing_solutions/gcs_checkpointing.html">GCS bucket-based checkpointing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/checkpointing_solutions/emergency_checkpointing.html">Emergency Checkpointing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/checkpointing_solutions/multi_tier_checkpointing.html">Multi-Tier Checkpointing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/jax_ai_libraries_chosen.html">The JAX Ecosystem in MaxText: An Opinionated Guide</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../explanations.html">Explanations</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/steps_model.html">Steps to build a Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/quantization.html">Quantization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/sharding.html">Sharding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/data_pipeline_perf.html">Data input pipeline performance</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../reference.html">Reference documentation</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="terminology.html">Terminology</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Supported Models &amp; Architectures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="alternatives.html">Comparison to Alternatives</a></li>
+<li class="toctree-l2"><a class="reference internal" href="benchmark_and_performance.html">Benchmark and Performance Tuning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture_overview.html">MaxText architecture overview</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">How to Contribute</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+<a href="https://github.com/AI-Hypercomputer/maxtext" target="_blank"
+   class="btn btn-sm btn-source-repository-button"
+   title="Source repository"
+   data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+
+</a>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/reference/supported_models_and_architectures.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Supported Models & Architectures</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overview">Overview</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#supported-model-families">Supported Model Families</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#llama">Llama</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#mistral-mixtral">Mistral / Mixtral</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#gemma">Gemma</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#deepseek">DeepSeek</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#qwen3">Qwen3</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#gpt-oss">GPT-OSS</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#parallelism-building-blocks">Parallelism Building Blocks</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#performance-characteristics">Performance Characteristics</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="supported-models-architectures">
+<h1>Supported Models &amp; Architectures<a class="headerlink" href="#supported-models-architectures" title="Link to this heading">#</a></h1>
+<blockquote>
+<div><p><strong>Purpose</strong>: This page provides detailed, reference-style information about model families supported in MaxText. This page is a technical dictionary for quick lookup, reproducibility, and customization.</p>
+</div></blockquote>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">#</a></h2>
+<p>MaxText is an open-source, high-performance LLM framework written in Python/JAX. It targets Google Cloud TPUs and NVIDIA GPUs for training. MaxText prioritizes scalability (from a single host to recent runs with tens of thousands of chips), high Model FLOPs Utilization (MFU), and simplicity by leveraging JAX with the XLA compiler and optimized JAX Pallas kernels.</p>
+<p><strong>Key capabilities and features</strong>:</p>
+<ul class="simple">
+<li><p><strong>Supported Precisions</strong>: FP32, BF16, INT8, and FP8.</p></li>
+<li><p><strong>Ahead-of-Time Compilation (AOT)</strong>: For faster model development/prototyping and earlier OOM detection.</p></li>
+<li><p><strong>Quantization</strong>: Via <strong>Qwix</strong> (recommended) and AQT. See Quantization <a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/blob/main/docs/explanations/quantization.md">Guide</a>.</p></li>
+<li><p><strong>Diagnostics</strong>: Structured error context via <strong><code class="docutils literal notranslate"><span class="pre">cloud_tpu_diagnostics</span></code></strong> (filters stack traces to user code), simple logging via <code class="docutils literal notranslate"><span class="pre">max_logging</span></code>, profiling in <strong>XProf</strong>, and visualization in <strong>TensorBoard</strong>.</p></li>
+<li><p><strong>Multi-Token Prediction (MTP)</strong>: Enables token efficient training with mutli-token prediction.</p></li>
+<li><p><strong>Elastic Training</strong>: Fault-tolorent and dynamic scale-up/scale-down on Cloud TPUs with Pathways.</p></li>
+<li><p><strong>Flexible Remat Policy</strong>: Provides fine-grained control over memory-compute trade-offs. Users can select pre-defined policies (like ‘full’ or ‘minimal’) or set the policy to <strong>‘custom’</strong>.</p></li>
+</ul>
+</section>
+<section id="supported-model-families">
+<h2>Supported Model Families<a class="headerlink" href="#supported-model-families" title="Link to this heading">#</a></h2>
+<blockquote>
+<div><p><em><strong>Note on GPU Coverage</strong>: Support and tested configurations for NVIDIA GPUs can vary by model family. Please see the specific model guides for details.</em></p>
+</div></blockquote>
+<p><strong>Primary Platforms</strong>: All model families listed below target <strong>TPU</strong> and <strong>NVIDIA GPUs</strong>.</p>
+<section id="llama">
+<h3>Llama<a class="headerlink" href="#llama" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><strong>Variants</strong>: Llama 2; <strong>Llama 3 / 3.1 / 3.3</strong>; Llama 4 (<strong>Scout</strong>, <strong>Maverick</strong>; text &amp; multimodal)</p></li>
+<li><p><strong>Notes</strong>: RoPE, RMSNorm, SwiGLU; GQA; routed experts (Llama 4); <strong>QK-Norm</strong> (Llama 4); multimodal projector &amp; vision encoder.</p></li>
+</ul>
+</section>
+<section id="mistral-mixtral">
+<h3>Mistral / Mixtral<a class="headerlink" href="#mistral-mixtral" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><strong>Variants</strong>: Mistral (dense); Mixtral 8×7B, 8×22B (MoE)</p></li>
+<li><p><strong>Notes</strong>: Sliding-Window Attention (SWA), GQA; MoE top-k with load-balancing loss.</p></li>
+</ul>
+</section>
+<section id="gemma">
+<h3>Gemma<a class="headerlink" href="#gemma" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><strong>Variants</strong>: Gemma 1 (2B/7B), Gemma 2 (2B/9B/27B), <strong>Gemma 3 (4B/12B/27B)</strong> (text &amp; multimodal)</p></li>
+<li><p><strong>Notes</strong>: RMSNorm; RoPE; GELU/SwiGLU; <strong>QK-Norm</strong> (Gemma 3); Local–Global interleaved attention; long-context scaling.</p></li>
+</ul>
+</section>
+<section id="deepseek">
+<h3>DeepSeek<a class="headerlink" href="#deepseek" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><strong>Variants</strong>: V2 (16B, 236B), V3 (671B), R1</p></li>
+<li><p><strong>Notes</strong>: MLA; shared/finer-grained experts; MTP; YaRN-style scaling.</p></li>
+</ul>
+</section>
+<section id="qwen3">
+<h3>Qwen3<a class="headerlink" href="#qwen3" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><strong>Variants</strong>: Dense (0.6B–32B); MoE (30B-A3B, 235B-A22B, 480B Coder)</p></li>
+<li><p><strong>Notes</strong>: <strong>QK-Norm</strong>, GQA, SwiGLU, RMSNorm, RoPE.</p></li>
+</ul>
+</section>
+<section id="gpt-oss">
+<h3>GPT-OSS<a class="headerlink" href="#gpt-oss" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><strong>Variants</strong>: 20B, 120B</p></li>
+<li><p><strong>Notes</strong>: Local–Global interleaved attention, GQA, attention sink; YaRN-style scaling; MoE.</p></li>
+</ul>
+</section>
+</section>
+<section id="parallelism-building-blocks">
+<h2>Parallelism Building Blocks<a class="headerlink" href="#parallelism-building-blocks" title="Link to this heading">#</a></h2>
+<p>MaxText supports a wide range of parallelism strategies for scaling training and inference across TPUs and GPUs:</p>
+<ul class="simple">
+<li><p><strong>FSDP (Fully Sharded Data Parallel)</strong>: Reduces memory footprint by sharding parameters and optimizer states across devices.</p></li>
+<li><p><strong>TP (Tensor Parallelism)</strong>: Splits tensor computations (e.g., matrix multiplications, attention heads) across devices for intra-layer speedups.</p></li>
+<li><p><strong>EP (Expert Parallelism)</strong>: Distributes MoE experts across devices, supporting dropless routing and load balancing to ensure efficient utilization.</p></li>
+<li><p><strong>DP (Data Parallelism)</strong>: Replicates the model across devices while splitting the input data batches.</p></li>
+<li><p><strong>PP (Pipeline Parallelism)</strong>: Splits layers across device stages to support extremely large models by managing inter-stage communication.</p></li>
+<li><p><strong>CP (Context Parallelism)</strong>: Splits sequence tokens across devices, complementing tensor parallelism for long-context workloads.</p></li>
+<li><p><strong>Hybrid Parallelism</strong>: Allows for flexible combinations of FSDP, TP, EP, DP, PP, and CP to maximize hardware utilization based on model size and topology.</p></li>
+</ul>
+</section>
+<section id="performance-characteristics">
+<h2>Performance Characteristics<a class="headerlink" href="#performance-characteristics" title="Link to this heading">#</a></h2>
+<p>The following summarizes observed runtime efficiency and scaling behaviors of MaxText across different hardware and model types, based on published benchmarks and large-scale runs.</p>
+<ul class="simple">
+<li><p><strong>High MFU</strong>: MaxText targets high Model FLOPs Utilization across scales; exact numbers vary by model, hardware and config. See <a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/blob/main/docs/guides/performance_metrics.md"><strong>Performance Metrics → MFU</strong></a> for the definition and how we calculate it.</p></li>
+<li><p><strong>Quantization</strong>: MaxText supports quantization via both the AQT and Qwix libraries. Qwix is the recommended approach, providing a non-intrusive way to apply various quantization techniques, including Quantization-Aware Training (QAT) and Post-Training Quantization (PTQ).</p></li>
+<li><p><strong>MoE</strong>: The Mixture-of-Experts implementation features dropless routing with Megablox and <code class="docutils literal notranslate"><span class="pre">jax.lax.ragged_dot</span></code> kernels for enhanced performance.</p></li>
+<li><p><strong>Multi-Token Prediction (MTP)</strong>: This feature improves training efficiency on DeepSeek-style models by adding an auxiliary loss based on predicting multiple future tokens.</p></li>
+<li><p><strong>Long-Context Optimizations</strong>: Implements various efficient attention mechanisms, including: Grouped-Query Attention (GQA), Sliding-Window Attention (SWA), Local–Global interleaved attention, Multi-Head Latent Attention (MLA). They reduce the KV-cache size, making it possible to handle long contexts efficiently.</p></li>
+</ul>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext">MaxText Repo</a></p></li>
+<li><p><strong>Model Implementation Guides &amp; Source Code:</strong></p>
+<ul>
+<li><p><strong>Llama</strong>: <a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/blob/main/docs/tutorials/run_llama2.md">Guide</a> | <a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/blob/main/src/MaxText/layers/llama2.py">Llama2 and Llama3 Source</a> | <a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/blob/main/src/MaxText/layers/llama4.py">Llama4 Source</a></p></li>
+<li><p><strong>Gemma</strong>: <a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/blob/main/end_to_end/tpu/gemma/Run_Gemma.md">Guide</a> | <a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/blob/main/src/MaxText/layers/gemma.py">Gemma Source</a> | <a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/blob/main/src/MaxText/layers/gemma2.py">Gemma2 Source</a> | <a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/blob/main/src/MaxText/layers/gemma3.py">Gemma3 Source</a></p></li>
+<li><p><strong>Mixtral</strong>: <a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/blob/main/end_to_end/tpu/mixtral/Run_Mixtral.md">Guide</a> | <a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/blob/main/src/MaxText/layers/mixtral.py">Mixtral Source</a> | <a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/blob/main/src/MaxText/layers/mistral.py">Mistral Source</a></p></li>
+<li><p><strong>DeepSeek</strong>: <a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/blob/main/end_to_end/tpu/deepseek/Run_DeepSeek.md">Guide</a> | <a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/blob/main/src/MaxText/layers/deepseek.py">DeepSeek Source</a></p></li>
+<li><p><strong>Qwen3</strong>: <a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/blob/main/end_to_end/tpu/qwen/moe/run_qwen_moe.md">Guide</a> | <a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/blob/main/src/MaxText/layers/qwen3.py">Qwen3 Source</a></p></li>
+<li><p><strong>GPT-OSS</strong>: <a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/blob/main/end_to_end/tpu/gpt_oss/run_gpt_oss.md">Guide</a> | <a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/blob/main/src/MaxText/layers/gpt_oss.py">GPT-OSS Source</a></p></li>
+</ul>
+</li>
+<li><p><strong>Technical Explanations:</strong></p>
+<ul>
+<li><p><a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/blob/main/docs/explanations/sharding.md">Parallelism &amp; Sharding</a></p></li>
+<li><p><a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/blob/main/docs/explanations/quantization.md">Quantization Documentation</a></p></li>
+<li><p><a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/blob/main/README.md#ahead-of-time-compilation-aot">AOT Compilation Instructions</a></p></li>
+</ul>
+</li>
+</ul>
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="terminology.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Terminology</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="alternatives.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Comparison to Alternatives</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overview">Overview</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#supported-model-families">Supported Model Families</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#llama">Llama</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#mistral-mixtral">Mistral / Mixtral</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#gemma">Gemma</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#deepseek">DeepSeek</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#qwen3">Qwen3</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#gpt-oss">GPT-OSS</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#parallelism-building-blocks">Parallelism Building Blocks</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#performance-characteristics">Performance Characteristics</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By MaxText developers
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2025, MaxText developers.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

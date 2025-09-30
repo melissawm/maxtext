@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>MaxText &#8212; MaxText  documentation</title>
+    <title>Reference documentation &#8212; MaxText  documentation</title>
   
   
   
@@ -44,10 +44,11 @@
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
     <script src="_static/design-tabs.js?v=f930bc37"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'index';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'reference';</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Tutorials" href="tutorials.html" />
+    <link rel="next" title="Terminology" href="reference/terminology.html" />
+    <link rel="prev" title="Data input pipeline performance" href="explanations/data_pipeline_perf.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   </head>
@@ -110,8 +111,6 @@
       
       
       
-        
-      
       <div class="bd-sidebar-primary bd-sidebar">
         
 
@@ -130,7 +129,7 @@
     
   
 
-<a class="navbar-brand logo" href="#">
+<a class="navbar-brand logo" href="index.html">
   
   
   
@@ -161,13 +160,13 @@
     <div class="bd-toc-item navbar-nav active">
         
         <ul class="nav bd-sidenav bd-sidenav__home-link">
-            <li class="toctree-l1 current active">
-                <a class="reference internal" href="#">
+            <li class="toctree-l1">
+                <a class="reference internal" href="index.html">
                     MaxText
                 </a>
             </li>
         </ul>
-        <ul class="nav bd-sidenav">
+        <ul class="current nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="tutorials.html">Tutorials</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="tutorials/first_run.html">Getting Started: First Run</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tutorials/full_finetuning.html">Full Finetuning LLama3-8B  Model</a></li>
@@ -210,7 +209,7 @@
 <li class="toctree-l2"><a class="reference internal" href="explanations/data_pipeline_perf.html">Data input pipeline performance</a></li>
 </ul>
 </details></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="reference.html">Reference documentation</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l1 current active has-children"><a class="current reference internal" href="#">Reference documentation</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="reference/terminology.html">Terminology</a></li>
 <li class="toctree-l2"><a class="reference internal" href="reference/supported_models_and_architectures.html">Supported Models &amp; Architectures</a></li>
 <li class="toctree-l2"><a class="reference internal" href="reference/alternatives.html">Comparison to Alternatives</a></li>
@@ -288,7 +287,7 @@
       
       
       
-      <li><a href="_sources/index.md" target="_blank"
+      <li><a href="_sources/reference.md" target="_blank"
    class="btn btn-sm btn-download-source-button dropdown-item"
    title="Download source file"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -370,7 +369,7 @@ document.write(`
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>MaxText</h1>
+    <h1>Reference documentation</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -385,79 +384,30 @@ document.write(`
                 <article class="bd-article">
                   
   <!--
- # Copyright 2023–2025 Google LLC
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#    https://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+ Copyright 2024 Google LLC
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+      https://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
  -->
-<section class="tex2jax_ignore mathjax_ignore" id="maxtext">
-<h1>MaxText<a class="headerlink" href="#maxtext" title="Link to this heading">#</a></h1>
-<div class="doc-body">
-    <section class="hero">
-        <img src="./_static/maxtext.png" class="hero-image">
-        <section class="hero-text">
-            <div>
-                <span><h1>MaxText</h1></span>
-                <h3>High performance, highly scalable, open-source LLM library and reference implementation written in pure Python/JAX and targeting Google Cloud TPUs and GPUs for training.</h3>
-                <div class="hero-cta">
-                <a class="button button-primary" href="./tutorials.html">Get started</a>
-                </div>
-            </div>
-        </section>
-    </section>
-    <section class="three-up">
-        <div>
-            <h3>High-performance</h3>
-            <p>MaxText achieves high Model FLOPs Utilization (MFU) and tokens/second from single host to very large clusters while staying simple and largely "optimization-free" thanks to the power of JAX and the XLA compiler.</p>
-        </div>
-        <div>
-            <h3>Pre-training</h3>
-            <p>MaxText provides opinionated implementations for how to achieve optimal performance across a wide variety of dimensions like sharding, quantization, and checkpointing.</p>
-        </div>
-        <div>
-            <h3>Post-training</h3>
-            <p>MaxText provides a scalable framework using Tunix</p>
-        </div>
-    </section>
-    <section class="banner">
-        <h3>JAX AI Stack</h3>
-        <p>The JAX AI Stack is a curated collection of libraries that researchers and engineers, both inside and outside of Google, have found useful for implementing and deploying the models behind generative AI tools like Imagen, Gemini, and more.</p>
-        <ul>
-            <li><a href="http://jax.dev/">JAX</a> - core array operations and program transformations</li>
-            <li><a href="https://flax.readthedocs.io/en/latest/">Flax</a> - For building neural networks</li>
-            <li><a href="https://orbax.readthedocs.io/en/latest/">Orbax</a> - For checkpointing and persistence utilities</li>
-            <li><a href="https://optax.readthedocs.io/en/latest/">Optax</a> - For gradient processing and optimization</li>
-            <li><a href="https://tunix.readthedocs.io/en/latest/">Tunix</a> - A JAX-native LLM Post-Training Library</li>
-            <li><a href="https://github.com/jax-ml/ml_dtypes">ml_dtypes</a> - NumPy dtype extensions for machine learning.</li>
-            <li>Optional data loading libraries (<a href="https://google-grain.readthedocs.io/en/latest/">Grain</a> or <a href="https://www.tensorflow.org/guide/data">tf.data</a>)</li>
-        </ul>
-    </section>
-    <section class="text-body">
-        <h3>Latest News</h3>
-        <p></p>
-            <ul>
-                <li> <i>September 24, 2025</i> The GPT-OSS family of models (20B, 120B) is now supported.</li>
-                <li> <i>September 5, 2025</i> MaxText has moved to an `src` layout. <a href="https://github.com/AI-Hypercomputer/maxtext/blob/main/RESTRUCTURE.md">Read more</a></li>
-                <li> <i>August 13, 2025</i> The Qwen3 2507 MoE family of models is now supported: MoEs: 235B Thinking & 280B Coder as well as existing dense models: 0.6B, 4B, 8B, 14B, and 32B.</li>
-                <li> <i>July 27, 2025</i> Updated TFLOPS/s calculation (<a href="https://github.com/AI-Hypercomputer/maxtext/pull/1988">PR</a>) to account for causal attention, dividing the attention flops in half. Accounted for sliding window and chunked attention reduced attention flops in <a href="https://github.com/AI-Hypercomputer/maxtext/pull/2009">PR</a> and <a href="https://github.com/AI-Hypercomputer/maxtext/pull/2030">PR</a>. Changes impact large sequence configs, as explained in <a href="https://github.com/AI-Hypercomputer/maxtext/blob/main/docs/guides/performance_metrics.md">this doc</a></li>
-                <li> <i>July 16, 2025</i> We will be restructuring the MaxText repository for improved organization and clarity. Please review the <a href="https://github.com/AI-Hypercomputer/maxtext/blob/main/RESTRUCTURE.md">proposed structure</a> and provide feedback.</li>
-                <li> <i>July 11, 2025</i> Multi-Token Prediction (MTP) training support! Adds an auxiliary loss based on predicting multiple future tokens, inspired by <a href="https://arxiv.org/html/2412.19437v1">DeepSeek-V3 paper</a>, to enhance training efficiency.</li>
-                <li> <i>June 25, 2025</i> DeepSeek R1-0528 variant is now supported.</li>
-                <li> <i>April 24, 2025</i> Llama 4 Maverick models are now supported.</li>
-            </ul>
-        </p>
-    </section>
-</div>
+<section class="tex2jax_ignore mathjax_ignore" id="reference-documentation">
+<h1>Reference documentation<a class="headerlink" href="#reference-documentation" title="Link to this heading">#</a></h1>
 <div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="reference/terminology.html">Terminology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference/supported_models_and_architectures.html">Supported Models &amp; Architectures</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference/alternatives.html">Comparison to Alternatives</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference/benchmark_and_performance.html">Benchmark and Performance Tuning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference/architecture_overview.html">MaxText architecture overview</a></li>
+</ul>
 </div>
 </section>
 
@@ -472,12 +422,21 @@ document.write(`
                 <footer class="prev-next-footer d-print-none">
                   
 <div class="prev-next-area">
+    <a class="left-prev"
+       href="explanations/data_pipeline_perf.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Data input pipeline performance</p>
+      </div>
+    </a>
     <a class="right-next"
-       href="tutorials.html"
+       href="reference/terminology.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Tutorials</p>
+        <p class="prev-next-title">Terminology</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>

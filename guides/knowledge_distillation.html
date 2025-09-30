@@ -1,0 +1,744 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Knowledge Distillation &#8212; MaxText  documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=3ac9c114" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/documentation_options.js?v=c73c0f3e"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'guides/knowledge_distillation';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Enable GCP Workload Observabiltiy" href="gcp_workload_observability.html" />
+    <link rel="prev" title="Maxtext on Single host GPU" href="single_host_gpu.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/maxtext.png" class="logo__image only-light" alt="MaxText  documentation - Home"/>
+    <script>document.write(`<img src="../_static/maxtext.png" class="logo__image only-dark" alt="MaxText  documentation - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../index.html">
+                    MaxText
+                </a>
+            </li>
+        </ul>
+        <ul class="current nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../tutorials.html">Tutorials</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/first_run.html">Getting Started: First Run</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/full_finetuning.html">Full Finetuning LLama3-8B  Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/run_llama2.html">About Llama2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/grpo.html">Try GRPO!</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/sft.html">Try SFT!</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../guides.html">How-to Guides</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="checkpoints.html">Checkpoints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="custom_model.html">How to customize your model configs on TPU</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_maxtext_localhost.html">Run MaxText on Localhost or Single Host VM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_maxtext_via_xpk.html">Running MaxText at Scale with XPK</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_maxtext_via_pathways.html">Guide: Running MaxText via Pathways</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="data_input_pipeline.html">Manage the data input pipeline</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="data_input_grain.html">Grain pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data_input_hf.html">Hugging Face pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data_input_tfds.html">TFDS pipeline</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="single_host_gpu.html">Maxtext on Single host GPU</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Knowledge Distillation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gcp_workload_observability.html">Enable GCP Workload Observabiltiy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="monitor_goodput.html">ML Goodput Measurement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="use_vertex_ai_tensorboard.html">Use Vertex AI Tensorboard</a></li>
+<li class="toctree-l2"><a class="reference internal" href="features_and_diagnostics.html">Features and Diagnostics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pallas_kernels_performance.html">Performance Optimizations with Pallas Kernels</a></li>
+<li class="toctree-l2"><a class="reference internal" href="performance_metrics.html">Performance Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="understand_logs_and_metrics.html">Understand Logs and Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="checkpointing_solutions/gcs_checkpointing.html">GCS bucket-based checkpointing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="checkpointing_solutions/emergency_checkpointing.html">Emergency Checkpointing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="checkpointing_solutions/multi_tier_checkpointing.html">Multi-Tier Checkpointing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="jax_ai_libraries_chosen.html">The JAX Ecosystem in MaxText: An Opinionated Guide</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../explanations.html">Explanations</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/steps_model.html">Steps to build a Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/quantization.html">Quantization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/sharding.html">Sharding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/data_pipeline_perf.html">Data input pipeline performance</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../reference.html">Reference documentation</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../reference/terminology.html">Terminology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/supported_models_and_architectures.html">Supported Models &amp; Architectures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/alternatives.html">Comparison to Alternatives</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/benchmark_and_performance.html">Benchmark and Performance Tuning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/architecture_overview.html">MaxText architecture overview</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">How to Contribute</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+<a href="https://github.com/AI-Hypercomputer/maxtext" target="_blank"
+   class="btn btn-sm btn-source-repository-button"
+   title="Source repository"
+   data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+
+</a>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/guides/knowledge_distillation.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Knowledge Distillation</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overview">Overview</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#running-offline-distillation-with-maxtext">Running Offline Distillation with MaxText</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#prerequisites">Prerequisites</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#a-setup-environment-variables">a. Setup environment variables</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#b-install-dependencies">b. Install dependencies</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#obtain-and-prepare-the-teacher-model">1. Obtain and Prepare the Teacher Model</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#a-download-model-from-hugging-face">a. Download Model from Hugging Face</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#b-convert-checkpoint-to-maxtext-format">b. Convert Checkpoint to MaxText Format</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#obtain-and-prepare-the-student-model">2. Obtain and Prepare the Student Model</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">a. Download Model from Hugging Face</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">b. Convert Checkpoint to MaxText Format</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#generate-dataset-using-the-teacher-model">3. Generate Dataset using the Teacher Model</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#a-run-the-jetstream-server">3.a. Run the JetStream Server</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#b-generate-dataset-using-jetstream-server">3.b. Generate Dataset using JetStream Server</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#fine-tune-the-student-model-using-supervised-fine-tuning">4. Fine-tune the Student Model using Supervised Fine Tuning</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#a-fine-tune-the-student-model-using-dataset-generated-in-step-3">4.a. Fine-tune the Student Model using Dataset Generated in Step 3</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#b-optional-fine-tune-the-student-model-using-the-original-dataset">4.b. <strong>[OPTIONAL]</strong> Fine-tune the Student Model using the Original Dataset</a></li>
+</ul>
+</li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <!--
+ Copyright 2024 Google LLC
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+      https://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+ -->
+<section class="tex2jax_ignore mathjax_ignore" id="knowledge-distillation">
+<h1>Knowledge Distillation<a class="headerlink" href="#knowledge-distillation" title="Link to this heading">#</a></h1>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">#</a></h2>
+<p>Knowledge Distillation is a compression technique that transfers knowledge from a larger (teacher) model to a smaller (student) model. This allows the smaller model to achieve performance levels closer to the larger one, but with significantly fewer parameters and computational resources.</p>
+<p>This guide focuses on <strong>response-based knowledge distillation</strong>, a technique where the student model is trained to replicate the outputs and behaviors of the teacher model. Within response-based knowledge distillation, two primary methods are often employed:</p>
+<ol class="arabic simple">
+<li><p><strong>Offline Distillation (Dataset Generation):</strong></p>
+<ul class="simple">
+<li><p>The pre-trained teacher model first generates a new dataset of input-output pairs.</p></li>
+<li><p>The student model is then trained on this teacher-generated dataset using standard fine-tuning techniques.</p></li>
+</ul>
+</li>
+<li><p><strong>Online Distillation (Logit Matching):</strong></p>
+<ul class="simple">
+<li><p>During the training process, both the teacher model (which is typically frozen) and the student model process the same input data simultaneously.</p></li>
+<li><p>The student model is trained by minimizing a loss function that encourages its output logits to match the logits produced by the teacher model for the same inputs.</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<section id="running-offline-distillation-with-maxtext">
+<h2>Running Offline Distillation with MaxText<a class="headerlink" href="#running-offline-distillation-with-maxtext" title="Link to this heading">#</a></h2>
+<p>The following recipe demonstrates the process of offline distillation using <strong>Deepseek2-16b</strong> as the teacher model and <strong>Llama2-7b</strong> as the student model. Since this recipe fine-tunes the student model using Supervised Fine-Tuning (SFT), it’s crucial to use the conversational variant for both the teacher and student models. Here’s a step-by-step guide:</p>
+<section id="prerequisites">
+<h3>Prerequisites<a class="headerlink" href="#prerequisites" title="Link to this heading">#</a></h3>
+<section id="a-setup-environment-variables">
+<h4>a. Setup environment variables<a class="headerlink" href="#a-setup-environment-variables" title="Link to this heading">#</a></h4>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">HF_TOKEN</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;Hugging<span class="w"> </span>Face<span class="w"> </span>access<span class="w"> </span>token&gt;
+<span class="nb">export</span><span class="w"> </span><span class="nv">BASE_DIRECTORY</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;Directory<span class="w"> </span>to<span class="w"> </span>store<span class="w"> </span>distillation<span class="w"> </span>results&gt;
+<span class="nb">export</span><span class="w"> </span><span class="nv">HF_REPO_NAME</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;Hugging<span class="w"> </span>Face<span class="w"> </span>repository<span class="w"> </span>name<span class="w"> </span>to<span class="w"> </span>store<span class="w"> </span>teacher-generated<span class="w"> </span>dataset&gt;
+<span class="nb">export</span><span class="w"> </span><span class="nv">USERNAME_OR_ORG</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;Owner<span class="w"> </span>of<span class="w"> </span>Hugging<span class="w"> </span>Face<span class="w"> </span>repository&gt;
+<span class="nb">export</span><span class="w"> </span><span class="nv">RUN_NAME</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>&lt;unique<span class="w"> </span>name<span class="w"> </span><span class="k">for</span><span class="w"> </span>the<span class="w"> </span>run&gt;
+</pre></div>
+</div>
+</section>
+<section id="b-install-dependencies">
+<h4>b. Install dependencies<a class="headerlink" href="#b-install-dependencies" title="Link to this heading">#</a></h4>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">AI</span><span class="o">-</span><span class="n">Hypercomputer</span><span class="o">/</span><span class="n">maxtext</span><span class="o">.</span><span class="n">git</span>
+<span class="n">python3</span> <span class="o">-</span><span class="n">m</span> <span class="n">venv</span> <span class="o">~/</span><span class="n">venv</span><span class="o">-</span><span class="n">maxtext</span>
+<span class="n">source</span> <span class="o">~/</span><span class="n">venv</span><span class="o">-</span><span class="n">maxtext</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">activate</span>
+<span class="n">cd</span> <span class="n">maxtext</span>
+<span class="n">uv</span> <span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">r</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="obtain-and-prepare-the-teacher-model">
+<h3>1. Obtain and Prepare the Teacher Model<a class="headerlink" href="#obtain-and-prepare-the-teacher-model" title="Link to this heading">#</a></h3>
+<section id="a-download-model-from-hugging-face">
+<h4>a. Download Model from Hugging Face<a class="headerlink" href="#a-download-model-from-hugging-face" title="Link to this heading">#</a></h4>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>huggingface-cli<span class="w"> </span>login<span class="w">  </span><span class="c1"># Provide your Hugging Face token</span>
+huggingface-cli<span class="w"> </span>download<span class="w"> </span>deepseek-ai/DeepSeek-V2-Lite-Chat<span class="w"> </span>--repo-type<span class="w"> </span>model<span class="w"> </span>--local-dir<span class="w"> </span>~/deepseek2-16b-chat
+</pre></div>
+</div>
+</section>
+<section id="b-convert-checkpoint-to-maxtext-format">
+<h4>b. Convert Checkpoint to MaxText Format<a class="headerlink" href="#b-convert-checkpoint-to-maxtext-format" title="Link to this heading">#</a></h4>
+<p>MaxText requires checkpoints to be in a specific format. You’ll need to convert the downloaded Hugging Face checkpoints to a MaxText-compatible checkpoint.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get unscanned checkpoint for efficient decoding</span>
+<span class="nv">JAX_PLATFORMS</span><span class="o">=</span>cpu<span class="w"> </span><span class="se">\</span>
+python3<span class="w"> </span>-m<span class="w"> </span>MaxText.convert_deepseek_family_unscanned_ckpt<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--base_model_path<span class="w"> </span>~/deepseek2-16b-chat<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--maxtext_model_path<span class="w"> </span><span class="si">${</span><span class="nv">BASE_DIRECTORY</span><span class="si">}</span>/deepseek2-16-chat/unscanned<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model_size<span class="w"> </span>deepseek2-16b
+</pre></div>
+</div>
+</section>
+</section>
+<section id="obtain-and-prepare-the-student-model">
+<h3>2. Obtain and Prepare the Student Model<a class="headerlink" href="#obtain-and-prepare-the-student-model" title="Link to this heading">#</a></h3>
+<section id="id1">
+<h4>a. Download Model from Hugging Face<a class="headerlink" href="#id1" title="Link to this heading">#</a></h4>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>huggingface-cli<span class="w"> </span>download<span class="w"> </span>meta-llama/Llama-2-7b-chat-hf<span class="w"> </span>--repo-type<span class="w"> </span>model<span class="w"> </span>--local-dir<span class="w"> </span>~/llama2-7b-chat
+</pre></div>
+</div>
+</section>
+<section id="id2">
+<h4>b. Convert Checkpoint to MaxText Format<a class="headerlink" href="#id2" title="Link to this heading">#</a></h4>
+<p>MaxText requires checkpoints to be in a specific format. You’ll need to convert the downloaded Hugging Face checkpoints to a MaxText-compatible checkpoint.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get scanned checkpoint for fine-tuning</span>
+<span class="nv">JAX_PLATFORMS</span><span class="o">=</span>cpu<span class="w"> </span><span class="se">\</span>
+python3<span class="w"> </span>-m<span class="w"> </span>MaxText.llama_or_mistral_ckpt<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--base-model-path<span class="w"> </span>~/llama2-7b-chat<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--maxtext-model-path<span class="w"> </span><span class="si">${</span><span class="nv">BASE_DIRECTORY</span><span class="si">}</span>/llama2-7b-chat/scanned<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model-size<span class="w"> </span>llama2-7b
+</pre></div>
+</div>
+</section>
+</section>
+<section id="generate-dataset-using-the-teacher-model">
+<h3>3. Generate Dataset using the Teacher Model<a class="headerlink" href="#generate-dataset-using-the-teacher-model" title="Link to this heading">#</a></h3>
+<p>Once the teacher model’s checkpoint is in the MaxText format, you can run inference to generate the dataset that will be used to fine-tune the student model.</p>
+</section>
+<section id="a-run-the-jetstream-server">
+<h3>3.a. Run the JetStream Server<a class="headerlink" href="#a-run-the-jetstream-server" title="Link to this heading">#</a></h3>
+<p>Example command to run JetStream server on <code class="docutils literal notranslate"><span class="pre">v4-8</span></code>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>MaxText.maxengine_server<span class="w"> </span>src/MaxText/configs/base.yml<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">tokenizer_path</span><span class="o">=</span>deepseek-ai/DeepSeek-V2-Lite-chat<span class="w"> </span><span class="nv">tokenizer_type</span><span class="o">=</span>huggingface<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">load_parameters_path</span><span class="o">=</span><span class="si">${</span><span class="nv">BASE_DIRECTORY</span><span class="si">}</span>/deepseek2-16-chat/unscanned/0/items<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">model_name</span><span class="o">=</span>deepseek2-16b<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">per_device_batch_size</span><span class="o">=</span><span class="m">10</span><span class="w"> </span><span class="nv">ici_tensor_parallelism</span><span class="o">=</span><span class="m">4</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">max_target_length</span><span class="o">=</span><span class="m">2048</span><span class="w"> </span><span class="nv">max_prefill_predict_length</span><span class="o">=</span><span class="m">64</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">hf_access_token</span><span class="o">=</span><span class="nv">$HF_TOKEN</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">scan_layers</span><span class="o">=</span>False<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">multi_sampling</span><span class="o">=</span>True<span class="w"> </span><span class="nv">decode_sampling_strategy</span><span class="o">=</span>weighted
+</pre></div>
+</div>
+<p>Set <code class="docutils literal notranslate"><span class="pre">multi_sampling</span></code> to <code class="docutils literal notranslate"><span class="pre">True</span></code> to generate multiple independent completions per prompt.</p>
+</section>
+<section id="b-generate-dataset-using-jetstream-server">
+<h3>3.b. Generate Dataset using JetStream Server<a class="headerlink" href="#b-generate-dataset-using-jetstream-server" title="Link to this heading">#</a></h3>
+<p>In a new tab in your terminal, run the following command to generate dataset from teacher model. Note that this is an example command to run on <code class="docutils literal notranslate"><span class="pre">v4-8</span></code>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>MaxText.generate_distillation_data<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--tokenizer-path<span class="w"> </span>deepseek-ai/DeepSeek-V2-Lite-chat<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--dataset-path<span class="w"> </span>HuggingFaceH4/ultrachat_200k<span class="w"> </span>--data-split<span class="w"> </span>train_sft<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--data-columns<span class="w"> </span>messages<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--max-prefill-length<span class="w"> </span><span class="m">64</span><span class="w"> </span>--max-target-length<span class="w"> </span><span class="m">2048</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--hf-access-token<span class="w"> </span><span class="nv">$HF_TOKEN</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--use-chat-template<span class="w"> </span>--remove-local-dataset-files<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--num-generations<span class="w"> </span><span class="m">2</span><span class="w"> </span>--batch-size<span class="w"> </span><span class="m">1024</span><span class="w"> </span>--num-batches<span class="w"> </span><span class="m">200</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>upload-to-hf<span class="w"> </span>--hf-repo-id<span class="w"> </span><span class="si">${</span><span class="nv">HF_REPO_NAME</span><span class="si">}</span>
+</pre></div>
+</div>
+<p>When <code class="docutils literal notranslate"><span class="pre">multi_sampling=True</span></code> (Step 3.a), the <code class="docutils literal notranslate"><span class="pre">--num-generations</span></code> parameter specifies the number of distinct completions to generate per prompt. The <code class="docutils literal notranslate"><span class="pre">--batch-size</span></code> parameter controls how many prompts are processed per batch, and <code class="docutils literal notranslate"><span class="pre">--num-batches</span></code> defines how many such batches to run. The total number of prompt-completion pairs generated is approximately <code class="docutils literal notranslate"><span class="pre">num_batches</span> <span class="pre">*</span> <span class="pre">batch_size</span> <span class="pre">*</span> <span class="pre">num_generations</span></code>.</p>
+<p>For example, with <code class="docutils literal notranslate"><span class="pre">--batch-size</span> <span class="pre">1024</span></code>, <code class="docutils literal notranslate"><span class="pre">--num-generations</span> <span class="pre">2</span></code>, and <code class="docutils literal notranslate"><span class="pre">--num-batches</span> <span class="pre">200</span></code>, this would yield <code class="docutils literal notranslate"><span class="pre">200</span> <span class="pre">*</span> <span class="pre">1024</span> <span class="pre">*</span> <span class="pre">2</span> <span class="pre">=</span> <span class="pre">409,600</span></code> prompt-completion pairs.</p>
+<p>It’s important to note that some prompts may be filtered out by pre-processing logic before inference. If the prompt sequences are longer than <code class="docutils literal notranslate"><span class="pre">max-prefill-length</span></code>, then those prompts will be filtered out in pre-processing stage.</p>
+<p>Additionally, the generated dataset can be uploaded to either Hugging Face or Google Cloud Storage (GCS). To upload to Hugging Face, use the <code class="docutils literal notranslate"><span class="pre">upload-to-hf</span> <span class="pre">--hf-repo-id</span> <span class="pre">&lt;hf_repo_name&gt;</span></code> flags. To upload to GCS, use the <code class="docutils literal notranslate"><span class="pre">upload-to-gcs</span> <span class="pre">--gcs-bucket</span> <span class="pre">&lt;gcs</span> <span class="pre">bucket</span> <span class="pre">name&gt;</span> <span class="pre">--gcs-data-path</span> <span class="pre">&lt;path</span> <span class="pre">in</span> <span class="pre">gcs</span> <span class="pre">bucket&gt;</span></code> flags.</p>
+</section>
+<section id="fine-tune-the-student-model-using-supervised-fine-tuning">
+<h3>4. Fine-tune the Student Model using Supervised Fine Tuning<a class="headerlink" href="#fine-tune-the-student-model-using-supervised-fine-tuning" title="Link to this heading">#</a></h3>
+<p>You can now fine-tune your smaller student model using supervised fine-tuning technique in MaxText.</p>
+</section>
+<section id="a-fine-tune-the-student-model-using-dataset-generated-in-step-3">
+<h3>4.a. Fine-tune the Student Model using Dataset Generated in Step 3<a class="headerlink" href="#a-fine-tune-the-student-model-using-dataset-generated-in-step-3" title="Link to this heading">#</a></h3>
+<p>Example command to run fine-tuning on v4-8:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>MaxText.sft_trainer<span class="w"> </span>src/MaxText/configs/sft.yml<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">run_name</span><span class="o">=</span><span class="si">${</span><span class="nv">RUN_NAME</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">base_output_directory</span><span class="o">=</span><span class="si">${</span><span class="nv">BASE_DIRECTORY</span><span class="si">}</span>/distillation/deepseek2-16b-distill-llama2-7b<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">tokenizer_path</span><span class="o">=</span>meta-llama/Llama-2-7b-chat-hf<span class="w"> </span><span class="nv">tokenizer_type</span><span class="o">=</span>huggingface<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">hf_path</span><span class="o">=</span><span class="si">${</span><span class="nv">USERNAME_OR_ORG</span><span class="si">}</span>/<span class="si">${</span><span class="nv">HF_REPO_NAME</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">train_split</span><span class="o">=</span><span class="s1">&#39;train&#39;</span><span class="w"> </span><span class="nv">train_data_columns</span><span class="o">=[</span><span class="s1">&#39;prompt&#39;</span>,<span class="s1">&#39;completion&#39;</span><span class="o">]</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">load_parameters_path</span><span class="o">=</span><span class="si">${</span><span class="nv">BASE_DIRECTORY</span><span class="si">}</span>/llama2-7b-chat/scanned/0/items<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">model_name</span><span class="o">=</span>llama2-7b<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">per_device_batch_size</span><span class="o">=</span><span class="m">2</span><span class="w"> </span><span class="nv">ici_expert_parallelism</span><span class="o">=</span>-1<span class="w"> </span><span class="nv">ici_fsdp_parallelism</span><span class="o">=</span><span class="m">4</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">max_target_length</span><span class="o">=</span><span class="m">2048</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">hf_access_token</span><span class="o">=</span><span class="nv">$HF_TOKEN</span>
+</pre></div>
+</div>
+</section>
+<section id="b-optional-fine-tune-the-student-model-using-the-original-dataset">
+<h3>4.b. <strong>[OPTIONAL]</strong> Fine-tune the Student Model using the Original Dataset<a class="headerlink" href="#b-optional-fine-tune-the-student-model-using-the-original-dataset" title="Link to this heading">#</a></h3>
+<p>The checkpoint from the student model’s fine-tuning (on the teacher-generated dataset) can be used for a subsequent fine-tuning stage. In this step, the student model is fine-tuned on the original dataset that was initially provided to the teacher model for generating the dataset.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get the latest checkpoint for fine-tuned student model</span>
+<span class="nv">CHECKPOINTS_PATH</span><span class="o">=</span><span class="si">${</span><span class="nv">BASE_DIRECTORY</span><span class="si">}</span>/distillation/deepseek2-16b-distill-llama2-7b/<span class="si">${</span><span class="nv">RUN_NAME</span><span class="si">}</span>/checkpoints
+<span class="nv">checkpoints</span><span class="o">=</span><span class="k">$(</span>gcloud<span class="w"> </span>storage<span class="w"> </span>ls<span class="w"> </span><span class="nv">$CHECKPOINTS_PATH</span><span class="k">)</span>
+<span class="nv">integer_dirs</span><span class="o">=()</span>
+<span class="k">for</span><span class="w"> </span>dir<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="nv">$checkpoints</span><span class="p">;</span><span class="w"> </span><span class="k">do</span>
+<span class="w">  </span><span class="nv">dir_name</span><span class="o">=</span><span class="k">$(</span>basename<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$dir</span><span class="s2">&quot;</span><span class="k">)</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="o">[[</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$dir_name</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">=</span>~<span class="w"> </span>^<span class="o">[</span><span class="m">0</span>-9<span class="o">]</span>+$<span class="w"> </span><span class="o">]]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
+<span class="w">    </span><span class="nv">integer_dirs</span><span class="o">+=(</span><span class="s2">&quot;</span><span class="nv">$dir_name</span><span class="s2">&quot;</span><span class="o">)</span>
+<span class="w">  </span><span class="k">fi</span>
+<span class="k">done</span>
+<span class="nv">sorted_dirs</span><span class="o">=(</span><span class="k">$(</span><span class="nb">printf</span><span class="w"> </span><span class="s1">&#39;%s\n&#39;</span><span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">integer_dirs</span><span class="p">[@]</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sort<span class="w"> </span>-n<span class="k">)</span><span class="o">)</span>
+<span class="nv">largest_dir</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">sorted_dirs</span><span class="p">[-1]</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="nv">FINE_TUNED_MODEL_CKPT_PATH</span><span class="o">=</span><span class="si">${</span><span class="nv">CHECKPOINTS_PATH</span><span class="si">}</span>/<span class="si">${</span><span class="nv">largest_dir</span><span class="si">}</span>/items
+
+<span class="c1"># Fine-tune student model on original dataset</span>
+python3<span class="w"> </span>-m<span class="w"> </span>MaxText.sft_trainer<span class="w"> </span>src/MaxText/configs/sft.yml<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">run_name</span><span class="o">=</span><span class="si">${</span><span class="nv">RUN_NAME</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">base_output_directory</span><span class="o">=</span><span class="si">${</span><span class="nv">BASE_DIRECTORY</span><span class="si">}</span>/distillation/deepseek2-16b-distill-llama2-7b<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">tokenizer_path</span><span class="o">=</span>meta-llama/Llama-2-7b-chat-hf<span class="w"> </span><span class="nv">tokenizer_type</span><span class="o">=</span>huggingface<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">hf_path</span><span class="o">=</span><span class="s1">&#39;HuggingFaceH4/ultrachat_200k&#39;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">train_split</span><span class="o">=</span><span class="s1">&#39;train_sft&#39;</span><span class="w"> </span><span class="nv">train_data_columns</span><span class="o">=[</span><span class="s1">&#39;messages&#39;</span><span class="o">]</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">load_parameters_path</span><span class="o">=</span><span class="si">${</span><span class="nv">FINE_TUNED_MODEL_CKPT_PATH</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">model_name</span><span class="o">=</span>llama2-7b<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">per_device_batch_size</span><span class="o">=</span><span class="m">2</span><span class="w"> </span><span class="nv">ici_expert_parallelism</span><span class="o">=</span>-1<span class="w"> </span><span class="nv">ici_fsdp_parallelism</span><span class="o">=</span><span class="m">4</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">max_target_length</span><span class="o">=</span><span class="m">2048</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">hf_access_token</span><span class="o">=</span><span class="nv">$HF_TOKEN</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="single_host_gpu.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Maxtext on Single host GPU</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="gcp_workload_observability.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Enable GCP Workload Observabiltiy</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overview">Overview</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#running-offline-distillation-with-maxtext">Running Offline Distillation with MaxText</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#prerequisites">Prerequisites</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#a-setup-environment-variables">a. Setup environment variables</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#b-install-dependencies">b. Install dependencies</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#obtain-and-prepare-the-teacher-model">1. Obtain and Prepare the Teacher Model</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#a-download-model-from-hugging-face">a. Download Model from Hugging Face</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#b-convert-checkpoint-to-maxtext-format">b. Convert Checkpoint to MaxText Format</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#obtain-and-prepare-the-student-model">2. Obtain and Prepare the Student Model</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">a. Download Model from Hugging Face</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">b. Convert Checkpoint to MaxText Format</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#generate-dataset-using-the-teacher-model">3. Generate Dataset using the Teacher Model</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#a-run-the-jetstream-server">3.a. Run the JetStream Server</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#b-generate-dataset-using-jetstream-server">3.b. Generate Dataset using JetStream Server</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#fine-tune-the-student-model-using-supervised-fine-tuning">4. Fine-tune the Student Model using Supervised Fine Tuning</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#a-fine-tune-the-student-model-using-dataset-generated-in-step-3">4.a. Fine-tune the Student Model using Dataset Generated in Step 3</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#b-optional-fine-tune-the-student-model-using-the-original-dataset">4.b. <strong>[OPTIONAL]</strong> Fine-tune the Student Model using the Original Dataset</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By MaxText developers
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2025, MaxText developers.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>
