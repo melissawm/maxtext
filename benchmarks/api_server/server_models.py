@@ -60,11 +60,16 @@ class CompletionRequest(SamplingParams):
     echo: Optional[bool] = False
     logprobs: Optional[int] = None
 
-    @field_validator("logprobs")
-    def validate_logprobs(cls, v):
-        if v is not None and v < 0:
-            raise ValueError("logprobs must be a non-negative integer if provided.")
-        return v
+  model: str
+  prompt: Union[str, List[str], List[int], List[List[int]]]
+  echo: Optional[bool] = False
+  logprobs: Optional[int] = None
+
+  @field_validator("logprobs")
+  def validate_logprobs(cls, v):
+    if v is not None and v < 0:
+      raise ValueError("logprobs must be a non-negative integer if provided.")
+    return v
 
 
 class LogProbsPayload(BaseModel):
