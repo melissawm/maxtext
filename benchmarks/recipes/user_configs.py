@@ -86,18 +86,18 @@ class UserConfig:
 
 # Define the required configuration here
 USER_CONFIG = UserConfig(
-  user='user_name',
-  cluster_name='v6e-256-cluster',
-  project='tpu-prod-env-cluster',
-  zone='us-east5-b',
-  device_type='v6e-256',
-  benchmark_steps=20,
-  num_slices_list=[2],
-  server_image = 'us-docker.pkg.dev/cloud-tpu-v2-images/pathways/proxy_server',
-  proxy_image = 'us-docker.pkg.dev/cloud-tpu-v2-images/pathways/server',
-  runner='us-docker.pkg.dev/path/to/maxtext_runner',
-  selected_model_framework=['pathways'],
-  selected_model_names=['llama3_1_8b_8192'],
-  priority="medium"
+    user="user_name",
+    cluster_name="v6e-256-cluster",
+    project="tpu-prod-env-cluster",
+    zone="us-east5-b",
+    device_type="v6e-256",
+    benchmark_steps=20,
+    num_slices_list=[2],
+    server_image="us-docker.pkg.dev/cloud-tpu-v2-images/pathways/server",
+    proxy_image="us-docker.pkg.dev/cloud-tpu-v2-images/pathways/proxy_server",
+    runner="us-docker.pkg.dev/path/to/maxtext_runner",
+    selected_model_framework=["pathways"],
+    selected_model_names=["llama3_1_8b_8192"],
+    priority="medium",
 )
 
