@@ -1,0 +1,662 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Pretraining with real datasets &#8212; MaxText  documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=95a5a69d" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/documentation_options.js?v=c73c0f3e"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'tutorials/pretraining';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Full Finetuning LLama3-8B Model" href="full_finetuning.html" />
+    <link rel="prev" title="Getting Started: First Run" href="first_run.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/maxtext.png" class="logo__image only-light" alt="MaxText  documentation - Home"/>
+    <script>document.write(`<img src="../_static/maxtext.png" class="logo__image only-dark" alt="MaxText  documentation - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../index.html">
+                    MaxText
+                </a>
+            </li>
+        </ul>
+        <ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../tutorials.html">Tutorials</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="first_run.html">Getting Started: First Run</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Pretraining with real datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="full_finetuning.html">Full Finetuning LLama3-8B  Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_llama2.html">About Llama2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="grpo.html">Try GRPO!</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sft.html">Try SFT!</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sft_on_multi_host.html">Supervised Fine-Tuning (SFT) with Deepseek-V3 Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="grpo_with_pathways.html">Try GRPO with Pathways!</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../guides.html">How-to Guides</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../guides/checkpoints.html">Checkpoints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/custom_model.html">How to customize your model configs on TPU</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/run_maxtext_localhost.html">Run MaxText on Localhost or Single Host VM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/run_maxtext_via_xpk.html">Running MaxText at Scale with XPK</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/run_maxtext_via_pathways.html">Guide: Running MaxText via Pathways</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../guides/data_input_pipeline.html">Manage the data input pipeline</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../guides/data_input_grain.html">Grain pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../guides/data_input_hf.html">Hugging Face pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../guides/data_input_tfds.html">TFDS pipeline</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/single_host_gpu.html">Maxtext on Single host GPU</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/knowledge_distillation.html">Knowledge Distillation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/gcp_workload_observability.html">Enable GCP Workload Observabiltiy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/monitor_goodput.html">ML Goodput Measurement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/use_vertex_ai_tensorboard.html">Use Vertex AI Tensorboard</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/features_and_diagnostics.html">Features and Diagnostics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/pallas_kernels_performance.html">Performance Optimizations with Pallas Kernels</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/performance_metrics.html">Performance Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/understand_logs_and_metrics.html">Understand Logs and Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/checkpointing_solutions/gcs_checkpointing.html">GCS bucket-based checkpointing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/checkpointing_solutions/emergency_checkpointing.html">Emergency Checkpointing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/checkpointing_solutions/multi_tier_checkpointing.html">Multi-Tier Checkpointing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/jax_ai_libraries_chosen.html">The JAX Ecosystem in MaxText: An Opinionated Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/xprof_user_guide.html">XProf for MaxText developers</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../explanations.html">Explanations</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/steps_model.html">Steps to build a Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/quantization.html">Quantization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/sharding.html">Sharding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/data_pipeline_perf.html">Data input pipeline performance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/tiling.html">Tiling</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../reference.html">Reference documentation</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../reference/terminology.html">Terminology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/supported_models_and_architectures.html">Supported Models &amp; Architectures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/alternatives.html">Comparison to Alternatives</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/benchmark_and_performance.html">Benchmark and Performance Tuning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/architecture_overview.html">MaxText architecture overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/jax_xla_and_pallas.html">JAX, XLA, and Pallas for MaxText users</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">How to Contribute</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+<a href="https://github.com/AI-Hypercomputer/maxtext" target="_blank"
+   class="btn btn-sm btn-source-repository-button"
+   title="Source repository"
+   data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+
+</a>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/tutorials/pretraining.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Pretraining with real datasets</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#huggingface-pipeline">1. HuggingFace pipeline</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#grain-pipeline">2. Grain pipeline</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#tfds-pipeline">3. TFDS pipeline</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <!--
+ Copyright 2023–2025 Google LLC
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+    https://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+<section class="tex2jax_ignore mathjax_ignore" id="pretraining-with-real-datasets">
+<span id="pretraining"></span><h1>Pretraining with real datasets<a class="headerlink" href="#pretraining-with-real-datasets" title="Link to this heading">#</a></h1>
+<p>In this tutorial, we introduce how to run pretraining with real datasets. While synthetic data is commonly used for benchmarking, we rely on real datasets to obtain meaningful weights. Currently, MaxText supports three dataset input pipelines: HuggingFace, Grain, and TensorFlow Datasets (TFDS). We will walk you through: setting up dataset, modifying the <a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/blob/08d9f20329ab55b9b928543fedd28ad173e1cd97/src/MaxText/configs/base.yml#L486-L514">dataset configs</a> and <a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/blob/08d9f20329ab55b9b928543fedd28ad173e1cd97/src/MaxText/configs/base.yml#L452-L455">tokenizer configs</a> for training, and optionally enabling evaluation.</p>
+<p>To start with, we focus on HuggingFace datasets for convenience.</p>
+<ul class="simple">
+<li><p>Later on, we will give brief examples for Grain and TFDS. For a comprehensive guide, see the <a class="reference internal" href="../guides/data_input_pipeline.html"><span class="std std-doc">Data Input Pipeline</span></a> topic.</p></li>
+<li><p>For demonstration, we use Deepseek-V2-Lite model and C4 dataset. C4 stands for “Colossal Clean Crawled Corpus”, a high-quality pretraining dataset first introduced by Google’s <a class="reference external" href="https://arxiv.org/pdf/1910.10683">T5</a> work. Feel free to try other models and datasets.</p></li>
+</ul>
+<section id="huggingface-pipeline">
+<h2>1. HuggingFace pipeline<a class="headerlink" href="#huggingface-pipeline" title="Link to this heading">#</a></h2>
+<p>We use the HuggingFace dataset <a class="reference external" href="https://huggingface.co/datasets/allenai/c4">allenai/c4</a>, a processed version of Google’s C4. This dataset is organized into subsets (e.g., <code class="docutils literal notranslate"><span class="pre">en</span></code>, <code class="docutils literal notranslate"><span class="pre">es</span></code>), and each subset contains data splits (e.g., <code class="docutils literal notranslate"><span class="pre">train</span></code>, <code class="docutils literal notranslate"><span class="pre">validation</span></code>).</p>
+<p><strong>Data preparation</strong>: You don’t need to download data, as the pipeline can stream data directly from the HuggingFace Hub. Alternatively, it can stream from a Cloud Storage bucket; see the <a class="reference internal" href="../guides/data_input_hf.html"><span class="std std-doc">HuggingFace Pipeline</span></a> page.</p>
+<p>We can use this <strong>command</strong> for pretraining:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># replace base_output_directory with your bucket</span>
+python3<span class="w"> </span>-m<span class="w"> </span>MaxText.train<span class="w"> </span>MaxText/configs/base.yml<span class="w"> </span><span class="se">\</span>
+<span class="nv">base_output_directory</span><span class="o">=</span>gs://runner-maxtext-logs<span class="w"> </span><span class="nv">run_name</span><span class="o">=</span>demo<span class="w"> </span><span class="se">\</span>
+<span class="nv">model_name</span><span class="o">=</span>deepseek2-16b<span class="w"> </span><span class="nv">per_device_batch_size</span><span class="o">=</span><span class="m">1</span><span class="w"> </span><span class="nv">steps</span><span class="o">=</span><span class="m">10</span><span class="w"> </span><span class="nv">max_target_length</span><span class="o">=</span><span class="m">2048</span><span class="w"> </span><span class="nv">enable_checkpointing</span><span class="o">=</span><span class="nb">false</span><span class="w"> </span><span class="se">\</span>
+<span class="nv">dataset_type</span><span class="o">=</span>hf<span class="w"> </span><span class="nv">hf_path</span><span class="o">=</span>allenai/c4<span class="w"> </span><span class="nv">hf_data_dir</span><span class="o">=</span>en<span class="w"> </span><span class="nv">train_split</span><span class="o">=</span>train<span class="w"> </span><span class="se">\</span>
+<span class="nv">tokenizer_type</span><span class="o">=</span>huggingface<span class="w"> </span><span class="nv">tokenizer_path</span><span class="o">=</span>deepseek-ai/DeepSeek-V2-Lite
+</pre></div>
+</div>
+<p><strong>Dataset config</strong>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">dataset_type</span></code>: <code class="docutils literal notranslate"><span class="pre">hf</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">hf_path</span></code>: the HuggingFace dataset repository is <code class="docutils literal notranslate"><span class="pre">allenai/c4</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">hf_data_dir</span></code>: the subset is <code class="docutils literal notranslate"><span class="pre">en</span></code>, corresponding to English data.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">train_split</span></code>: <code class="docutils literal notranslate"><span class="pre">train</span></code>. Training will use the <code class="docutils literal notranslate"><span class="pre">train</span></code> split.</p></li>
+</ul>
+<p>The above command runs training only: <code class="docutils literal notranslate"><span class="pre">steps=10</span></code> on the <code class="docutils literal notranslate"><span class="pre">train</span></code> split, for <code class="docutils literal notranslate"><span class="pre">en</span></code> subset of <code class="docutils literal notranslate"><span class="pre">allenai/c4</span></code>. The log shows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">completed</span> <span class="n">step</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">seconds</span><span class="p">:</span> <span class="mf">0.287</span><span class="p">,</span> <span class="n">TFLOP</span><span class="o">/</span><span class="n">s</span><span class="o">/</span><span class="n">device</span><span class="p">:</span> <span class="mf">110.951</span><span class="p">,</span> <span class="n">Tokens</span><span class="o">/</span><span class="n">s</span><span class="o">/</span><span class="n">device</span><span class="p">:</span> <span class="mf">7131.788</span><span class="p">,</span> <span class="n">total_weights</span><span class="p">:</span> <span class="mi">7517</span><span class="p">,</span> <span class="n">loss</span><span class="p">:</span> <span class="mf">12.021</span>
+<span class="o">...</span>
+<span class="n">completed</span> <span class="n">step</span><span class="p">:</span> <span class="mi">9</span><span class="p">,</span> <span class="n">seconds</span><span class="p">:</span> <span class="mf">1.010</span><span class="p">,</span> <span class="n">TFLOP</span><span class="o">/</span><span class="n">s</span><span class="o">/</span><span class="n">device</span><span class="p">:</span> <span class="mf">31.541</span><span class="p">,</span> <span class="n">Tokens</span><span class="o">/</span><span class="n">s</span><span class="o">/</span><span class="n">device</span><span class="p">:</span> <span class="mf">2027.424</span><span class="p">,</span> <span class="n">total_weights</span><span class="p">:</span> <span class="mi">7979</span><span class="p">,</span> <span class="n">loss</span><span class="p">:</span> <span class="mf">9.436</span>
+</pre></div>
+</div>
+<p>The total weights is the number of real tokens processed in each step. More explanation can be found in <a class="reference internal" href="../guides/understand_logs_and_metrics.html"><span class="std std-doc">Understand Logs and Metrics</span></a> page.</p>
+<p><strong>Evaluation config (optional)</strong>:</p>
+<p>To add evaluation steps, we can specify a positive evaluation interval and the dataset split, for instance <code class="docutils literal notranslate"><span class="pre">eval_interval=5</span> <span class="pre">eval_steps=10</span> <span class="pre">hf_eval_split=validation</span></code>. For every 5 training step, we run evaluation for 10 steps, using the <code class="docutils literal notranslate"><span class="pre">validation</span></code> split. In the log, you will additionally see:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Completed</span> <span class="nb">eval</span> <span class="n">step</span> <span class="mi">0</span>
+<span class="o">...</span>
+<span class="n">Completed</span> <span class="nb">eval</span> <span class="n">step</span> <span class="mi">9</span>
+<span class="nb">eval</span> <span class="n">metrics</span> <span class="n">after</span> <span class="n">step</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="n">loss</span><span class="o">=</span><span class="mf">9.855</span><span class="p">,</span> <span class="n">total_weights</span><span class="o">=</span><span class="mf">75264.0</span>
+<span class="n">Completed</span> <span class="nb">eval</span> <span class="n">step</span> <span class="mi">0</span>
+<span class="o">...</span>
+<span class="n">Completed</span> <span class="nb">eval</span> <span class="n">step</span> <span class="mi">9</span>
+<span class="nb">eval</span> <span class="n">metrics</span> <span class="n">after</span> <span class="n">step</span><span class="p">:</span> <span class="mi">9</span><span class="p">,</span> <span class="n">loss</span><span class="o">=</span><span class="mf">9.420</span><span class="p">,</span> <span class="n">total_weights</span><span class="o">=</span><span class="mf">75264.0</span>
+</pre></div>
+</div>
+<p><strong>Tokenizer config</strong>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">tokenizer_type</span></code>: <code class="docutils literal notranslate"><span class="pre">huggingface</span></code>. Note HuggingFace input pipeline only supports HuggingFace tokenizer.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tokenizer_path</span></code>: <code class="docutils literal notranslate"><span class="pre">deepseek-ai/DeepSeek-V2-Lite</span></code>, corresponding to the HuggingFace <a class="reference external" href="https://huggingface.co/deepseek-ai/DeepSeek-V2-Lite/tree/main">model repository</a>.</p></li>
+</ul>
+<p><strong>HuggingFace access token (optional)</strong>:</p>
+<ul class="simple">
+<li><p>For a <a class="reference external" href="https://huggingface.co/docs/hub/en/datasets-gated">gated dataset</a> or a tokenizer from a <a class="reference external" href="https://huggingface.co/docs/hub/en/models-gated">gated model</a>, you need to request access on HuggingFace and provide <code class="docutils literal notranslate"><span class="pre">hf_access_token=&lt;YOUR_TOKEN&gt;</span></code> in the command. For instance, <a class="reference external" href="https://huggingface.co/meta-llama/Llama-2-7b">meta-llama/Llama-2-7b</a> is a gated model.</p></li>
+</ul>
+</section>
+<section id="grain-pipeline">
+<h2>2. Grain pipeline<a class="headerlink" href="#grain-pipeline" title="Link to this heading">#</a></h2>
+<p>Grain is a library for reading data for training and evaluating JAX models. It is the recommended input pipeline for determinism and resilience! It supports data formats like ArrayRecord and Parquet. You can check <a class="reference internal" href="../guides/data_input_grain.html"><span class="std std-doc">Grain pipeline</span></a> for more details.</p>
+<p><strong>Data preparation</strong>: You need to download data to a Cloud Storage bucket, and read data via Cloud Storage Fuse with <a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/blob/0baff00ac27bb7996c62057f235cc1d2f43d734e/setup_gcsfuse.sh#L18">setup_gcsfuse.sh</a>.</p>
+<ul>
+<li><p>For example, we can mount the bucket <code class="docutils literal notranslate"><span class="pre">gs://maxtext-dataset</span></code> on the local path <code class="docutils literal notranslate"><span class="pre">/tmp/gcsfuse</span></code> before training</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>bash<span class="w"> </span>setup_gcsfuse.sh<span class="w"> </span><span class="nv">DATASET_GCS_BUCKET</span><span class="o">=</span>maxtext-dataset<span class="w"> </span><span class="nv">MOUNT_PATH</span><span class="o">=</span>/tmp/gcsfuse
+</pre></div>
+</div>
+</li>
+<li><p>After training, we unmount the local path</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>fusermount<span class="w"> </span>-u<span class="w"> </span>/tmp/gcsfuse
+</pre></div>
+</div>
+</li>
+</ul>
+<p>This <strong>command</strong> shows pretraining with Grain pipeline, along with evaluation:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># replace DATASET_GCS_BUCKET and base_output_directory with your buckets</span>
+python3<span class="w"> </span>-m<span class="w"> </span>MaxText.train<span class="w"> </span>MaxText/configs/base.yml<span class="w"> </span><span class="se">\</span>
+<span class="nv">base_output_directory</span><span class="o">=</span>gs://runner-maxtext-logs<span class="w"> </span><span class="nv">run_name</span><span class="o">=</span>demo<span class="w"> </span><span class="se">\</span>
+<span class="nv">model_name</span><span class="o">=</span>deepseek2-16b<span class="w"> </span><span class="nv">per_device_batch_size</span><span class="o">=</span><span class="m">1</span><span class="w"> </span><span class="nv">steps</span><span class="o">=</span><span class="m">10</span><span class="w"> </span><span class="nv">max_target_length</span><span class="o">=</span><span class="m">2048</span><span class="w"> </span><span class="nv">enable_checkpointing</span><span class="o">=</span><span class="nb">false</span><span class="w"> </span><span class="se">\</span>
+<span class="nv">dataset_type</span><span class="o">=</span>grain<span class="w"> </span><span class="nv">grain_file_type</span><span class="o">=</span>arrayrecord<span class="w"> </span><span class="nv">grain_train_files</span><span class="o">=</span>/tmp/gcsfuse/array-record/c4/en/3.0.1/c4-train.array_record*<span class="w"> </span><span class="nv">grain_worker_count</span><span class="o">=</span><span class="m">2</span><span class="w"> </span><span class="se">\</span>
+<span class="nv">eval_interval</span><span class="o">=</span><span class="m">5</span><span class="w"> </span><span class="nv">eval_steps</span><span class="o">=</span><span class="m">10</span><span class="w"> </span><span class="nv">grain_eval_files</span><span class="o">=</span>/tmp/gcsfuse/array-record/c4/en/3.0.1/c4-validation.array_record*<span class="w"> </span><span class="se">\</span>
+<span class="nv">tokenizer_type</span><span class="o">=</span>huggingface<span class="w"> </span><span class="nv">tokenizer_path</span><span class="o">=</span>deepseek-ai/DeepSeek-V2-Lite
+</pre></div>
+</div>
+<p><strong>Dataset config</strong>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">dataset_type</span></code>: <code class="docutils literal notranslate"><span class="pre">grain</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">grain_file_type</span></code>: <code class="docutils literal notranslate"><span class="pre">arrayrecord</span></code>. We also support <code class="docutils literal notranslate"><span class="pre">parquet</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">grain_train_files</span></code>: <code class="docutils literal notranslate"><span class="pre">/tmp/gcsfuse/array-record/c4/en/3.0.1/c4-train.array_record*</span></code>, which is a regex pattern.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">grain_worker_count</span></code>: <code class="docutils literal notranslate"><span class="pre">2</span></code>. This parameter controls the number of child processes used by Grain, which should be tuned for performance.</p></li>
+</ul>
+<p><strong>Evaluation config (optional)</strong>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">eval_interval=5</span> <span class="pre">eval_steps=10</span></code>: after every 5 train steps, perform 10 evaluation steps</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">grain_eval_files</span></code>: <code class="docutils literal notranslate"><span class="pre">/tmp/gcsfuse/array-record/c4/en/3.0.1/c4-validation.array_record*</span></code>, which is a regex pattern.</p></li>
+</ul>
+<p><strong>Tokenizer config</strong>:</p>
+<ul class="simple">
+<li><p>The Grain pipeline supports tokenizer_type: <code class="docutils literal notranslate"><span class="pre">sentencepiece,</span> <span class="pre">huggingface</span></code></p></li>
+<li><p>Here we use the same <code class="docutils literal notranslate"><span class="pre">huggingface</span></code> tokenizer as in Section 1. If you use a HuggingFace tokenizer from a gated model, you will need to provide <code class="docutils literal notranslate"><span class="pre">hf_access_token</span></code>.</p></li>
+</ul>
+</section>
+<section id="tfds-pipeline">
+<h2>3. TFDS pipeline<a class="headerlink" href="#tfds-pipeline" title="Link to this heading">#</a></h2>
+<p>The TensorFlow Datasets (TFDS) pipeline uses dataset in the TFRecord format. You can check <a class="reference internal" href="../guides/data_input_tfds.html"><span class="std std-doc">TFDS Pipeline</span></a> for more details.</p>
+<p><strong>Data preparation</strong>: You need to download data to a <a class="reference external" href="https://cloud.google.com/storage/docs/creating-buckets">Cloud Storage bucket</a>, and the pipeline streams data from the bucket.</p>
+<ul class="simple">
+<li><p>To download the AllenAI C4 dataset to your bucket, you can use <a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/blob/08d9f20329ab55b9b928543fedd28ad173e1cd97/download_dataset.sh#L19">download_dataset.sh</a>: <code class="docutils literal notranslate"><span class="pre">bash</span> <span class="pre">download_dataset.sh</span> <span class="pre">&lt;GCS_PROJECT&gt;</span> <span class="pre">&lt;GCS_BUCKET_FOR_DATASET&gt;</span></code></p></li>
+</ul>
+<p>This <strong>command</strong> shows pretraining with TFDS pipeline, along with evaluation:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># replace base_output_directory and dataset_path with your buckets</span>
+python3<span class="w"> </span>-m<span class="w"> </span>MaxText.train<span class="w"> </span>MaxText/configs/base.yml<span class="w"> </span><span class="se">\</span>
+<span class="nv">base_output_directory</span><span class="o">=</span>gs://runner-maxtext-logs<span class="w"> </span><span class="nv">run_name</span><span class="o">=</span>demo<span class="w"> </span><span class="se">\</span>
+<span class="nv">model_name</span><span class="o">=</span>deepseek2-16b<span class="w"> </span><span class="nv">per_device_batch_size</span><span class="o">=</span><span class="m">1</span><span class="w"> </span><span class="nv">steps</span><span class="o">=</span><span class="m">10</span><span class="w"> </span><span class="nv">max_target_length</span><span class="o">=</span><span class="m">2048</span><span class="w"> </span><span class="nv">enable_checkpointing</span><span class="o">=</span><span class="nb">false</span><span class="w"> </span><span class="se">\</span>
+<span class="nv">dataset_type</span><span class="o">=</span>tfds<span class="w"> </span><span class="nv">dataset_path</span><span class="o">=</span>gs://maxtext-dataset<span class="w"> </span><span class="nv">dataset_name</span><span class="o">=</span><span class="s1">&#39;c4/en:3.0.1&#39;</span><span class="w"> </span><span class="nv">train_split</span><span class="o">=</span>train<span class="w"> </span><span class="se">\</span>
+<span class="nv">eval_interval</span><span class="o">=</span><span class="m">5</span><span class="w"> </span><span class="nv">eval_steps</span><span class="o">=</span><span class="m">10</span><span class="w"> </span><span class="nv">eval_dataset_name</span><span class="o">=</span><span class="s1">&#39;c4/en:3.0.1&#39;</span><span class="w"> </span><span class="nv">eval_split</span><span class="o">=</span>validation<span class="w"> </span><span class="se">\</span>
+<span class="nv">tokenizer_type</span><span class="o">=</span>huggingface<span class="w"> </span><span class="nv">tokenizer_path</span><span class="o">=</span>deepseek-ai/DeepSeek-V2-Lite
+</pre></div>
+</div>
+<p><strong>Dataset config</strong>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">dataset_type</span></code>: <code class="docutils literal notranslate"><span class="pre">tfds</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dataset_path</span></code>: the cloud storage bucket is <code class="docutils literal notranslate"><span class="pre">gs://maxtext-dataset</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dataset_name</span></code>: <code class="docutils literal notranslate"><span class="pre">c4/en:3.0.1</span></code> corresponds to the subdirectory inside dataset_path <code class="docutils literal notranslate"><span class="pre">gs://maxtext-dataset/c4/en/3.0.1</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">train_split</span></code>: <code class="docutils literal notranslate"><span class="pre">train</span></code>, corresponds to <code class="docutils literal notranslate"><span class="pre">*-train.tfrecord-*</span></code> files</p></li>
+<li><p>Putting together, we are training on files like <code class="docutils literal notranslate"><span class="pre">gs://maxtext-dataset/c4/en/3.0.1/c4-train.tfrecord-0000-of-01024</span></code></p></li>
+</ul>
+<p><strong>Evaluation config (optional)</strong>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">eval_interval=5</span> <span class="pre">eval_steps=10</span></code>: after every 5 train steps, perform 10 evaluation steps</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">eval_dataset_name</span></code>: <code class="docutils literal notranslate"><span class="pre">c4/en:3.0.1</span></code>, corresponds to the subdirectory inside dataset_path <code class="docutils literal notranslate"><span class="pre">gs://maxtext-dataset/c4/en/3.0.1</span></code>. It can be different from <code class="docutils literal notranslate"><span class="pre">dataset_name</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">eval_split</span></code>: <code class="docutils literal notranslate"><span class="pre">validation</span></code>, corresponds to <code class="docutils literal notranslate"><span class="pre">*-validation.tfrecord-*</span></code> files</p></li>
+<li><p>Putting together, we are evaluating on files like <code class="docutils literal notranslate"><span class="pre">gs://maxtext-dataset/c4/en/3.0.1/c4-validation.tfrecord-00000-of-00008</span></code></p></li>
+</ul>
+<p><strong>Tokenizer config</strong>:</p>
+<ul class="simple">
+<li><p>TFDS pipeline supports tokenizer_type: <code class="docutils literal notranslate"><span class="pre">sentencepiece,</span> <span class="pre">huggingface,</span> <span class="pre">tiktoken</span></code></p></li>
+<li><p>Here we use the same <code class="docutils literal notranslate"><span class="pre">huggingface</span></code> tokenizer as in Section 1. If you use a HuggingFace tokenizer from a gated model, you will need to provide <code class="docutils literal notranslate"><span class="pre">hf_access_token</span></code>.</p></li>
+</ul>
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="first_run.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Getting Started: First Run</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="full_finetuning.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Full Finetuning LLama3-8B  Model</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#huggingface-pipeline">1. HuggingFace pipeline</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#grain-pipeline">2. Grain pipeline</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#tfds-pipeline">3. TFDS pipeline</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By MaxText developers
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2025, Google LLC.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

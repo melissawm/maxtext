@@ -19,6 +19,17 @@
 :file: index.html
 ```
 
+<div class="doc-body">
+<section class="latest-news">
+
+```{include} ../README.md
+:start-after: <!-- NEWS START -->
+:end-before: <!-- NEWS END -->
+```
+
+</section>
+</div>
+
 ```{toctree}
 :maxdepth: 2
 :hidden:

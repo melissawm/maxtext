@@ -32,7 +32,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
     <link rel="stylesheet" type="text/css" href="../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
-    <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=3ac9c114" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=95a5a69d" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
@@ -171,10 +171,13 @@
         <ul class="current nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../tutorials.html">Tutorials</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../tutorials/first_run.html">Getting Started: First Run</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/pretraining.html">Pretraining with real datasets</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../tutorials/full_finetuning.html">Full Finetuning LLama3-8B  Model</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../tutorials/run_llama2.html">About Llama2</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../tutorials/grpo.html">Try GRPO!</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../tutorials/sft.html">Try SFT!</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/sft_on_multi_host.html">Supervised Fine-Tuning (SFT) with Deepseek-V3 Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/grpo_with_pathways.html">Try GRPO with Pathways!</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../guides.html">How-to Guides</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
@@ -202,6 +205,7 @@
 <li class="toctree-l2"><a class="reference internal" href="checkpointing_solutions/emergency_checkpointing.html">Emergency Checkpointing</a></li>
 <li class="toctree-l2"><a class="reference internal" href="checkpointing_solutions/multi_tier_checkpointing.html">Multi-Tier Checkpointing</a></li>
 <li class="toctree-l2"><a class="reference internal" href="jax_ai_libraries_chosen.html">The JAX Ecosystem in MaxText: An Opinionated Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="xprof_user_guide.html">XProf for MaxText developers</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../explanations.html">Explanations</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -209,6 +213,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../explanations/quantization.html">Quantization</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../explanations/sharding.html">Sharding</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../explanations/data_pipeline_perf.html">Data input pipeline performance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/tiling.html">Tiling</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../reference.html">Reference documentation</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -217,6 +222,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../reference/alternatives.html">Comparison to Alternatives</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../reference/benchmark_and_performance.html">Benchmark and Performance Tuning</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../reference/architecture_overview.html">MaxText architecture overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/jax_xla_and_pallas.html">JAX, XLA, and Pallas for MaxText users</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1"><a class="reference internal" href="../development.html">How to Contribute</a></li>
@@ -410,7 +416,22 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="understand-logs-and-metrics">
+  <!--
+ Copyright 2023–2025 Google LLC
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+    https://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+<section class="tex2jax_ignore mathjax_ignore" id="understand-logs-and-metrics">
 <h1>Understand Logs and Metrics<a class="headerlink" href="#understand-logs-and-metrics" title="Link to this heading">#</a></h1>
 <p>When you run a training job, MaxText produces detailed output logs. This guide shows you how to interpret these logs to understand your configuration and monitor performance.</p>
 <p>To start, run a simple pretraining job on a single-host TPU. For instance, we can run the following command on TPU v5p-8. The resulting log is used as an example throughout this guide.</p>
@@ -592,9 +613,9 @@ python3<span class="w"> </span>-m<span class="w"> </span>MaxText.train<span clas
 <p>In this example, given <code class="docutils literal notranslate"><span class="pre">model=deepseek2-16b</span></code>, <code class="docutils literal notranslate"><span class="pre">per_device_batch_size=24</span></code>, <code class="docutils literal notranslate"><span class="pre">max_target_length=2048</span></code>, and no gradient accumulation, we have <span class="math notranslate nohighlight">\(\text{model tflop per device} \approx 764.67\)</span>.</p>
 <ul class="simple">
 <li><p>94.54% of the TFLOPs are attributed to learnable weight and 5.46% are attributed to attention.</p></li>
-<li><p>As you will see next, this number is important for calculating performace metrics, such as TFLOP/s/device and Model FLOPs Utilization (MFU).</p></li>
+<li><p>As you will see next, this number is important for calculating performance metrics, such as TFLOP/s/device and Model FLOPs Utilization (MFU).</p></li>
 </ul>
-<p>You can find more information about model FLOPs and MFU in the <a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/blob/ffb0d49adcc457e8cbe2872864b4034b21d43326/docs/guides/performance_metrics.md">Performance Metrics</a> topic.</p>
+<p>You can find more information about model FLOPs and MFU in the <a class="reference internal" href="performance_metrics.html"><span class="std std-doc">Performance Metrics</span></a> topic.</p>
 </section>
 </section>
 <section id="training-metrics">
@@ -636,7 +657,7 @@ python3<span class="w"> </span>-m<span class="w"> </span>MaxText.train<span clas
 </ul>
 <div class="math notranslate nohighlight">
 \[\text{MFU} = \frac{\text{tflop/s/device}}{\text{peak hardware tflop/s}}\]</div>
-<p>For TPU v5p, <span class="math notranslate nohighlight">\(\text{peak hardware tflop/s}=459\)</span>. Thus, <span class="math notranslate nohighlight">\(134.924 / 459 = 29.40\)</span>%. Note this is an example for explaination with small batch size and sequence length, so the MFU is not optimal.</p>
+<p>For TPU v5p, <span class="math notranslate nohighlight">\(\text{peak hardware tflop/s}=459\)</span>. Thus, <span class="math notranslate nohighlight">\(134.924 / 459 = 29.40\)</span>%. Note this is an example for explanation with small batch size and sequence length, so the MFU is not optimal.</p>
 <p><strong>Tokens per second per device (throughput)</strong></p>
 <ul class="simple">
 <li><p>It is <a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/blob/e969faabbb571285a51545530f34d8f0a9f237e9/MaxText/metric_logger.py#L197-L199">computed</a> as</p></li>
@@ -755,7 +776,7 @@ By MaxText developers
 
   <p class="copyright">
     
-      © Copyright 2025, MaxText developers.
+      © Copyright 2025, Google LLC.
       <br/>
     
   </p>

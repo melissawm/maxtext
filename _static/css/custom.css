@@ -174,120 +174,12 @@ body:has(.hero) .bd-article > section > h1 {
     }
 }
 
-/*
-
-.doc-body .image-section h3 {
-    font: 500 32px 'Google Sans', 'Roboto', sans-serif;
-    margin-top: 0;
-}
-
-.doc-body .hero p {
-    color: #bdc1c6;
-}
-
-.doc-body p,
-.doc-body ul {
-    font: 400 16px 'Roboto', sans-serif;
-    color: #5F6368;
-    line-height: 24px;
-}
-
-.image-section {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    gap: 85px;
-    margin-bottom: 60px;
-}
-
-.image-section img {
-    background-color: transparent !important;
-}
-
-.image-section.image-right {
-    flex-direction: row-reverse;
-}
-
-.image-section .text-body {
-    padding-inline: 50px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}
-
-.image-section .text-body *:last-child {
-    margin-bottom: 0;
-}
-
-.image-section li:not(:last-of-type) {
-    margin-bottom: 12px;
-}
-
-.image-section .button {
-    margin-top: 12px;
-}
-
-@media (max-width: 1240px) {
-    .hero-text h1 {
-        font-size: 42px;
-        margin-bottom: 24px;
-    }
-
-    .image-section {
-        gap: 32px;
-    }
-
-    .image-section img {
-        min-width: 50%;
-    }
-
-    .image-section .text-body {
-        padding-inline: 0;
-    }
-}
-
-@media (max-width: 1020px) {
-    .hero h1 {
-        font-size: 32px;
-    }
-
-    .image-section {
-        margin-bottom: 40px;
-    }
-}
-
-@media (max-width: 800px) {
-    .hero {
-        grid: auto-flow / 1fr;
-        padding: 24px;
-    }
-
-    .hero > img {
-        display: none;
-    }
-
-    .image-section,
-    .image-section.image-right {
-        flex-direction: column;
-        margin-bottom: 80px;
-    }
-
-    .image-section h3 {
-        margin-top: 0;
-    }
-
-    .image-section .button {
-        margin-top: 0;
-    }
+html[data-theme="dark"] .text-body {
+    color: #bdc1c6 !important;
 }
 
 html[data-theme="dark"] .banner {
-    background: url(../../_static/images/hero-radial.svg) no-repeat bottom -1050px left -350px / 1500px #202124;
-}
-
-html[data-theme="dark"] .doc-body p,
-html[data-theme="dark"] .doc-body ul {
-    color: #bdc1c6;
+    background-color: #22252c;
 }
 
 html[data-theme="dark"] .button-primary {
@@ -307,4 +199,10 @@ html[data-theme="dark"] .button-primary:active {
 
 html[data-theme="dark"] .button-primary:visited:hover {
     color: #121212 !important;
-} */
+}
+
+.latest-news {
+    max-width: 90rem !important;
+    padding-inline: 50px;
+    padding-bottom: 24px;
+}

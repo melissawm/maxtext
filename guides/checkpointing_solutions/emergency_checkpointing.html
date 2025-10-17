@@ -32,7 +32,7 @@
     <link rel="stylesheet" type="text/css" href="../../_static/styles/sphinx-book-theme.css?v=eba8b062" />
     <link rel="stylesheet" type="text/css" href="../../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
-    <link rel="stylesheet" type="text/css" href="../../_static/css/custom.css?v=3ac9c114" />
+    <link rel="stylesheet" type="text/css" href="../../_static/css/custom.css?v=95a5a69d" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
@@ -169,10 +169,13 @@
         <ul class="current nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../tutorials.html">Tutorials</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../tutorials/first_run.html">Getting Started: First Run</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../tutorials/pretraining.html">Pretraining with real datasets</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../tutorials/full_finetuning.html">Full Finetuning LLama3-8B  Model</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../tutorials/run_llama2.html">About Llama2</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../tutorials/grpo.html">Try GRPO!</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../tutorials/sft.html">Try SFT!</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../tutorials/sft_on_multi_host.html">Supervised Fine-Tuning (SFT) with Deepseek-V3 Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../tutorials/grpo_with_pathways.html">Try GRPO with Pathways!</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../../guides.html">How-to Guides</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
@@ -200,6 +203,7 @@
 <li class="toctree-l2 current active"><a class="current reference internal" href="#">Emergency Checkpointing</a></li>
 <li class="toctree-l2"><a class="reference internal" href="multi_tier_checkpointing.html">Multi-Tier Checkpointing</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../jax_ai_libraries_chosen.html">The JAX Ecosystem in MaxText: An Opinionated Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../xprof_user_guide.html">XProf for MaxText developers</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../explanations.html">Explanations</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -207,6 +211,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../explanations/quantization.html">Quantization</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../explanations/sharding.html">Sharding</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../explanations/data_pipeline_perf.html">Data input pipeline performance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../explanations/tiling.html">Tiling</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../reference.html">Reference documentation</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -215,6 +220,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../reference/alternatives.html">Comparison to Alternatives</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../reference/benchmark_and_performance.html">Benchmark and Performance Tuning</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../reference/architecture_overview.html">MaxText architecture overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../reference/jax_xla_and_pallas.html">JAX, XLA, and Pallas for MaxText users</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1"><a class="reference internal" href="../../development.html">How to Contribute</a></li>
@@ -698,7 +704,7 @@ By MaxText developers
 
   <p class="copyright">
     
-      © Copyright 2025, MaxText developers.
+      © Copyright 2025, Google LLC.
       <br/>
     
   </p>

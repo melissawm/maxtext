@@ -32,7 +32,7 @@
     <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=eba8b062" />
     <link rel="stylesheet" type="text/css" href="_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
     <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
-    <link rel="stylesheet" type="text/css" href="_static/css/custom.css?v=3ac9c114" />
+    <link rel="stylesheet" type="text/css" href="_static/css/custom.css?v=95a5a69d" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
@@ -170,10 +170,13 @@
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="tutorials.html">Tutorials</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="tutorials/first_run.html">Getting Started: First Run</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials/pretraining.html">Pretraining with real datasets</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tutorials/full_finetuning.html">Full Finetuning LLama3-8B  Model</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tutorials/run_llama2.html">About Llama2</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tutorials/grpo.html">Try GRPO!</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tutorials/sft.html">Try SFT!</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials/sft_on_multi_host.html">Supervised Fine-Tuning (SFT) with Deepseek-V3 Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials/grpo_with_pathways.html">Try GRPO with Pathways!</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="guides.html">How-to Guides</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -201,6 +204,7 @@
 <li class="toctree-l2"><a class="reference internal" href="guides/checkpointing_solutions/emergency_checkpointing.html">Emergency Checkpointing</a></li>
 <li class="toctree-l2"><a class="reference internal" href="guides/checkpointing_solutions/multi_tier_checkpointing.html">Multi-Tier Checkpointing</a></li>
 <li class="toctree-l2"><a class="reference internal" href="guides/jax_ai_libraries_chosen.html">The JAX Ecosystem in MaxText: An Opinionated Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guides/xprof_user_guide.html">XProf for MaxText developers</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="explanations.html">Explanations</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -208,6 +212,7 @@
 <li class="toctree-l2"><a class="reference internal" href="explanations/quantization.html">Quantization</a></li>
 <li class="toctree-l2"><a class="reference internal" href="explanations/sharding.html">Sharding</a></li>
 <li class="toctree-l2"><a class="reference internal" href="explanations/data_pipeline_perf.html">Data input pipeline performance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="explanations/tiling.html">Tiling</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="reference.html">Reference documentation</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -216,6 +221,7 @@
 <li class="toctree-l2"><a class="reference internal" href="reference/alternatives.html">Comparison to Alternatives</a></li>
 <li class="toctree-l2"><a class="reference internal" href="reference/benchmark_and_performance.html">Benchmark and Performance Tuning</a></li>
 <li class="toctree-l2"><a class="reference internal" href="reference/architecture_overview.html">MaxText architecture overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/jax_xla_and_pallas.html">JAX, XLA, and Pallas for MaxText users</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1"><a class="reference internal" href="development.html">How to Contribute</a></li>
@@ -359,7 +365,9 @@ document.write(`
   </button>
 `);
 </script>
-
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
 </div></div>
       
     </div>
@@ -375,6 +383,14 @@ document.write(`
     <div id="print-main-content">
         <div id="jb-print-toc">
             
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#latest-news">🔥 Latest news 🔥</a></li>
+</ul>
+            </nav>
         </div>
     </div>
 </div>
@@ -441,24 +457,28 @@ document.write(`
             <li>Optional data loading libraries (<a href="https://google-grain.readthedocs.io/en/latest/">Grain</a> or <a href="https://www.tensorflow.org/guide/data">tf.data</a>)</li>
         </ul>
     </section>
-    <section class="text-body">
-        <h3>Latest News</h3>
-        <p></p>
-            <ul>
-                <li> <i>September 24, 2025</i> The GPT-OSS family of models (20B, 120B) is now supported.</li>
-                <li> <i>September 5, 2025</i> MaxText has moved to an `src` layout. <a href="https://github.com/AI-Hypercomputer/maxtext/blob/main/RESTRUCTURE.md">Read more</a></li>
-                <li> <i>August 13, 2025</i> The Qwen3 2507 MoE family of models is now supported: MoEs: 235B Thinking & 280B Coder as well as existing dense models: 0.6B, 4B, 8B, 14B, and 32B.</li>
-                <li> <i>July 27, 2025</i> Updated TFLOPS/s calculation (<a href="https://github.com/AI-Hypercomputer/maxtext/pull/1988">PR</a>) to account for causal attention, dividing the attention flops in half. Accounted for sliding window and chunked attention reduced attention flops in <a href="https://github.com/AI-Hypercomputer/maxtext/pull/2009">PR</a> and <a href="https://github.com/AI-Hypercomputer/maxtext/pull/2030">PR</a>. Changes impact large sequence configs, as explained in <a href="https://github.com/AI-Hypercomputer/maxtext/blob/main/docs/guides/performance_metrics.md">this doc</a></li>
-                <li> <i>July 16, 2025</i> We will be restructuring the MaxText repository for improved organization and clarity. Please review the <a href="https://github.com/AI-Hypercomputer/maxtext/blob/main/RESTRUCTURE.md">proposed structure</a> and provide feedback.</li>
-                <li> <i>July 11, 2025</i> Multi-Token Prediction (MTP) training support! Adds an auxiliary loss based on predicting multiple future tokens, inspired by <a href="https://arxiv.org/html/2412.19437v1">DeepSeek-V3 paper</a>, to enhance training efficiency.</li>
-                <li> <i>June 25, 2025</i> DeepSeek R1-0528 variant is now supported.</li>
-                <li> <i>April 24, 2025</i> Llama 4 Maverick models are now supported.</li>
-            </ul>
-        </p>
-    </section>
+</div>
+<div class="doc-body">
+<section class="latest-news">
+<section id="latest-news">
+<h2>🔥 Latest news 🔥<a class="headerlink" href="#latest-news" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>[September 26, 2025] Vocabulary tiling (<a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/pull/2242">PR</a>) is now supported in MaxText! Adjust config <code class="docutils literal notranslate"><span class="pre">num_vocab_tiling</span></code> to unlock more efficient memory usage.</p></li>
+<li><p>[September 24, 2025] The GPT-OSS family of models (20B, 120B) is now supported.</p></li>
+<li><p>[September 15, 2025] MaxText is now available as a <a class="reference external" href="https://pypi.org/project/maxtext">PyPI package</a>. Users can now <a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext?tab=readme-ov-file#from-pypi-recommended">install maxtext through pip</a>.</p></li>
+<li><p>[September 5, 2025] MaxText has moved to an <code class="docutils literal notranslate"><span class="pre">src</span></code> layout as part of <a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/blob/main/RESTRUCTURE.md">RESTRUCTURE.md</a>. For existing environments, please run <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">-e</span> <span class="pre">.</span></code> from MaxText root.</p></li>
+<li><p>[August 13, 2025] The Qwen3 2507 MoE family of models is now supported: MoEs: 235B Thinking &amp; 280B Coder as well as existing dense models: 0.6B, 4B, 8B, 14B, and 32B.</p></li>
+<li><p>[July 27, 2025] Updated TFLOPS/s calculation (<a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/pull/1988">PR</a>) to account for causal attention, dividing the attention flops in half. Accounted for sliding window and chunked attention reduced attention flops in <a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/pull/2009">PR</a> and <a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/pull/2030">PR</a>. Changes impact large sequence configs, as explained in this <a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/blob/main/docs/guides/performance_metrics.md">doc</a></p></li>
+<li><p>[July 16, 2025] We will be restructuring the MaxText repository for improved organization and clarity. Please review the <a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/blob/main/RESTRUCTURE.md">proposed structure</a> and provide feedback.</p></li>
+<li><p>[July 11, 2025] Multi-Token Prediction (MTP) training support! Adds an auxiliary loss based on predicting multiple future tokens, inspired by <a class="reference external" href="https://arxiv.org/html/2412.19437v1">DeepSeek-V3 paper</a>, to enhance training efficiency.</p></li>
+<li><p>[June 25, 2025] DeepSeek R1-0528 variant is now supported.</p></li>
+<li><p>[April 24, 2025] Llama 4 Maverick models are now supported.</p></li>
+</ul>
+</section>
 </div>
 <div class="toctree-wrapper compound">
 </div>
+</section>
 </section>
 
 
@@ -488,6 +508,21 @@ document.write(`
             
             
               
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#latest-news">🔥 Latest news 🔥</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
             
           </div>
           <footer class="bd-footer-content">
@@ -507,7 +542,7 @@ By MaxText developers
 
   <p class="copyright">
     
-      © Copyright 2025, MaxText developers.
+      © Copyright 2025, Google LLC.
       <br/>
     
   </p>

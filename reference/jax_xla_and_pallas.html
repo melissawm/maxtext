@@ -1,0 +1,706 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>JAX, XLA, and Pallas for MaxText users &#8212; MaxText  documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=95a5a69d" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/documentation_options.js?v=c73c0f3e"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'reference/jax_xla_and_pallas';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="How to Contribute" href="../development.html" />
+    <link rel="prev" title="MaxText architecture overview" href="architecture_overview.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/maxtext.png" class="logo__image only-light" alt="MaxText  documentation - Home"/>
+    <script>document.write(`<img src="../_static/maxtext.png" class="logo__image only-dark" alt="MaxText  documentation - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../index.html">
+                    MaxText
+                </a>
+            </li>
+        </ul>
+        <ul class="current nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../tutorials.html">Tutorials</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/first_run.html">Getting Started: First Run</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/pretraining.html">Pretraining with real datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/full_finetuning.html">Full Finetuning LLama3-8B  Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/run_llama2.html">About Llama2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/grpo.html">Try GRPO!</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/sft.html">Try SFT!</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/sft_on_multi_host.html">Supervised Fine-Tuning (SFT) with Deepseek-V3 Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/grpo_with_pathways.html">Try GRPO with Pathways!</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../guides.html">How-to Guides</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../guides/checkpoints.html">Checkpoints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/custom_model.html">How to customize your model configs on TPU</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/run_maxtext_localhost.html">Run MaxText on Localhost or Single Host VM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/run_maxtext_via_xpk.html">Running MaxText at Scale with XPK</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/run_maxtext_via_pathways.html">Guide: Running MaxText via Pathways</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../guides/data_input_pipeline.html">Manage the data input pipeline</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../guides/data_input_grain.html">Grain pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../guides/data_input_hf.html">Hugging Face pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../guides/data_input_tfds.html">TFDS pipeline</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/single_host_gpu.html">Maxtext on Single host GPU</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/knowledge_distillation.html">Knowledge Distillation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/gcp_workload_observability.html">Enable GCP Workload Observabiltiy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/monitor_goodput.html">ML Goodput Measurement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/use_vertex_ai_tensorboard.html">Use Vertex AI Tensorboard</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/features_and_diagnostics.html">Features and Diagnostics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/pallas_kernels_performance.html">Performance Optimizations with Pallas Kernels</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/performance_metrics.html">Performance Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/understand_logs_and_metrics.html">Understand Logs and Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/checkpointing_solutions/gcs_checkpointing.html">GCS bucket-based checkpointing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/checkpointing_solutions/emergency_checkpointing.html">Emergency Checkpointing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/checkpointing_solutions/multi_tier_checkpointing.html">Multi-Tier Checkpointing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/jax_ai_libraries_chosen.html">The JAX Ecosystem in MaxText: An Opinionated Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/xprof_user_guide.html">XProf for MaxText developers</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../explanations.html">Explanations</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/steps_model.html">Steps to build a Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/quantization.html">Quantization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/sharding.html">Sharding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/data_pipeline_perf.html">Data input pipeline performance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/tiling.html">Tiling</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../reference.html">Reference documentation</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="terminology.html">Terminology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="supported_models_and_architectures.html">Supported Models &amp; Architectures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="alternatives.html">Comparison to Alternatives</a></li>
+<li class="toctree-l2"><a class="reference internal" href="benchmark_and_performance.html">Benchmark and Performance Tuning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture_overview.html">MaxText architecture overview</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">JAX, XLA, and Pallas for MaxText users</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">How to Contribute</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+<a href="https://github.com/AI-Hypercomputer/maxtext" target="_blank"
+   class="btn btn-sm btn-source-repository-button"
+   title="Source repository"
+   data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+
+</a>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/reference/jax_xla_and_pallas.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>JAX, XLA, and Pallas for MaxText users</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#jax-the-high-performance-engine-of-maxtext">1. JAX: the high-performance engine of MaxText</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#what-is-jax">1.1. What is JAX?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-pure-function-paradigm-a-core-design-constraint">1.2. The pure function paradigm: a core design constraint</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#core-jax-transformations-in-maxtext">1.3. Core JAX transformations in MaxText</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#jax-jit-from-python-to-high-performance-code">1.3.1. jax.jit: from Python to high-performance code</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#jax-grad-powering-training-with-automatic-differentiation">1.3.2. jax.grad: powering training with automatic differentiation</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#spmd-scaling-from-one-chip-to-thousands">1.3.3. SPMD: scaling from one chip to thousands</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#composability-the-jax-superpower">1.4. Composability: the JAX superpower</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#jax-pallas-expert-level-control-for-cutting-edge-performance">2. JAX Pallas: expert-level control for cutting-edge performance</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#what-is-pallas">2.1. What is Pallas?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#why-custom-kernels-matter-for-modern-llms">2.2. Why custom kernels matter for modern LLMs</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pallas-in-the-maxtext-ecosystem">2.3. Pallas in the MaxText ecosystem</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#concrete-example-1-mixture-of-experts-moe-on-tpu">Concrete example 1: Mixture-of-Experts (MoE) on TPU</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#concrete-example-2-fused-attention-splash-attention">Concrete example 2: fused attention (“Splash Attention”)</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#xla">3. XLA</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#what-is-xla-accelerated-linear-algebra">3.1. What is XLA (Accelerated Linear Algebra)?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#operator-fusion">3.2. Operator fusion</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#overlapping-compute-and-communication">3.3. Overlapping compute and communication</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#how-maxtext-relies-on-xla">3.4. How MaxText relies on XLA</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#mosaic">4. Mosaic</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#conclusion">Conclusion</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="jax-xla-and-pallas-for-maxtext-users">
+<h1>JAX, XLA, and Pallas for MaxText users<a class="headerlink" href="#jax-xla-and-pallas-for-maxtext-users" title="Link to this heading">#</a></h1>
+<p>This document serves as a guide for MaxText users to understand the components at the core of MaxText. To move beyond basic model training and truly leverage the power of MaxText for ambitious research and production goals, a deep understanding of its foundational technology technologies — JAX, XLA, and Pallas — is crucial.</p>
+<p>MaxText’s core design proposition is to provide a high-performance, massively scalable, yet simple Large Language Model (LLM) codebase written in pure Python/JAX, which is a direct result of building on this specific stack. The simplicity of the user-facing code is achieved by delegating immense complexity and optimization work to the underlying compiler.</p>
+<p>MaxText builds on the following core technologies:</p>
+<ol class="arabic simple">
+<li><p><a class="reference external" href="https://docs.jax.dev/en/latest/">JAX</a>, for writing high-level numerical code</p></li>
+<li><p><a class="reference external" href="https://docs.jax.dev/en/latest/pallas/index.html">JAX Pallas</a>, the kernel language of JAX</p></li>
+<li><p><a class="reference external" href="https://openxla.org/xla">XLA</a>, the compiler for JAX code</p></li>
+<li><p>Mosaic, the Pallas compiler</p></li>
+</ol>
+<p>The following table provides a high-level overview to scaffold understanding before a more detailed exploration.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head text-left"><p>Technology</p></th>
+<th class="head text-left"><p>Role in MaxText</p></th>
+<th class="head text-left"><p>Key Benefit for LLM Training</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td class="text-left"><p>JAX</p></td>
+<td class="text-left"><p>Programming Model &amp; Transformations</p></td>
+<td class="text-left"><p>Enables scalable, composable, and differentiable model definitions in pure Python.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>JAX Pallas</p></td>
+<td class="text-left"><p>Custom Kernel Language</p></td>
+<td class="text-left"><p>Allows for hand-tuned, hardware-specific kernels for peak performance on novel operations (e.g., MoE, custom attention).</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>XLA</p></td>
+<td class="text-left"><p>JAX Compiler</p></td>
+<td class="text-left"><p>Automatically fuses operations and compiles HLO code, emitted by JAX into optimized LLO machine code for TPUs/GPUs.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>Mosaic</p></td>
+<td class="text-left"><p>Pallas Compiler</p></td>
+<td class="text-left"><p>Compiles the Mosaic IR code emitted by JAX Pallas into LLO</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<section id="jax-the-high-performance-engine-of-maxtext">
+<h2>1. JAX: the high-performance engine of MaxText<a class="headerlink" href="#jax-the-high-performance-engine-of-maxtext" title="Link to this heading">#</a></h2>
+<p>This section details JAX, focusing on the features that dictate MaxText’s architecture and enable its remarkable scalability.</p>
+<section id="what-is-jax">
+<h3>1.1. What is JAX?<a class="headerlink" href="#what-is-jax" title="Link to this heading">#</a></h3>
+<p>JAX is a Python library designed for high-performance numerical computing and large-scale machine learning. It provides a NumPy-like API, which makes it familiar and easy to adopt for anyone in the scientific Python ecosystem.</p>
+<p>However, JAX is much more than an accelerated version of NumPy. Its core power comes from an extensible system of composable function transformations, such as jit for just-in-time compilation, grad for automatic differentiation, built on top of a distributed array type, such that compute follows data. MaxText is fundamentally an application built by composing these powerful transformations.</p>
+</section>
+<section id="the-pure-function-paradigm-a-core-design-constraint">
+<h3>1.2. The pure function paradigm: a core design constraint<a class="headerlink" href="#the-pure-function-paradigm-a-core-design-constraint" title="Link to this heading">#</a></h3>
+<p>JAX transformations are designed to operate on <em>pure functions</em>—functions that have no side effects and whose output depends solely on their explicit inputs. This is a critical concept that profoundly influences MaxText’s architecture. In a typical MaxText <code class="docutils literal notranslate"><span class="pre">train_step</span></code>, the function does not modify a global model state. Instead, it takes the current state (model parameters, optimizer state) as inputs and returns a completely new, updated state as its output.</p>
+<p>This functional purity has a direct and important consequence for how users interact with the codebase. Since JAX requires pure functions for its transformations to work reliably, the model’s state (like its weights) cannot be implicitly stored within objects but must be explicitly passed into and returned from the functions that manipulate them. This paradigm makes complex, object-oriented abstractions with hidden internal state—common in other frameworks—feel unnatural and difficult to implement in a “JAX-native” way. Fortunately MaxText is built on top of Flax’s <a class="reference external" href="https://flax.readthedocs.io/en/stable/">NNX</a>, which handles a lot of the complexity for the user, presenting more of an object oriented interface.</p>
+</section>
+<section id="core-jax-transformations-in-maxtext">
+<h3>1.3. Core JAX transformations in MaxText<a class="headerlink" href="#core-jax-transformations-in-maxtext" title="Link to this heading">#</a></h3>
+<section id="jax-jit-from-python-to-high-performance-code">
+<h4>1.3.1. jax.jit: from Python to high-performance code<a class="headerlink" href="#jax-jit-from-python-to-high-performance-code" title="Link to this heading">#</a></h4>
+<p>The <a class="reference external" href="https://docs.jax.dev/en/latest/jit-compilation.html"><code class="docutils literal notranslate"><span class="pre">jax.jit</span></code></a> (Just-In-Time compilation) transformation is a cornerstone of JAX’s performance. It takes a standard Python function and compiles it into an optimized computation graph using the XLA compiler backend. The first time this function is called with inputs of a specific shape and type, JAX “traces” the operations to build the graph, which is then compiled and cached. All subsequent calls with matching input structures will execute the highly optimized, pre-compiled machine code directly, bypassing the overhead of the Python interpreter for each operation.</p>
+<p>In MaxText, the entire <code class="docutils literal notranslate"><span class="pre">train_step</span></code> function is wrapped in <code class="docutils literal notranslate"><span class="pre">jax.jit</span></code>. This is the primary mechanism that transforms the readable, NumPy-like Python code defining the forward pass, loss calculation, and backward pass into a single, highly efficient program that can be executed on a TPU or GPU.</p>
+</section>
+<section id="jax-grad-powering-training-with-automatic-differentiation">
+<h4>1.3.2. jax.grad: powering training with automatic differentiation<a class="headerlink" href="#jax-grad-powering-training-with-automatic-differentiation" title="Link to this heading">#</a></h4>
+<p>Training neural networks relies on gradient-based optimization. JAX provides the <a class="reference external" href="https://docs.jax.dev/en/latest/automatic-differentiation.html"><code class="docutils literal notranslate"><span class="pre">jax.grad</span></code></a> transformation, which takes a numerical function (like a loss function) and returns a new function that computes its gradient. It supports reverse-mode differentiation, also known as backpropagation, which is essential for efficiently training deep neural networks.</p>
+<p>Within the MaxText <code class="docutils literal notranslate"><span class="pre">train_step</span></code>, <code class="docutils literal notranslate"><span class="pre">jax.grad</span></code> is applied to the loss function. This automatically generates the function that performs the entire backward pass, calculating the gradients of the loss with respect to all trainable model parameters. This new gradient function is then seamlessly composed with <code class="docutils literal notranslate"><span class="pre">jax.jit</span></code> to be compiled into the final, optimized training step.</p>
+</section>
+<section id="spmd-scaling-from-one-chip-to-thousands">
+<h4>1.3.3. SPMD: scaling from one chip to thousands<a class="headerlink" href="#spmd-scaling-from-one-chip-to-thousands" title="Link to this heading">#</a></h4>
+<p>Modern LLM training requires scaling across many accelerator devices. The dominant paradigm for this is SPMD (Single-Program, Multiple-Data), where a single program is executed in parallel on multiple devices, with each device operating on a different slice (or shard) of the data.</p>
+<p>JAX provides powerful, high-level abstractions for SPMD programming. <a class="reference external" href="https://docs.jax.dev/en/latest/automatic-vectorization.html#id2"><code class="docutils literal notranslate"><span class="pre">jax.vmap</span></code></a> provides automatic vectorization of functions over a batch and is used in numerous places in the MaxText codebase. While JAX users can use <code class="docutils literal notranslate"><span class="pre">jax.shard_map</span></code> for maximum control over parallelization, MaxText more typically uses the higher-level approach of operating on distributed arrays. This involves defining a logical Mesh of devices (e.g., a 2D grid) and using sharding annotations (<a class="reference external" href="https://docs.jax.dev/en/latest/jax.sharding.html#jax.sharding.PartitionSpec">PartitionSpecs</a>) to declaratively state how data arrays should be distributed across this mesh. When a function with these sharded inputs is JIT-compiled, JAX automatically transforms the single-device program into a multi-device SPMD program. It transparently inserts all necessary inter-device communication collectives, such as all-reduce for summing gradients across data-parallel devices.</p>
+<p>This unified scalability model is a key advantage of the JAX ecosystem. Training large LLMs requires different types of parallelism—data parallelism (splitting the batch), tensor parallelism (splitting a single matrix multiplication), and pipeline parallelism (splitting layers across devices). In many frameworks, implementing these requires different APIs, libraries, or coding patterns, which adds significant complexity. In JAX, all these forms of parallelism can be expressed through the single, unified concept of sharding tensors over a logical device mesh. For data parallelism, one shards the batch dimension of the input data. For tensor parallelism, one shards the weight matrices along their feature or output dimensions.</p>
+<p>MaxText leverages this unification to great effect. The core model code remains largely agnostic to the parallelism strategy. Scalability is controlled primarily by changing the level of each kind of parallelism  in configuration files. This abstraction is a primary reason MaxText can be described as both “simple” and “massively scalable,” as the immense complexity of distributed execution is handled by JAX and the XLA compiler, rather than the user.</p>
+</section>
+</section>
+<section id="composability-the-jax-superpower">
+<h3>1.4. Composability: the JAX superpower<a class="headerlink" href="#composability-the-jax-superpower" title="Link to this heading">#</a></h3>
+<p>The true power of JAX lies in the arbitrary composability of its transformations. A MaxText training step is a prime example of this principle in action. A function is first created by applying <code class="docutils literal notranslate"><span class="pre">jax.grad</span></code> to the loss function, and this new gradient function is then transformed by <code class="docutils literal notranslate"><span class="pre">jax.jit</span></code> along with sharding annotations to make it compiled and parallel.</p>
+<p>This composability allows for clean, declarative code. Instead of writing complex, imperative loops for batching, manual gradient calculations, and explicit communication calls, developers declare <em>what</em> they want (e.g., a JIT-compiled, parallel, gradient computation), and JAX figures out <em>how</em> to execute it efficiently. This is fundamental to maintaining a readable and “forkable” codebase for a process as complex as distributed LLM training.</p>
+</section>
+</section>
+<section id="jax-pallas-expert-level-control-for-cutting-edge-performance">
+<h2>2. JAX Pallas: expert-level control for cutting-edge performance<a class="headerlink" href="#jax-pallas-expert-level-control-for-cutting-edge-performance" title="Link to this heading">#</a></h2>
+<p>This section introduces Pallas as the advanced tool for pushing performance beyond what automatic compilation can achieve, explaining its crucial role in keeping MaxText state-of-the-art.</p>
+<section id="what-is-pallas">
+<h3>2.1. What is Pallas?<a class="headerlink" href="#what-is-pallas" title="Link to this heading">#</a></h3>
+<p>Pallas is the part of JAX that enables developers to write custom, hardware-specific kernels for GPUs and TPUs directly within a Pythonic environment. It functions as a JAX-native kernel language.</p>
+<p>Pallas is effectively an “escape hatch” from the fully automated world of XLA. It is designed for situations where developers need fine-grained control over memory access patterns, data tiling, and hardware parallelism to achieve performance that the general-purpose XLA compiler cannot automatically discover.</p>
+</section>
+<section id="why-custom-kernels-matter-for-modern-llms">
+<h3>2.2. Why custom kernels matter for modern LLMs<a class="headerlink" href="#why-custom-kernels-matter-for-modern-llms" title="Link to this heading">#</a></h3>
+<p>The field of LLM research moves incredibly fast, with new architectural components being invented constantly. Techniques like FlashAttention and various Mixture-of-Experts (MoE) routing strategies often have complex, data-dependent memory access patterns that can benefit from careful tuning.</p>
+<p>A framework that relies <em>only</em> on a general compiler would inevitably lag behind, unable to efficiently implement these new, state-of-the-art techniques. Pallas provides the necessary bridge between compiler-driven simplicity and cutting-edge research. It allows MaxText developers to implement highly optimized kernels for these specific, performance-critical new components. This creates a powerful hybrid development model: the vast majority of the model benefits from the simplicity and automation of standard JAX/XLA, while the most novel and performance-sensitive parts are accelerated with hand-tuned Pallas kernels. This allows MaxText to remain both relatively simple and at the performance frontier.</p>
+</section>
+<section id="pallas-in-the-maxtext-ecosystem">
+<h3>2.3. Pallas in the MaxText ecosystem<a class="headerlink" href="#pallas-in-the-maxtext-ecosystem" title="Link to this heading">#</a></h3>
+<p>It is important to understand that most MaxText users will <em>consume</em> Pallas kernels, not write them. When a user enables a feature in the MaxText configuration, such as a specific attention mechanism or MoE, they are often transparently opting into a Pallas-optimized implementation under the hood.</p>
+<section id="concrete-example-1-mixture-of-experts-moe-on-tpu">
+<h4>Concrete example 1: Mixture-of-Experts (MoE) on TPU<a class="headerlink" href="#concrete-example-1-mixture-of-experts-moe-on-tpu" title="Link to this heading">#</a></h4>
+<p>MoE models are computationally dominated by block-sparse matrix multiplications, a pattern that is notoriously difficult for general compilers to optimize efficiently. To accelerate MoE training, Google has open-sourced Pallas kernels specifically optimized for block-sparse matrix multiplication. When a user trains a Mixtral-style model in MaxText, they are leveraging these highly tuned kernels to achieve peak performance in the expert layers.</p>
+</section>
+<section id="concrete-example-2-fused-attention-splash-attention">
+<h4>Concrete example 2: fused attention (“Splash Attention”)<a class="headerlink" href="#concrete-example-2-fused-attention-splash-attention" title="Link to this heading">#</a></h4>
+<p>Standard self-attention is a memory-bandwidth-bound operation, making it a key target for optimization. Fused attention kernels like FlashAttention have become the industry standard for overcoming this bottleneck. MaxText uses a high-performance fused attention kernel, referred to as “splash attention,” which is enabled by default during training to provide a faster alternative. While the implementation details are part of the MaxText codebase, the pattern of creating custom, named kernels for critical operations like attention is exactly the problem Pallas is designed to solve, allowing MaxText to offer a highly efficient attention implementation without waiting for the general XLA compiler to natively support such complex fusions.</p>
+</section>
+</section>
+</section>
+<section id="xla">
+<h2>3. XLA<a class="headerlink" href="#xla" title="Link to this heading">#</a></h2>
+<p>This section demystifies XLA, showing how it enables MaxText’s high performance without requiring manual, low-level tuning from the user.</p>
+<section id="what-is-xla-accelerated-linear-algebra">
+<h3>3.1. What is XLA (Accelerated Linear Algebra)?<a class="headerlink" href="#what-is-xla-accelerated-linear-algebra" title="Link to this heading">#</a></h3>
+<p>XLA is an open-source, domain-specific compiler for linear algebra. It is not a user-facing library but a powerful backend compiler that takes computation graphs from frameworks like JAX. It then optimizes and compiles these graphs into highly efficient machine code tailored for specific hardware including TPUs and GPUs. In the MaxText stack, XLA is the engine that <code class="docutils literal notranslate"><span class="pre">jax.jit</span></code> uses under the hood. When a MaxText function is JIT-compiled, JAX traces the operations to build an intermediate representation, which is then handed to XLA for optimization and native code generation.</p>
+</section>
+<section id="operator-fusion">
+<h3>3.2. Operator fusion<a class="headerlink" href="#operator-fusion" title="Link to this heading">#</a></h3>
+<p>In a standard, “eager execution” model, each mathematical operation (e.g., a multiplication, then an addition, then a sum) is dispatched and executed sequentially. Each step requires launching a separate block of code and reading inputs from and writing intermediate results back to the accelerator’s main memory (e.g., High Bandwidth Memory), a process that is often a major performance bottleneck.</p>
+<p>XLA avoids this by analyzing the entire computation graph and “fusing” multiple sequential operations into a single operation which can perform the entire sequence of calculations without ever writing the intermediate results to HBM.</p>
+</section>
+<section id="overlapping-compute-and-communication">
+<h3>3.3. Overlapping compute and communication<a class="headerlink" href="#overlapping-compute-and-communication" title="Link to this heading">#</a></h3>
+<p>Training a model requires applying the amount of compute required to train the model to a desired level as fast as possible. Accordingly, we want the accelerator to be executing computation as close to 100% of the time as can be achieved. Since compute is performed on data, this implies that data should be available for that computation and – since data moves slowly relative to compute on modern accelerators – this can become a bottleneck. Fortunately, during compilation, XLA is able to identify opportunities to overlap loading data required for future computations while executing the current computation, saving that otherwise wasted time.</p>
+</section>
+<section id="how-maxtext-relies-on-xla">
+<h3>3.4. How MaxText relies on XLA<a class="headerlink" href="#how-maxtext-relies-on-xla" title="Link to this heading">#</a></h3>
+<p>The power of the XLA compiler is the primary source of MaxText’s user experience. Other high-performance LLM frameworks have traditionally relied on developers writing custom, low-level CUDA kernels for performance-critical operations to achieve peak hardware utilization. This requires specialized expertise and makes the code less portable and harder to modify.</p>
+<p>MaxText’s philosophy is to avoid this manual, low-level optimization where possible and instead write in pure Python/JAX. This is predicated on the XLA compiler being capable of performing these critical low-level optimizations, like operator fusion, automatically. The user writes simple, readable Python code, and XLA is responsible for generating the high-performance machine code. This design choice makes MaxText simpler to modify and more portable across different XLA-supported backends (TPU, GPU) than a framework with hand-written kernels. The performance of MaxText on any given hardware platform is a direct reflection of the maturity and quality of the XLA compiler for that platform.</p>
+</section>
+</section>
+<section id="mosaic">
+<h2>4. Mosaic<a class="headerlink" href="#mosaic" title="Link to this heading">#</a></h2>
+<p>Similar to XLA’s compilation of high-level JAX code, Mosaic is a compiler for Pallas kernels. While JAX is lowered to HLO which XLA optimizes into LLO, Pallas kernels are lowered to Mosaic IR, which the Mosaic compiler compiles to LLO. This LLO is then knitted into the LLO of the JAX code.</p>
+</section>
+<section id="conclusion">
+<h2>Conclusion<a class="headerlink" href="#conclusion" title="Link to this heading">#</a></h2>
+<p>The relationship between these technologies creates a layered journey from user code to hardware execution:</p>
+<ol class="arabic simple">
+<li><p><strong>The User writes in MaxText:</strong> A developer interacts with high-level concepts in Python, modifying model layers in a familiar style or adjusting parallelism strategies in YAML configuration files. For certain critical operations, they may be using a Pallas kernel without even knowing it, simply by enabling a feature.</p></li>
+<li><p><strong>JAX provides the language:</strong> This Python code is interpreted by JAX, which provides the NumPy API and the powerful jit, grad, and SPMD transformations. These transformations allow the user to express a complex intent — “I want to run a parallelized, differentiable training step”—in a declarative way.</p></li>
+<li><p><strong>Pallas provides the sharp edge:</strong> For the few, highly specialized operations where compilation isn’t enough to match state-of-the-art performance, a pre-written Pallas kernel provides a hand-tuned, optimal implementation, ensuring MaxText stays at the cutting edge.</p></li>
+<li><p><strong>XLA and Mosaic do the heavy lifting:</strong> JAX hands a graph of the program to the XLA compiler. XLA then performs optimizations like operator fusion and memory layout management to create machine code that runs incredibly fast on the target accelerator. For Pallas kernels, Mosaic does the same and the results of both compilers are combined into the final program.</p></li>
+</ol>
+<p>The “simplicity” of MaxText is not in having the fewest lines of code, but in its <em>conceptual consistency</em> and its reliance on a powerful, unified stack to handle the immense underlying complexity of high-performance, distributed computing.</p>
+<p>By understanding this stack, a user is no longer just running a script; they are a developer who understands the principles behind MaxText’s performance and scalability. This knowledge equips them to diagnose performance issues, intelligently customize the architecture for novel research, and confidently push the boundaries of what is possible with large language models.</p>
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="architecture_overview.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">MaxText architecture overview</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../development.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">How to Contribute</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#jax-the-high-performance-engine-of-maxtext">1. JAX: the high-performance engine of MaxText</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#what-is-jax">1.1. What is JAX?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-pure-function-paradigm-a-core-design-constraint">1.2. The pure function paradigm: a core design constraint</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#core-jax-transformations-in-maxtext">1.3. Core JAX transformations in MaxText</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#jax-jit-from-python-to-high-performance-code">1.3.1. jax.jit: from Python to high-performance code</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#jax-grad-powering-training-with-automatic-differentiation">1.3.2. jax.grad: powering training with automatic differentiation</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#spmd-scaling-from-one-chip-to-thousands">1.3.3. SPMD: scaling from one chip to thousands</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#composability-the-jax-superpower">1.4. Composability: the JAX superpower</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#jax-pallas-expert-level-control-for-cutting-edge-performance">2. JAX Pallas: expert-level control for cutting-edge performance</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#what-is-pallas">2.1. What is Pallas?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#why-custom-kernels-matter-for-modern-llms">2.2. Why custom kernels matter for modern LLMs</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pallas-in-the-maxtext-ecosystem">2.3. Pallas in the MaxText ecosystem</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#concrete-example-1-mixture-of-experts-moe-on-tpu">Concrete example 1: Mixture-of-Experts (MoE) on TPU</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#concrete-example-2-fused-attention-splash-attention">Concrete example 2: fused attention (“Splash Attention”)</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#xla">3. XLA</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#what-is-xla-accelerated-linear-algebra">3.1. What is XLA (Accelerated Linear Algebra)?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#operator-fusion">3.2. Operator fusion</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#overlapping-compute-and-communication">3.3. Overlapping compute and communication</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#how-maxtext-relies-on-xla">3.4. How MaxText relies on XLA</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#mosaic">4. Mosaic</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#conclusion">Conclusion</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By MaxText developers
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2025, Google LLC.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

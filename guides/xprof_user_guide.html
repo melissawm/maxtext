@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Enable GCP Workload Observabiltiy &#8212; MaxText  documentation</title>
+    <title>XProf for MaxText developers &#8212; MaxText  documentation</title>
   
   
   
@@ -44,11 +44,11 @@
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
     <script src="../_static/design-tabs.js?v=f930bc37"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'guides/gcp_workload_observability';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'guides/xprof_user_guide';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="ML Goodput Measurement" href="monitor_goodput.html" />
-    <link rel="prev" title="Knowledge Distillation" href="knowledge_distillation.html" />
+    <link rel="next" title="Explanations" href="../explanations.html" />
+    <link rel="prev" title="The JAX Ecosystem in MaxText: An Opinionated Guide" href="jax_ai_libraries_chosen.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   </head>
@@ -192,7 +192,7 @@
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="single_host_gpu.html">Maxtext on Single host GPU</a></li>
 <li class="toctree-l2"><a class="reference internal" href="knowledge_distillation.html">Knowledge Distillation</a></li>
-<li class="toctree-l2 current active"><a class="current reference internal" href="#">Enable GCP Workload Observabiltiy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gcp_workload_observability.html">Enable GCP Workload Observabiltiy</a></li>
 <li class="toctree-l2"><a class="reference internal" href="monitor_goodput.html">ML Goodput Measurement</a></li>
 <li class="toctree-l2"><a class="reference internal" href="use_vertex_ai_tensorboard.html">Use Vertex AI Tensorboard</a></li>
 <li class="toctree-l2"><a class="reference internal" href="features_and_diagnostics.html">Features and Diagnostics</a></li>
@@ -203,7 +203,7 @@
 <li class="toctree-l2"><a class="reference internal" href="checkpointing_solutions/emergency_checkpointing.html">Emergency Checkpointing</a></li>
 <li class="toctree-l2"><a class="reference internal" href="checkpointing_solutions/multi_tier_checkpointing.html">Multi-Tier Checkpointing</a></li>
 <li class="toctree-l2"><a class="reference internal" href="jax_ai_libraries_chosen.html">The JAX Ecosystem in MaxText: An Opinionated Guide</a></li>
-<li class="toctree-l2"><a class="reference internal" href="xprof_user_guide.html">XProf for MaxText developers</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">XProf for MaxText developers</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../explanations.html">Explanations</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -293,7 +293,7 @@
       
       
       
-      <li><a href="../_sources/guides/gcp_workload_observability.md" target="_blank"
+      <li><a href="../_sources/guides/xprof_user_guide.md" target="_blank"
    class="btn btn-sm btn-download-source-button dropdown-item"
    title="Download source file"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -377,7 +377,7 @@ document.write(`
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Enable GCP Workload Observabiltiy</h1>
+    <h1>XProf for MaxText developers</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -387,12 +387,9 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overview">Overview</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#enabling-gcp-workload-observabiltiy">Enabling GCP Workload Observabiltiy</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#heartbeat-metric">Heartbeat metric</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#performance-metric">Performance metric</a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#introduction-to-xprof">Introduction to XProf</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#profiling-in-jax">Profiling in JAX</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#profiling-configuration-in-maxtext">Profiling configuration in MaxText</a></li>
 </ul>
             </nav>
         </div>
@@ -404,52 +401,49 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <!--
- Copyright 2024 Google LLC
-
- Licensed under the Apache License, Version 2.0 (the "License");
- you may not use this file except in compliance with the License.
- You may obtain a copy of the License at
-
-      https://www.apache.org/licenses/LICENSE-2.0
-
- Unless required by applicable law or agreed to in writing, software
- distributed under the License is distributed on an "AS IS" BASIS,
- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- See the License for the specific language governing permissions and
- limitations under the License.
- -->
-<section class="tex2jax_ignore mathjax_ignore" id="enable-gcp-workload-observabiltiy">
-<h1>Enable GCP Workload Observabiltiy<a class="headerlink" href="#enable-gcp-workload-observabiltiy" title="Link to this heading">#</a></h1>
-<p>This guide provides an overview on how to enable GCP workload observability for your MaxText workload.</p>
-<section id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">#</a></h2>
-<p>Google offers a monitoring and alerting feature that is well suited for critical MaxText workloads sensitive to infrastructure changes.
-Once enabled, metrics will be automatically sent to <a class="reference external" href="https://research.google/pubs/monarch-googles-planet-scale-in-memory-time-series-database/">Cloud Monarch</a> for monitoring.
-If a metric hits its pre-defined threshold, the Google Cloud on-call team will be alerted to see if any action is needed.</p>
-<p>The feature currently supports heartbeat and performance (training step time in seconds) metrics. In the near future, support for the goodput metric will also be added.
-Users should work with their Customer Engineer (CE) and the Google team to define appropriate thresholds for the performance metrics.</p>
-<p>This guide layouts how to enable the feature for your MaxText workload.</p>
+  <section class="tex2jax_ignore mathjax_ignore" id="xprof-for-maxtext-developers">
+<h1>XProf for MaxText developers<a class="headerlink" href="#xprof-for-maxtext-developers" title="Link to this heading">#</a></h1>
+<section id="introduction-to-xprof">
+<h2>Introduction to XProf<a class="headerlink" href="#introduction-to-xprof" title="Link to this heading">#</a></h2>
+<p><a class="reference external" href="https://openxla.org/xprof">XProf</a> is a profiling and performance analysis tool for machine learning.</p>
+<p>You can use XProf to profile and analyze the training performance of AI models. XProf helps you understand how to optimize model performance, identify bottlenecks, and improve training efficiency.</p>
 </section>
-<section id="enabling-gcp-workload-observabiltiy">
-<h2>Enabling GCP Workload Observabiltiy<a class="headerlink" href="#enabling-gcp-workload-observabiltiy" title="Link to this heading">#</a></h2>
-<p>User can control which metric they want to report via config:</p>
-<section id="heartbeat-metric">
-<h3>Heartbeat metric<a class="headerlink" href="#heartbeat-metric" title="Link to this heading">#</a></h3>
+<section id="profiling-in-jax">
+<h2>Profiling in JAX<a class="headerlink" href="#profiling-in-jax" title="Link to this heading">#</a></h2>
+<p>XProf supports profiling JAX models, which is crucial for MaxText developers working with JAX. You can profile your JAX models using various methods, including:</p>
 <ul class="simple">
-<li><p>This metric will be a boolean flag.</p></li>
-<li><p>To turn on this metric, set <code class="docutils literal notranslate"><span class="pre">report_heartbeat_metric_for_gcp_monitoring</span></code> to <code class="docutils literal notranslate"><span class="pre">True</span></code></p></li>
-<li><p>To control the frequency of heartbeat reporting (default is every 5 seconds), set <code class="docutils literal notranslate"><span class="pre">heartbeat_reporting_interval_in_seconds</span></code> to your desired value.</p></li>
+<li><p><strong>Programmatic Mode:</strong> This provides more granular control over when and what to profile, allowing you to instrument your code with specific profiling markers. This method is integrated with MaxText code.</p></li>
+</ul>
+<p>The following example shows how to trace a JAX operation in Python.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">jax.profiler</span>
+
+<span class="n">profile_directory</span><span class="o">=</span><span class="s1">&#39;dir_to_upload_profile&#39;</span>
+<span class="n">jax</span><span class="o">.</span><span class="n">profiler</span><span class="o">.</span><span class="n">trace</span><span class="p">(</span><span class="n">profile_directory</span><span class="p">)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">1000</span><span class="p">))</span>
+<span class="nb">iter</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="k">with</span> <span class="n">jax</span><span class="o">.</span><span class="n">profiler</span><span class="o">.</span><span class="n">StepTraceAnnotation</span><span class="p">(</span><span class="s2">&quot;dot_product&quot;</span><span class="p">,</span> <span class="n">step_num</span><span class="o">=</span><span class="nb">iter</span><span class="p">):</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">.</span><span class="n">block_until_ready</span><span class="p">()</span>
+    <span class="nb">iter</span> <span class="o">+=</span> <span class="mi">1</span>
+<span class="n">jax</span><span class="o">.</span><span class="n">profiler</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>You can use <a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.profiler.TraceAnnotation.html"><code class="docutils literal notranslate"><span class="pre">jax.profiler.TraceAnnotation</span></code></a> to add custom annotations to JAX traces.</p>
+<ul class="simple">
+<li><p><strong>Sampling Mode</strong> This mode allows for continuous profiling by sampling data during model execution.
+This mode has not yet been enabled in MaxText yet. Refer to <a class="reference external" href="https://docs.jax.dev/en/latest/profiling.html#remote-profiling">remote-profiling</a> for manual capture/sampling.</p></li>
 </ul>
 </section>
-<section id="performance-metric">
-<h3>Performance metric<a class="headerlink" href="#performance-metric" title="Link to this heading">#</a></h3>
+<section id="profiling-configuration-in-maxtext">
+<h2>Profiling configuration in MaxText<a class="headerlink" href="#profiling-configuration-in-maxtext" title="Link to this heading">#</a></h2>
+<p>The following parameters control how profiling is executed within MaxText, allowing you to capture detailed performance data for analysis.</p>
 <ul class="simple">
-<li><p>This metric will be a double, capturing the training step time in seconds.</p></li>
-<li><p>To turn on this metric, set <code class="docutils literal notranslate"><span class="pre">report_performance_metric_for_gcp_monitoring</span></code> to <code class="docutils literal notranslate"><span class="pre">True</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">profiler</span></code>	specifies the profiler backend to use for capturing performance traces.	Options can be <code class="docutils literal notranslate"><span class="pre">xplane</span></code>, <code class="docutils literal notranslate"><span class="pre">nsys</span></code>. Default is “”.	<code class="docutils literal notranslate"><span class="pre">xplane</span></code> is for XLA/TPU and <code class="docutils literal notranslate"><span class="pre">nsys</span></code> is for CUDA/GPU.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">profiler_steps</span></code> defines the total number of steps to run during the profiling capture window.	Default is 5</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">skip_first_n_steps_for_profiler</span></code> specifies the number of initial training steps to skip before the profiling capture begins. This is typically used to bypass model warmup and capture steady-state performance.	default is 1.</p></li>
 </ul>
-<p>For an example, please refer to <a class="reference external" href="https://github.com/AI-Hypercomputer/maxtext/blob/main/src/MaxText/configs/base.yml">base.yml</a>.</p>
-</section>
+<p>For more information about XProf tools, see the <a class="reference external" href="https://openxla.org/xprof">XProf documentation</a>.</p>
 </section>
 </section>
 
@@ -465,20 +459,20 @@ Users should work with their Customer Engineer (CE) and the Google team to defin
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="knowledge_distillation.html"
+       href="jax_ai_libraries_chosen.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Knowledge Distillation</p>
+        <p class="prev-next-title">The JAX Ecosystem in MaxText: An Opinionated Guide</p>
       </div>
     </a>
     <a class="right-next"
-       href="monitor_goodput.html"
+       href="../explanations.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">ML Goodput Measurement</p>
+        <p class="prev-next-title">Explanations</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -498,12 +492,9 @@ Users should work with their Customer Engineer (CE) and the Google team to defin
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overview">Overview</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#enabling-gcp-workload-observabiltiy">Enabling GCP Workload Observabiltiy</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#heartbeat-metric">Heartbeat metric</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#performance-metric">Performance metric</a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#introduction-to-xprof">Introduction to XProf</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#profiling-in-jax">Profiling in JAX</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#profiling-configuration-in-maxtext">Profiling configuration in MaxText</a></li>
 </ul>
   </nav></div>
 
