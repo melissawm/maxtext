@@ -39,25 +39,35 @@ Setup following environment variables:
 
 ```bash
 # -- Model configuration --
-export HF_MODEL='llama3.1-70b-Instruct'
-export MODEL='llama3.1-70b'
-export TOKENIZER='meta-llama/Llama-3.1-70B-Instruct'
+export HF_MODEL=<Hugging Face Model> # e.g. 'llama3.1-70b-Instruct'
+export MODEL=<MaxText Model> # e.g. 'llama3.1-70b'
+export TOKENIZER=<Tokenizer> # e.g. 'meta-llama/Llama-3.1-70B-Instruct'
 export HF_TOKEN=<Hugging Face access token>
 
 # -- MaxText configuration --
 export BASE_OUTPUT_DIRECTORY=<output directory to store run logs> # e.g., gs://my-bucket/my-output-directory
-export RUN_NAME=llama-3-70b-grpo
+export RUN_NAME=<Name for this run> # e.g., llama-3-70b-grpo
 export MAXTEXT_CKPT_PATH=${BASE_OUTPUT_DIRECTORY}/${RUN_NAME}/0/items
 
 # -- Workload configuration --
 export WORKLOAD=${RUN_NAME}
-export TPU_TYPE='v5p-128'
+export TPU_TYPE=<TPU Type> # e.g., 'v5p-128'
 export TPU_CLUSTER=<cluster name>
 export PROJECT_ID=<GCP project ID>
 export ZONE=<zone name>
 ```
 
 ## Get your model checkpoint
+
+### Option 1: Using an existing MaxText checkpoint
+
+If you already have a MaxText-compatible model checkpoint, simply set the following environment variable and move on to the next section.
+
+```bash
+export MAXTEXT_CKPT_PATH=<gcs path for MaxText checkpoint> # e.g., gs://my-bucket/my-model-checkpoint/0/items
+```
+
+### Option 2: Converting from a Hugging Face checkpoint
 
 You can convert a Hugging Face checkpoint to MaxText format using the `src/MaxText/utils/ckpt_conversion/to_maxtext.py` script. This is useful if you have a pre-trained model from Hugging Face that you want to use with MaxText.
 
@@ -96,16 +106,16 @@ Run the following bash script to create a docker image with all the dependencies
 In addition to MaxText dependencies, primarily, it installs `vllm-tpu` which is [vllm](https://github.com/vllm-project/vllm) and [tpu-inference](https://github.com/vllm-project/tpu-inference) and thereby providing TPU inference for vLLM, with unified JAX and PyTorch support. This build process takes approximately 10 to 15 minutes.
  
 ```
-bash dependencies/scripts/docker_build_dependency_image.sh MODE=post-training
+bash dependencies/scripts/docker_build_dependency_image.sh WORKFLOW=post-training
 ```
 
-You can also use `bash dependencies/scripts/docker_build_dependency_image.sh MODE=post-training-experimental` to try out new features via experimental dependencies such as improved pathwaysutils resharding API.
+You can also use `bash dependencies/scripts/docker_build_dependency_image.sh WORKFLOW=post-training-experimental` to try out new features via experimental dependencies such as improved pathwaysutils resharding API.
 
 ### Option 2: Install from locally git cloned repositories
 
 You can also locally git clone [tunix](https://github.com/google/tunix), [tpu-inference](https://github.com/vllm-project/tpu-inference), [vllm](https://github.com/vllm-project/vllm.git) and then use the following command to build a docker image using them: 
 ```
-bash dependencies/scripts/docker_build_dependency_image.sh MODE=post-training POST_TRAINING_SOURCE=local
+bash dependencies/scripts/docker_build_dependency_image.sh WORKFLOW=post-training POST_TRAINING_SOURCE=local
 ```
 
 ### Upload the dependency docker image along with MaxText code
