@@ -45,15 +45,15 @@ python3 -m maxtext.trainers.post_train.rl.train_rl src/maxtext/configs/post_trai
 
 from __future__ import annotations
 from functools import wraps
-from typing import Sequence
+from typing import Any, Optional, Sequence
 
+import datasets
 import grain
 import jax
 import json
 import logging
 import os
 import pathwaysutils
-import tensorflow_datasets as tfds
 
 from absl import app
 from absl import logging as absl_logging
@@ -67,8 +67,7 @@ from tunix.rl.rollout import base_rollout
 from tunix.rl.grpo.grpo_learner import GrpoConfig, GrpoLearner
 from tunix.sft import metrics_logger, profiler
 
-# for vLLM we can skip JAX precompilation with this flag, it makes startup faster
-os.environ["SKIP_JAX_PRECOMPILE"] = "1"
+os.environ["TOKENIZERS_PARALLELISM"] = "0"
 
 from maxtext.configs import pyconfig
 from maxtext.utils.globals import MAXTEXT_CONFIGS_DIR
@@ -79,52 +78,24 @@ from maxtext.utils import max_logging, max_utils, model_creation_utils
 
 
 def get_dataset(
-    model_tokenizer, tmvp_config, data_dir, split="train", data_files=None, dataset_name=None
+    tmvp_config: Any,
+    split: str = "train",
+    data_files: Optional[str] = None,
+    dataset_name: Optional[str] = None,
 ) -> grain.MapDataset:
   """Download data"""
-  if not os.path.exists(data_dir):
-    os.makedirs(data_dir)
-
-  if dataset_name is None:
-    raise ValueError("dataset_name must be provided")
-
-  if dataset_name.startswith("huggingface:"):
-    import datasets  # pylint: disable=import-outside-toplevel
-
-    if data_files is None:
-      hf_dataset_name = dataset_name.replace("huggingface:", "")
-      data = datasets.load_dataset(hf_dataset_name, split=split, cache_dir=data_dir)
-      if tmvp_config.debug.rl:
-        max_logging.log(f"Loaded Hugging Face dataset {hf_dataset_name} with split {split}. Size: {len(data)}")
-    else:  # data_files have been provided, useful for using slices of large datasets like nvidia/OpenMathInstruct-2
-      data = datasets.load_dataset(
-          "parquet",
-          data_files={tmvp_config.train_split: data_files},
-          split=split,
-          cache_dir=data_dir,
-      )
-  else:
-    builder_kwargs = {"file_format": tfds.core.FileFormat.ARRAY_RECORD}
-    data = tfds.data_source(
-        dataset_name,
+  if data_files is None:
+    data = datasets.load_dataset(dataset_name, name=tmvp_config.hf_name, split=split)
+  else:  # data_files have been provided, useful for using slices of large datasets like nvidia/OpenMathInstruct-2
+    data = datasets.load_dataset(
+        "parquet",
+        data_files={split: data_files},
         split=split,
-        data_dir=data_dir,
-        builder_kwargs=builder_kwargs,
-        download=True,
     )
+  if tmvp_config.debug.rl:
+    max_logging.log(f"Loaded Hugging Face dataset {dataset_name} with split {split}. Size: {len(data)}")
 
-  template_config = load_data_template_from_file(tmvp_config.chat_template_path)
-  if template_config is None:
-    raise ValueError(
-        f"Chat template is required for processing dataset but failed to load from {tmvp_config.chat_template_path}"
-    )
-
-  loaded_dataset = (
-      grain.MapDataset.source(data)
-      .shuffle(seed=tmvp_config.data_shuffle_seed)
-      .map(lambda x: utils_rl.process_data(dataset_name, model_tokenizer, template_config, tmvp_config, x))
-  )
-  return loaded_dataset
+  return data
 
 
 def get_rollout_kwargs_for_parallelism(sampler_config, num_sampler_devices):
@@ -191,54 +162,60 @@ def get_max_train_steps(trainer_config):
   )
 
 
-def prepare_datasets(trainer_config, model_tokenizer):
+def prepare_train_and_eval_dataset(
+    trainer_config: Any,
+    test_size: float = 0.05,
+) -> dict[str, datasets.Dataset]:
+  """Load and split the dataset into train and validation sets using HF's train_test_split."""
+  max_logging.log(
+      "WARNING: For reproducible experiments, preprocess the dataset once and "
+      "define your own HfDataset subclass that directly uses the preprocessed datasets."
+  )
+
+  original_ds = get_dataset(
+      trainer_config,
+      split=trainer_config.train_split,
+      data_files=trainer_config.hf_train_files,
+      dataset_name=trainer_config.dataset_name,
+  )
+
+  if "OpenMathReasoning" in trainer_config.dataset_name:
+    original_ds = original_ds.filter(lambda x: x.get("problem_type") == "has_answer_extracted")
+
+  # Split into train and validation sets using HF's train_test_split
+  split_ds = original_ds.train_test_split(test_size=test_size, seed=trainer_config.data_shuffle_seed)
+
+  return {
+      "train": split_ds["train"],
+      "validation": split_ds["test"],
+  }
+
+
+def prepare_datasets(
+    trainer_config: Any,
+    model_tokenizer: AutoTokenizer,
+) -> tuple[grain.IterDataset, grain.IterDataset | None]:
   """Setup and return train and test datasets."""
-  home = os.path.expanduser("~") + "/"
-  train_data_dir = f"{home}/data/train"
-  test_data_dir = f"{home}/data/test"
-  if not os.path.exists(train_data_dir):
-    os.makedirs(train_data_dir)
-  if not os.path.exists(test_data_dir):
-    os.makedirs(test_data_dir)
+  template_config = load_data_template_from_file(trainer_config.chat_template_path)
+  if template_config is None:
+    raise ValueError(
+        f"Chat template is required for processing dataset but failed to load from {trainer_config.chat_template_path}"
+    )
 
-  # Load datasets
-  if trainer_config.dataset_name == "huggingface:nvidia/OpenMathInstruct-2":
-    import datasets  # pylint: disable=import-outside-toplevel
-
-    def prepare_openinstructmath2_dataset(
-        split: str = "train_1M",
-        seed: int = 42,
-        test_size: float = 0.05,
-    ):
-      """Load and split the OpenMathInstruct-2 dataset into train and validation sets using HF's train_test_split."""
-      max_logging.log(
-          "WARNING: For reproducible experiments, preprocess the dataset once and "
-          "define your own HfDataset subclass that directly uses the preprocessed datasets."
-      )
-
-      # Load the original dataset
-      original_ds = datasets.load_dataset(
-          "parquet",
-          data_files={trainer_config.train_split: trainer_config.hf_train_files},
-          split=split,
-          cache_dir=train_data_dir,
-      )
-
-      # Split into train and validation sets using HF's train_test_split
-      split_ds = original_ds.train_test_split(test_size=test_size, seed=seed)
-
-      return {
-          "train": split_ds["train"],
-          "validation": split_ds["test"],
-      }
-
-    split_name = trainer_config.train_split if trainer_config.train_split != "train" else "train_1M"
-    splits = prepare_openinstructmath2_dataset(split=split_name)
-    template_config = load_data_template_from_file(trainer_config.chat_template_path)
-    if template_config is None:
-      raise ValueError(
-          f"Chat template is required for processing dataset but failed to load from {trainer_config.chat_template_path}"
-      )
+  # Prepare train and test data from training data for certain datasets
+  eval_dataset_name = getattr(trainer_config, "eval_dataset_name", None)
+  test_dataset = None
+  if (
+      trainer_config.dataset_name
+      in [
+          "nvidia/OpenMathInstruct-2",
+          "nvidia/OpenMathReasoning",
+          "open-r1/OpenR1-Math-220k",
+          "bethgelab/CuratedThoughts",
+      ]
+      and eval_dataset_name == trainer_config.dataset_name
+  ):
+    splits = prepare_train_and_eval_dataset(trainer_config)
 
     train_dataset = (
         grain.MapDataset.source(splits["train"])
@@ -250,8 +227,28 @@ def prepare_datasets(trainer_config, model_tokenizer):
         )
     )
 
-    test_dataset = (
-        grain.MapDataset.source(splits["validation"])
+    if trainer_config.num_test_batches > 0:
+      test_dataset = (
+          grain.MapDataset.source(splits["validation"])
+          .shuffle(seed=trainer_config.data_shuffle_seed)
+          .map(
+              lambda x: utils_rl.process_data(
+                  trainer_config.dataset_name, model_tokenizer, template_config, trainer_config, x
+              )
+          )
+      )
+  else:
+    if not eval_dataset_name:
+      eval_dataset_name = trainer_config.dataset_name
+
+    train_dataset = get_dataset(
+        trainer_config,
+        split=trainer_config.train_split,
+        data_files=trainer_config.hf_train_files,
+        dataset_name=trainer_config.dataset_name,
+    )
+    train_dataset = (
+        grain.MapDataset.source(train_dataset)
         .shuffle(seed=trainer_config.data_shuffle_seed)
         .map(
             lambda x: utils_rl.process_data(
@@ -259,28 +256,19 @@ def prepare_datasets(trainer_config, model_tokenizer):
             )
         )
     )
-  else:
-    train_dataset = get_dataset(
-        model_tokenizer,
-        trainer_config,
-        train_data_dir,
-        trainer_config.train_split,
-        data_files=trainer_config.hf_train_files,
-        dataset_name=trainer_config.dataset_name,
-    )
 
-    eval_dataset_name = getattr(trainer_config, "eval_dataset_name", None)
-    if not eval_dataset_name:
-      eval_dataset_name = trainer_config.dataset_name
-
-    test_dataset = get_dataset(
-        model_tokenizer,
-        trainer_config,
-        test_data_dir,
-        trainer_config.eval_split,
-        data_files=trainer_config.hf_eval_files,
-        dataset_name=eval_dataset_name,
-    )
+    if trainer_config.num_test_batches > 0:
+      test_dataset = get_dataset(
+          trainer_config,
+          split=trainer_config.eval_split,
+          data_files=trainer_config.hf_eval_files,
+          dataset_name=eval_dataset_name,
+      )
+      test_dataset = (
+          grain.MapDataset.source(test_dataset)
+          .shuffle(seed=trainer_config.data_shuffle_seed)
+          .map(lambda x: utils_rl.process_data(eval_dataset_name, model_tokenizer, template_config, trainer_config, x))
+      )
 
   def _filter_long_prompts(x):
     tokens = model_tokenizer.tokenize(x["prompts"])
@@ -300,15 +288,15 @@ def prepare_datasets(trainer_config, model_tokenizer):
   dataset_size = int(trainer_config.num_batches * trainer_config.batch_size * trainer_config.train_fraction)
   train_dataset = train_dataset[:dataset_size]
   train_dataset = train_dataset.repeat(trainer_config.num_epoch)
-
   train_dataset = train_dataset.to_iter_dataset().batch(trainer_config.batch_size)
 
-  test_dataset = test_dataset.filter(_filter_long_prompts)
-  test_dataset = test_dataset[
-      trainer_config.test_batch_start_index : trainer_config.num_test_batches * trainer_config.batch_size
-  ]
+  if trainer_config.num_test_batches > 0:
+    test_dataset = test_dataset.filter(_filter_long_prompts)
+    test_dataset = test_dataset[
+        trainer_config.test_batch_start_index : trainer_config.num_test_batches * trainer_config.batch_size
+    ]
+    test_dataset = test_dataset.to_iter_dataset().batch(trainer_config.batch_size)
 
-  test_dataset = test_dataset.to_iter_dataset().batch(trainer_config.batch_size)
   return train_dataset, test_dataset
 
 
@@ -469,8 +457,6 @@ def create_rl_components(
   reward_fns = [  # type: ignore
       make_reward_fn(utils_rl.match_format_exactly),
       make_reward_fn(utils_rl.match_format_approximately),
-      # TODO(atwigg): comment out to simplify reward and overlap with check_numbers
-      make_reward_fn(utils_rl.check_answer),
       make_reward_fn(utils_rl.check_numbers),
   ]
 
@@ -573,14 +559,17 @@ def rl_train(argv: Sequence[str], kwargs: dict):
   train_dataset, test_dataset = prepare_datasets(trainer_config, model_tokenizer)
 
   if trainer_config.debug.rl:
+    max_logging.log("Train dataset samples:")
     for i, ele in enumerate(train_dataset):
       if i >= 5:
         break
       pprint(ele)
-    for i, ele in enumerate(test_dataset):
-      if i >= 5:
-        break
-      pprint(ele)
+    if trainer_config.num_test_batches > 0:
+      max_logging.log("Test dataset samples:")
+      for i, ele in enumerate(test_dataset):
+        if i >= 5:
+          break
+        pprint(ele)
 
   if trainer_config.debug.rl:
     max_logging.log("Reference Model initialized successfully")
@@ -604,17 +593,22 @@ def rl_train(argv: Sequence[str], kwargs: dict):
       max_train_steps,
   )
 
-  # Before we train the model, let's evaluate the model on the test set so we can
-  # see the improvement post training.
-  (corr, total, accuracy, partial_accuracy, format_accuracy), _ = evaluate(
-      trainer_config,
-      test_dataset,
-      rl_cluster=rl_cluster,
-      num_passes=trainer_config.num_eval_passes,
-      corr_lst=trainer_config.eval_corr_lst,
-      make_lst=trainer_config.eval_make_lst,
-  )
-  max_logging.warning(f"Pre RL Training: {corr=}, {total=}, {accuracy=}%, {partial_accuracy=}%," f" {format_accuracy=}%")
+  # Run evaluation before training
+  if trainer_config.num_test_batches > 0:
+    # Update vllm with model parameters from checkpoint
+    rl_cluster.rollout.update_params(nnx.state(actor_model))
+
+    (corr, total, accuracy, partial_accuracy, format_accuracy), _ = evaluate(
+        trainer_config,
+        test_dataset,
+        rl_cluster=rl_cluster,
+        num_passes=trainer_config.num_eval_passes,
+        corr_lst=trainer_config.eval_corr_lst,
+        make_lst=trainer_config.eval_make_lst,
+    )
+    max_logging.warning(
+        f"Pre RL Training: {corr=}, {total=}, {accuracy=}%, {partial_accuracy=}%," f" {format_accuracy=}%"
+    )
 
   # Start training
   if trainer_config.load_checkpoint_only_once:
@@ -634,16 +628,19 @@ def rl_train(argv: Sequence[str], kwargs: dict):
 
   max_logging.warning("RL Training Completed Successfully!")
 
-  # Let's evaluate our model!
-  (corr, total, accuracy, partial_accuracy, format_accuracy), _ = evaluate(
-      trainer_config,
-      test_dataset,
-      rl_cluster=rl_cluster,
-      num_passes=trainer_config.num_eval_passes,
-      corr_lst=trainer_config.eval_corr_lst,
-      make_lst=trainer_config.eval_make_lst,
-  )
-  max_logging.warning(f"Post RL Training: {corr=}, {total=}, {accuracy=}%, {partial_accuracy=}%," f" {format_accuracy=}%")
+  # Run evaluation after training
+  if trainer_config.num_test_batches > 0:
+    (corr, total, accuracy, partial_accuracy, format_accuracy), _ = evaluate(
+        trainer_config,
+        test_dataset,
+        rl_cluster=rl_cluster,
+        num_passes=trainer_config.num_eval_passes,
+        corr_lst=trainer_config.eval_corr_lst,
+        make_lst=trainer_config.eval_make_lst,
+    )
+    max_logging.warning(
+        f"Post RL Training: {corr=}, {total=}, {accuracy=}%, {partial_accuracy=}%," f" {format_accuracy=}%"
+    )
 
 
 def main(argv: Sequence[str], kwargs: dict = None) -> None:
