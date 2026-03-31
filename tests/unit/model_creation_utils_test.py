@@ -26,8 +26,9 @@ from flax import nnx
 from jax.sharding import Mesh
 from orbax import checkpoint as ocp
 
+from flax.training import train_state
 from maxtext.configs import pyconfig
-from maxtext.common.common_types import MODEL_MODE_TRAIN, MODEL_MODE_PREFILL
+from maxtext.common.common_types import MODEL_MODE_AUTOREGRESSIVE, MODEL_MODE_TRAIN, MODEL_MODE_PREFILL
 from maxtext.models import models
 from maxtext.utils import maxtext_utils
 from maxtext.utils import model_creation_utils
@@ -391,6 +392,55 @@ class TestCreateNnxModel(unittest.TestCase):
     cfg = _make_config(enable_checkpointing=True, load_parameters_path="gs://fake/bad_ckpt")
     with self.assertRaises(ValueError):
       model_creation_utils.from_pretrained(cfg, self.mesh)
+
+
+class TestSetupDecodeStateFromNnx(unittest.TestCase):
+  """Tests for setup_decode_state_from_nnx()."""
+
+  def setUp(self):
+    self.config = _make_config()
+    self.mesh = _make_mesh(self.config)
+    self.rng = jax.random.PRNGKey(0)
+
+  def test_returns_linen_train_state_and_annotations(self):
+    """Should return a linen TrainState whose params mirror the NNX model's nnx.Param values."""
+    # Build a real (small) NNX model WITHOUT any patch active so from_pretrained
+    # runs normally and produces concrete jax.Array weights.
+    real_nnx_model = model_creation_utils.from_pretrained(self.config, mesh=self.mesh)
+
+    linen_model = model_creation_utils.from_config(self.config, mesh=self.mesh, rngs=None)
+
+    # Now patch from_pretrained so setup_decode_state_from_nnx never touches a checkpoint.
+    with patch("maxtext.utils.model_creation_utils.from_pretrained", return_value=real_nnx_model) as mock_fp:
+      state, state_mesh_annotations = model_creation_utils.setup_decode_state_from_nnx(
+          linen_model, self.config, self.rng, self.mesh
+      )
+
+    # from_pretrained must have been called with the right model_mode.
+    mock_fp.assert_called_once()
+    _, call_kwargs = mock_fp.call_args
+    self.assertEqual(call_kwargs.get("model_mode"), MODEL_MODE_AUTOREGRESSIVE)
+
+    # The result should be a linen TrainState.
+    self.assertIsInstance(state, train_state.TrainState)
+
+    # Params must be nested under "params" and be non-empty concrete arrays.
+    self.assertIn("params", state.params)
+    param_leaves = jax.tree.leaves(state.params["params"])
+    self.assertGreater(len(param_leaves), 0)
+    for leaf in param_leaves:
+      self.assertIsInstance(leaf, jax.Array)
+
+    # The NNX Param values and the extracted linen params must be numerically identical.
+    nnx_param_state = nnx.state(real_nnx_model, nnx.Param)
+    nnx_leaves = jax.tree.leaves(nnx_param_state)
+    linen_leaves = jax.tree.leaves(state.params["params"])
+    self.assertEqual(len(nnx_leaves), len(linen_leaves))
+    for nnx_val, linen_val in zip(nnx_leaves, linen_leaves):
+      self.assertTrue(jnp.all(nnx_val == linen_val))
+
+    # state_mesh_annotations must be returned (non-None).
+    self.assertIsNotNone(state_mesh_annotations)
 
 
 if __name__ == "__main__":
