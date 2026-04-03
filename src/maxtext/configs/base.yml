@@ -442,6 +442,7 @@ hardware: 'tpu' # Supported hardware types are 'tpu', 'gpu', 'gpu_multiprocess' 
 # internal_compile allows bypassing open-source topology name mappings when using internal topologies directly via get_topology_desc.
 internal_compile: False
 internal_compile_num_devices: -1 # You must specify the number of devices when using internal_compile.
+compile_xla_flags: "" # Compiler options e.g. compile_xla_flags="--xla_tpu_num_sparse_cores_for_gather_offloading=1 --xla_tpu_scoped_vmem_limit_kib=65536" 
 
 # Parallelism
 shard_mode: "auto" # can be either auto or explicit

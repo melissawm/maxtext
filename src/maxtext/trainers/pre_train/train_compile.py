@@ -144,7 +144,9 @@ def jit_and_compile(
     )
     maxtext_utils.maybe_dump_jaxpr(config, jitted, func_input_args)
     lowered = jitted.lower(*func_input_args, **func_input_kwargs)
-  compiled = lowered.compile()
+  # Import libtpu flags as compiler options. Defaults to empty dict if string is empty.
+  compiler_options = max_utils.parse_libtpu_flags_to_dict(config.compile_xla_flags)
+  compiled = lowered.compile(compiler_options=compiler_options)
   return compiled
 
 
