@@ -114,6 +114,10 @@ def get_dataset(
     )
 
   template_config = load_data_template_from_file(tmvp_config.chat_template_path)
+  if template_config is None:
+    raise ValueError(
+        f"Chat template is required for processing dataset but failed to load from {tmvp_config.chat_template_path}"
+    )
 
   loaded_dataset = (
       grain.MapDataset.source(data)
@@ -231,6 +235,10 @@ def prepare_datasets(trainer_config, model_tokenizer):
     split_name = trainer_config.train_split if trainer_config.train_split != "train" else "train_1M"
     splits = prepare_openinstructmath2_dataset(split=split_name)
     template_config = load_data_template_from_file(trainer_config.chat_template_path)
+    if template_config is None:
+      raise ValueError(
+          f"Chat template is required for processing dataset but failed to load from {trainer_config.chat_template_path}"
+      )
 
     train_dataset = (
         grain.MapDataset.source(splits["train"])
@@ -401,7 +409,6 @@ def create_rl_components(
           rollout_vllm_model_version=trainer_config.tokenizer_path,
           rollout_vllm_hbm_utilization=trainer_config.hbm_utilization_vllm,
           rollout_vllm_tpu_backend_type="jax",
-          rollout_vllm_swap_space_size_gb=trainer_config.swap_space_vllm_gb,
           rollout_vllm_hf_config_path=trainer_config.vllm_hf_config_path,
           rollout_vllm_additional_config=rollout_additional_config,
           rollout_vllm_init_with_random_weights=True,
@@ -495,6 +502,10 @@ def create_rl_components(
     )
     # Instantiate the custom MaxText chat parser
     template_config = load_data_template_from_file(trainer_config.chat_template_path)
+    if template_config is None:
+      raise ValueError(
+          f"Chat template is required for AgenticGRPOLearner but failed to load from {trainer_config.chat_template_path}"
+      )
     chat_parser = utils_rl.MaxTextChatParser(
         model_tokenizer=model_tokenizer, template_config=template_config, tmvp_config=trainer_config
     )
