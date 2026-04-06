@@ -461,7 +461,10 @@ def create_rl_components(
     checkpoint_dir = None
 
   # Set up micro batching
-  micro_batch_size = None if trainer_config.micro_batch_size == -1 else trainer_config.micro_batch_size
+  train_micro_batch_size = None if trainer_config.train_micro_batch_size == -1 else trainer_config.train_micro_batch_size
+  rollout_micro_batch_size = (
+      None if trainer_config.rollout_micro_batch_size == -1 else trainer_config.rollout_micro_batch_size
+  )
 
   # Setup metrics logging
   metrics_logging_options = metrics_logger.MetricsLoggerOptions(
@@ -511,8 +514,8 @@ def create_rl_components(
           eval_every_n_steps=trainer_config.eval_interval,
           max_steps=max_train_steps,
           mini_batch_size=trainer_config.batch_size,
-          train_micro_batch_size=micro_batch_size,
-          rollout_micro_batch_size=micro_batch_size,
+          train_micro_batch_size=train_micro_batch_size,
+          rollout_micro_batch_size=rollout_micro_batch_size,
           metrics_logging_options=metrics_logging_options,
           profiler_options=profiler_options,
           checkpoint_root_directory=checkpoint_dir,
