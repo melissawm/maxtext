@@ -107,7 +107,7 @@ class DecoderLayer(nn.Module):
     if self.model_mode == MODEL_MODE_PREFILL:
       logical_axis_names = ("activation_batch", "prefill_activation_length", "activation_embed")
     else:
-      logical_axis_names = ("activation_batch", "activation_length_no_exp", "activation_embed")
+      logical_axis_names = ("activation_batch", "activation_length", "activation_embed")
 
     if model_mode == MODEL_MODE_PREFILL:
       inputs = _maybe_shard_with_logical(inputs, logical_axis_names)
@@ -690,7 +690,7 @@ class Decoder(nn.Module):
 
     cfg = self.config
     if cfg.shard_mode == ShardMode.EXPLICIT:
-      norm_out_sharding = create_sharding(self.mesh, ("activation_batch", "activation_length_no_exp", "activation_embed"))
+      norm_out_sharding = create_sharding(self.mesh, ("activation_batch", "activation_length", "activation_embed"))
     else:
       norm_out_sharding = None
 
@@ -708,7 +708,7 @@ class Decoder(nn.Module):
       out_sharding = create_sharding(self.mesh, (None, None, "activation_vocab"))
     else:
       out_sharding = create_sharding(
-          self.mesh, ("activation_embed_and_logits_batch", "activation_length_no_exp", "activation_vocab")
+          self.mesh, ("activation_embed_and_logits_batch", "activation_length", "activation_vocab")
       )
 
     # [batch, length, emb_dim] -> [batch, length, vocab_size]

@@ -1142,7 +1142,7 @@ class AttentionOp(nnx.Module):
     axis_names_splash_kernel = self._logical_to_mesh_axes(self.flash_axis_names_splash_kernel)
     axis_names_q = self._logical_to_mesh_axes(self.flash_axis_names_q)
     axis_names_kv = self._logical_to_mesh_axes(self.flash_axis_names_kv)
-    indexer_mask_axis_names = self._logical_to_mesh_axes((BATCH, Q_LENGTH, KV_LENGTH))
+    indexer_mask_axis_names = self._logical_to_mesh_axes((BATCH, Q_LENGTH_NO_EXP, KV_LENGTH))
 
     global global_block_q, global_block_kv, global_block_kv_compute, global_block_q_dkv, global_block_kv_dkv
     global global_block_kv_dkv_compute, global_block_q_dq, global_block_kv_dq, global_use_fused_bwd_kernel

@@ -37,7 +37,6 @@ ATTN_LENGTH = "activation_attn_length"
 ATTN_LENGTH_NO_EXP = "activation_attn_length_no_exp"
 
 LENGTH = "activation_length"
-LENGTH_NO_EXP = "activation_length_no_exp"
 PREFILL_LENGTH = "prefill_activation_length"
 Q_LENGTH = "activation_q_length"
 Q_LENGTH_NO_EXP = "activation_q_length_no_exp"

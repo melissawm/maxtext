@@ -57,7 +57,7 @@ class PipelineBase(nn.Module):
     self.use_circ_storage = self.need_circ_storage()
 
     self.batch_axis_name = "activation_batch"
-    self.seq_len_axis_name = "activation_length_no_exp"
+    self.seq_len_axis_name = "activation_length"
 
     self.spmd_axis_name = "stage" if self.config.shard_mode == ShardMode.AUTO else None
 

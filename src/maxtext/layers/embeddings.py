@@ -165,7 +165,7 @@ class Embed(nnx.Module):
         if model_mode == MODEL_MODE_PREFILL
         else (
             "activation_embed_and_logits_batch",
-            "activation_length_no_exp",
+            "activation_length",
             "activation_embed",
         )
     )
@@ -850,7 +850,7 @@ class YarnRotaryEmbedding(nnx.Module):
     self.attention_scaling = attention_scaling
 
     self.freqs_sharding = (
-        create_sharding(mesh, ("activation_batch", "activation_length_no_exp", "q_heads"))
+        create_sharding(mesh, ("activation_batch", "activation_length", "q_heads"))
         if shard_mode == ShardMode.EXPLICIT
         else None
     )
@@ -976,7 +976,7 @@ class YarnRotaryEmbedding(nnx.Module):
     inputs_complex = first_half + 1j * second_half  # shape: [B, S, N, half_dim]
     # Apply the rotary transformation via complex multiplication.
     rotated_sharding = (
-        create_sharding(self.mesh, ("activation_batch", "activation_length_no_exp", None, None))
+        create_sharding(self.mesh, ("activation_batch", "activation_length", None, None))
         if self.shard_mode == ShardMode.EXPLICIT
         else None
     )

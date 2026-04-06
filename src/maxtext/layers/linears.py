@@ -405,7 +405,7 @@ class MlpBlock(nnx.Module):
     if self.model_mode == MODEL_MODE_PREFILL:
       self.intermediate_logical = ("activation_batch", "prefill_activation_length", "activation_mlp")
     else:
-      self.intermediate_logical = ("activation_batch", "activation_length_no_exp", "activation_mlp")
+      self.intermediate_logical = ("activation_batch", "activation_length", "activation_mlp")
 
     if config.fused_mlp:
       self.wi = DenseGeneral(

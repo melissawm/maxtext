@@ -278,7 +278,7 @@ class GateLogit(nnx.Module):
 
     contract_ind = tuple(range(0, len(norm_axis)))
     output_sharding = (
-        create_sharding(self.mesh, ("activation_batch_no_exp_moe", "activation_length_no_exp_moe", None))
+        create_sharding(self.mesh, ("activation_batch_no_exp_moe", "activation_length_moe", None))
         if self.shard_mode == ShardMode.EXPLICIT
         else None
     )
@@ -1452,11 +1452,11 @@ class RoutedMoE(nnx.Module):
         self._maybe_shard_with_logical(
             jnp.arange(weights.shape[0])[:, None, None], ("activation_batch_no_exp_moe", None, None)
         ),
-        self._maybe_shard_with_logical(jnp.arange(weights.shape[1])[:, None], ("activation_length_no_exp_moe", None)),
+        self._maybe_shard_with_logical(jnp.arange(weights.shape[1])[:, None], ("activation_length_moe", None)),
         indices,
     )
     weight_sharding = (
-        create_sharding(self.mesh, ("activation_batch_no_exp_moe", "activation_length_no_exp_moe", None))
+        create_sharding(self.mesh, ("activation_batch_no_exp_moe", "activation_length_moe", None))
         if self.config.shard_mode == ShardMode.EXPLICIT
         else None
     )
@@ -1705,13 +1705,11 @@ class RoutedMoE(nnx.Module):
   ) -> tuple[jax.Array, Optional[jax.Array], Optional[jax.Array]]:
     """Dense matrix multiplication."""
     # gate_logits: batch, length, expert
-    gate_logits = self._maybe_shard_with_logical(
-        gate_logits, ("activation_batch_moe", "activation_length_no_exp_moe", None)
-    )
+    gate_logits = self._maybe_shard_with_logical(gate_logits, ("activation_batch_moe", "activation_length_moe", None))
     if self.config.model_name.startswith("deepseek3"):
       # pre_bias_logits is None for non-DeepSeek v3 models
       pre_bias_logits = self._maybe_shard_with_logical(
-          pre_bias_logits, ("activation_batch_moe", "activation_length_no_exp_moe", None)
+          pre_bias_logits, ("activation_batch_moe", "activation_length_moe", None)
       )
     top_k_weights, top_k_indices = self.get_topk(gate_logits, pre_bias_logits, self.rngs)
     is_llama4_decoder_layer = self.config.decoder_block == ctypes.DecoderBlockType.LLAMA4

@@ -205,7 +205,7 @@ def forward_with_context_expert_parallelism(
   # apply attention with sharding
   with mesh_cp, nn_partitioning.axis_rules(cfg_cp.logical_axis_rules):
     batch_axis = "activation_batch"
-    length_axis = "activation_length_no_exp"
+    length_axis = "activation_length"
     lnx_spec = nn_partitioning.logical_to_mesh_axes(
         (batch_axis, length_axis, "activation_embed"),
         nn_partitioning.get_axis_rules(),

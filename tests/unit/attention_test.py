@@ -636,7 +636,6 @@ class AttentionTest(parameterized.TestCase):
           "ici_context_parallelism": 4,
           "context_parallel_load_balance": False,
           "ici_expert_parallelism": 1,
-          "expert_shard_attention_option": "fsdp",
           "shard_mode": "auto",
       },
       {
@@ -644,7 +643,6 @@ class AttentionTest(parameterized.TestCase):
           "ici_context_parallelism": 4,
           "context_parallel_load_balance": True,
           "ici_expert_parallelism": 1,
-          "expert_shard_attention_option": "fsdp",
           "shard_mode": "auto",
       },
       {
@@ -652,7 +650,6 @@ class AttentionTest(parameterized.TestCase):
           "ici_context_parallelism": 2,
           "context_parallel_load_balance": False,
           "ici_expert_parallelism": 2,
-          "expert_shard_attention_option": "context",
           "shard_mode": "auto",
       },
       {
@@ -660,23 +657,6 @@ class AttentionTest(parameterized.TestCase):
           "ici_context_parallelism": 2,
           "context_parallel_load_balance": True,
           "ici_expert_parallelism": 2,
-          "expert_shard_attention_option": "context",
-          "shard_mode": "auto",
-      },
-      {
-          "testcase_name": "ep_no_load_balance",
-          "ici_context_parallelism": 1,
-          "context_parallel_load_balance": False,
-          "ici_expert_parallelism": 4,
-          "expert_shard_attention_option": "context",
-          "shard_mode": "auto",
-      },
-      {
-          "testcase_name": "ep_with_load_balance",
-          "ici_context_parallelism": 1,
-          "context_parallel_load_balance": True,
-          "ici_expert_parallelism": 4,
-          "expert_shard_attention_option": "context",
           "shard_mode": "auto",
       },
       {
@@ -684,7 +664,6 @@ class AttentionTest(parameterized.TestCase):
           "ici_context_parallelism": 4,
           "context_parallel_load_balance": False,
           "ici_expert_parallelism": 1,
-          "expert_shard_attention_option": "fsdp",
           "shard_mode": "explicit",
       },
       {
@@ -692,7 +671,6 @@ class AttentionTest(parameterized.TestCase):
           "ici_context_parallelism": 4,
           "context_parallel_load_balance": True,
           "ici_expert_parallelism": 1,
-          "expert_shard_attention_option": "fsdp",
           "shard_mode": "explicit",
       },
       {
@@ -700,7 +678,6 @@ class AttentionTest(parameterized.TestCase):
           "ici_context_parallelism": 2,
           "context_parallel_load_balance": False,
           "ici_expert_parallelism": 2,
-          "expert_shard_attention_option": "context",
           "shard_mode": "explicit",
       },
       {
@@ -708,23 +685,6 @@ class AttentionTest(parameterized.TestCase):
           "ici_context_parallelism": 2,
           "context_parallel_load_balance": True,
           "ici_expert_parallelism": 2,
-          "expert_shard_attention_option": "context",
-          "shard_mode": "explicit",
-      },
-      {
-          "testcase_name": "ep_no_load_balance_explicit",
-          "ici_context_parallelism": 1,
-          "context_parallel_load_balance": False,
-          "ici_expert_parallelism": 4,
-          "expert_shard_attention_option": "context",
-          "shard_mode": "explicit",
-      },
-      {
-          "testcase_name": "ep_with_load_balance_explicit",
-          "ici_context_parallelism": 1,
-          "context_parallel_load_balance": True,
-          "ici_expert_parallelism": 4,
-          "expert_shard_attention_option": "context",
           "shard_mode": "explicit",
       },
   )
@@ -735,7 +695,6 @@ class AttentionTest(parameterized.TestCase):
       ici_context_parallelism,
       context_parallel_load_balance,
       ici_expert_parallelism,
-      expert_shard_attention_option,
       shard_mode,
   ):
     """Test equivalence between dot_product and flash attention + context/expert parallelism"""
@@ -759,7 +718,6 @@ class AttentionTest(parameterized.TestCase):
         ici_context_parallelism=ici_context_parallelism,
         context_parallel_load_balance=context_parallel_load_balance,
         ici_expert_parallelism=ici_expert_parallelism,
-        expert_shard_attention_option=expert_shard_attention_option,
         shard_mode=shard_mode,
     )
     devices_array_cp = maxtext_utils.create_device_mesh(cfg_cp)
@@ -801,7 +759,7 @@ class AttentionTest(parameterized.TestCase):
         jax.numpy.allclose(mha_generic_output, mha_generic_flash_cp_output, rtol=1e-01, atol=1e-01, equal_nan=False),
         msg="Logits from generic dot product and flash attention + context/expert parallelism are not close.\n"
         f"ici_context_parallelism={ici_context_parallelism}, context_parallel_load_balance={context_parallel_load_balance},"
-        f" ici_expert_parallelism={ici_expert_parallelism}, expert_shard_attention_option={expert_shard_attention_option}.",
+        f" ici_expert_parallelism={ici_expert_parallelism}.",
     )
 
   @pytest.mark.tpu_only
@@ -1460,7 +1418,6 @@ class MLATest(attention_test_util.MLATestBase):
           "ici_context_parallelism": 4,
           "context_parallel_load_balance": False,
           "ici_expert_parallelism": 1,
-          "expert_shard_attention_option": "fsdp",
           "shard_mode": "auto",
       },
       {
@@ -1468,7 +1425,6 @@ class MLATest(attention_test_util.MLATestBase):
           "ici_context_parallelism": 4,
           "context_parallel_load_balance": True,
           "ici_expert_parallelism": 1,
-          "expert_shard_attention_option": "fsdp",
           "shard_mode": "auto",
       },
       {
@@ -1476,7 +1432,6 @@ class MLATest(attention_test_util.MLATestBase):
           "ici_context_parallelism": 2,
           "context_parallel_load_balance": False,
           "ici_expert_parallelism": 2,
-          "expert_shard_attention_option": "context",
           "shard_mode": "auto",
       },
       {
@@ -1484,23 +1439,6 @@ class MLATest(attention_test_util.MLATestBase):
           "ici_context_parallelism": 2,
           "context_parallel_load_balance": True,
           "ici_expert_parallelism": 2,
-          "expert_shard_attention_option": "context",
-          "shard_mode": "auto",
-      },
-      {
-          "testcase_name": "ep_no_load_balance",
-          "ici_context_parallelism": 1,
-          "context_parallel_load_balance": False,
-          "ici_expert_parallelism": 4,
-          "expert_shard_attention_option": "context",
-          "shard_mode": "auto",
-      },
-      {
-          "testcase_name": "ep_with_load_balance",
-          "ici_context_parallelism": 1,
-          "context_parallel_load_balance": True,
-          "ici_expert_parallelism": 4,
-          "expert_shard_attention_option": "context",
           "shard_mode": "auto",
       },
       {
@@ -1508,7 +1446,6 @@ class MLATest(attention_test_util.MLATestBase):
           "ici_context_parallelism": 4,
           "context_parallel_load_balance": False,
           "ici_expert_parallelism": 1,
-          "expert_shard_attention_option": "fsdp",
           "shard_mode": "explicit",
       },
       {
@@ -1516,7 +1453,6 @@ class MLATest(attention_test_util.MLATestBase):
           "ici_context_parallelism": 4,
           "context_parallel_load_balance": True,
           "ici_expert_parallelism": 1,
-          "expert_shard_attention_option": "fsdp",
           "shard_mode": "explicit",
       },
       {
@@ -1524,7 +1460,6 @@ class MLATest(attention_test_util.MLATestBase):
           "ici_context_parallelism": 2,
           "context_parallel_load_balance": False,
           "ici_expert_parallelism": 2,
-          "expert_shard_attention_option": "context",
           "shard_mode": "explicit",
       },
       {
@@ -1532,23 +1467,6 @@ class MLATest(attention_test_util.MLATestBase):
           "ici_context_parallelism": 2,
           "context_parallel_load_balance": True,
           "ici_expert_parallelism": 2,
-          "expert_shard_attention_option": "context",
-          "shard_mode": "explicit",
-      },
-      {
-          "testcase_name": "ep_no_load_balance_explicit",
-          "ici_context_parallelism": 1,
-          "context_parallel_load_balance": False,
-          "ici_expert_parallelism": 4,
-          "expert_shard_attention_option": "context",
-          "shard_mode": "explicit",
-      },
-      {
-          "testcase_name": "ep_with_load_balance_explicit",
-          "ici_context_parallelism": 1,
-          "context_parallel_load_balance": True,
-          "ici_expert_parallelism": 4,
-          "expert_shard_attention_option": "context",
           "shard_mode": "explicit",
       },
   )
@@ -1559,7 +1477,6 @@ class MLATest(attention_test_util.MLATestBase):
       ici_context_parallelism,
       context_parallel_load_balance,
       ici_expert_parallelism,
-      expert_shard_attention_option,
       shard_mode,
   ):
     """Test equivalence between dot_product and flash attention + context/expert parallelism"""
@@ -1607,7 +1524,6 @@ class MLATest(attention_test_util.MLATestBase):
         ici_context_parallelism=ici_context_parallelism,
         context_parallel_load_balance=context_parallel_load_balance,
         ici_expert_parallelism=ici_expert_parallelism,
-        expert_shard_attention_option=expert_shard_attention_option,
     )
     devices_array_cp = maxtext_utils.create_device_mesh(cfg_cp)
     axis_type = AxisType.Explicit if shard_mode == "explicit" else AxisType.Auto
@@ -1653,7 +1569,7 @@ class MLATest(attention_test_util.MLATestBase):
         jax.numpy.allclose(mla_generic_output, mla_generic_flash_cp_output, rtol=1e-01, atol=1e-01, equal_nan=False),
         msg="MLA Logits from generic dot product and flash attention + context/expert parallelism are not close.\n"
         f"ici_context_parallelism={ici_context_parallelism}, context_parallel_load_balance={context_parallel_load_balance},"
-        f" ici_expert_parallelism={ici_expert_parallelism}, expert_shard_attention_option={expert_shard_attention_option}.",
+        f" ici_expert_parallelism={ici_expert_parallelism}.",
     )
 
   def get_indexer_test_data(self, batch_size, q_len, kv_len, num_heads, head_dim):
