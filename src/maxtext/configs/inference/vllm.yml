@@ -36,7 +36,7 @@ logical_axis_rules: [
                       ['activation_embed_and_logits_batch_sequence', ['data', 'expert']],
                       ['activation_heads', ['model', 'expert']],
                       ['activation_kv_heads', ['model', 'expert']],
-                      ['activation_attn_length', ["expert"]],
+                      ['activation_attn_length', ['expert']],
                       ['activation_attn_length_no_exp', []],
                       ['activation_length', ['data']],
                       ['activation_length_moe', ['data', 'expert']],

@@ -56,7 +56,7 @@
     },
     {
       "linears/x: bfloat16[768,2048,3072]": {
-        "logic_axes": "('activation_batch', 'activation_length_no_exp', 'activation_mlp')",
+        "logic_axes": "('activation_batch', 'activation_length', 'activation_mlp')",
         "PartitionSpec": "P(('data', 'fsdp'), None, None)"
       }
     }

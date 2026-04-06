@@ -14,55 +14,55 @@
     },
     {
       "attention_mla/inputs_q: bfloat16[768,2048,2048]": {
-        "logic_axes": "('activation_batch', 'activation_length_no_exp', 'activation_embed')",
+        "logic_axes": "('activation_batch', 'activation_length', 'activation_embed')",
         "PartitionSpec": "P(('data', 'fsdp'), None, None)"
       }
     },
     {
       "attention_mla/inputs_kv: bfloat16[768,2048,2048]": {
-        "logic_axes": "('activation_batch', 'activation_length_no_exp', 'activation_embed')",
+        "logic_axes": "('activation_batch', 'activation_length', 'activation_embed')",
         "PartitionSpec": "P(('data', 'fsdp'), None, None)"
       }
     },
     {
       "attention_mla/q_nope: bfloat16[768,2048,16,128]": {
-        "logic_axes": "('activation_kv_batch', 'activation_length_no_exp', 'activation_kv_heads', 'activation_kv_head_dim')",
+        "logic_axes": "('activation_kv_batch', 'activation_length', 'activation_kv_heads', 'activation_kv_head_dim')",
         "PartitionSpec": "P(('data', 'fsdp'), None, None, None)"
       }
     },
     {
       "attention_mla/q_pe: bfloat16[768,2048,16,64]": {
-        "logic_axes": "('activation_kv_batch', 'activation_length_no_exp', 'activation_kv_heads', 'activation_kv_head_dim')",
+        "logic_axes": "('activation_kv_batch', 'activation_length', 'activation_kv_heads', 'activation_kv_head_dim')",
         "PartitionSpec": "P(('data', 'fsdp'), None, None, None)"
       }
     },
     {
       "attention_mla/query: bfloat16[768,2048,16,192]": {
-        "logic_axes": "('activation_kv_batch', 'activation_length_no_exp', 'activation_kv_heads', 'activation_kv_head_dim')",
+        "logic_axes": "('activation_kv_batch', 'activation_length', 'activation_kv_heads', 'activation_kv_head_dim')",
         "PartitionSpec": "P(('data', 'fsdp'), None, None, None)"
       }
     },
     {
       "attention_mla/key_nope: bfloat16[768,2048,16,128]": {
-        "logic_axes": "('activation_kv_batch', 'activation_length_no_exp', 'activation_kv_heads', 'activation_kv_head_dim')",
+        "logic_axes": "('activation_kv_batch', 'activation_length', 'activation_kv_heads', 'activation_kv_head_dim')",
         "PartitionSpec": "P(('data', 'fsdp'), None, None, None)"
       }
     },
     {
       "attention_mla/key_rope: bfloat16[768,2048,16,64]": {
-        "logic_axes": "('activation_kv_batch', 'activation_length_no_exp', 'activation_kv_heads', 'activation_kv_head_dim')",
+        "logic_axes": "('activation_kv_batch', 'activation_length', 'activation_kv_heads', 'activation_kv_head_dim')",
         "PartitionSpec": "P(('data', 'fsdp'), None, None, None)"
       }
     },
     {
       "attention_mla/key: bfloat16[768,2048,16,192]": {
-        "logic_axes": "('activation_kv_batch', 'activation_length_no_exp', 'activation_kv_heads', 'activation_kv_head_dim')",
+        "logic_axes": "('activation_kv_batch', 'activation_length', 'activation_kv_heads', 'activation_kv_head_dim')",
         "PartitionSpec": "P(('data', 'fsdp'), None, None, None)"
       }
     },
     {
       "attention_mla/value: bfloat16[768,2048,16,128]": {
-        "logic_axes": "('activation_kv_batch', 'activation_length_no_exp', 'activation_kv_heads', 'activation_kv_head_dim')",
+        "logic_axes": "('activation_kv_batch', 'activation_length', 'activation_kv_heads', 'activation_kv_head_dim')",
         "PartitionSpec": "P(('data', 'fsdp'), None, None, None)"
       }
     },
@@ -86,7 +86,7 @@
     },
     {
       "attention_mla/out: bfloat16[768,2048,16,128]": {
-        "logic_axes": "('activation_batch', 'activation_length_no_exp', 'activation_heads', 'activation_kv')",
+        "logic_axes": "('activation_batch', 'activation_length', 'activation_heads', 'activation_kv')",
         "PartitionSpec": "P(('data', 'fsdp'), None, None, None)"
       }
     },
@@ -104,7 +104,7 @@
     },
     {
       "linears/x: bfloat16[768,2048,10944]": {
-        "logic_axes": "('activation_batch', 'activation_length_no_exp', 'activation_mlp')",
+        "logic_axes": "('activation_batch', 'activation_length', 'activation_mlp')",
         "PartitionSpec": "P(('data', 'fsdp'), None, None)"
       }
     },
@@ -134,7 +134,7 @@
     },
     {
       "linears/x: bfloat16[768,2048,2816]": {
-        "logic_axes": "('activation_batch', 'activation_length_no_exp', 'activation_mlp')",
+        "logic_axes": "('activation_batch', 'activation_length', 'activation_mlp')",
         "PartitionSpec": "P(('data', 'fsdp'), None, None)"
       }
     },
