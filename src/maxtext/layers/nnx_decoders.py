@@ -30,7 +30,6 @@ from jax.ad_checkpoint import checkpoint_name
 from jax.sharding import Mesh
 
 from maxtext.common.common_types import (
-    EP_AS_CONTEXT,
     MODEL_MODE_AUTOREGRESSIVE,
     MODEL_MODE_PREFILL,
     MODEL_MODE_TRAIN,
@@ -169,8 +168,6 @@ class NNXDecoderLayer(nnx.Module):
 
     if self.model_mode == MODEL_MODE_PREFILL:
       logical_axis_names = ("activation_batch", "prefill_activation_length", "activation_embed")
-    elif self.config.expert_shard_attention_option == EP_AS_CONTEXT and self.model_mode == MODEL_MODE_TRAIN:
-      logical_axis_names = ("activation_batch_no_exp", "activation_length", "activation_embed")
     else:
       logical_axis_names = ("activation_batch", "activation_length_no_exp", "activation_embed")
 

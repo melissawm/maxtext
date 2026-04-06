@@ -39,7 +39,6 @@ from maxtext.common.common_types import (
     AxisIdxes,
     AxisNames,
     BATCH,
-    BATCH_NO_EXP,
     CACHE_BATCH,
     CACHE_BATCH_PREFILL,
     CACHE_HEADS,
@@ -61,7 +60,6 @@ from maxtext.common.common_types import (
     HEAD,
     KV_LENGTH,
     LENGTH,
-    LENGTH_NO_EXP,
     MODEL_MODE_AUTOREGRESSIVE,
     MODEL_MODE_PREFILL,
     MODEL_MODE_TRAIN,
@@ -302,12 +300,9 @@ def attention_op_as_linen(
     float32_qk_product: bool = False,
     max_prefill_predict_length: int = -1,
     float32_logits: bool = False,
-    flash_axis_names_q: AxisNames = (BATCH, HEAD, LENGTH_NO_EXP, D_KV),
-    flash_axis_names_q_ep: AxisNames = (BATCH_NO_EXP, HEAD, LENGTH, D_KV),
+    flash_axis_names_q: AxisNames = (BATCH, HEAD, LENGTH, D_KV),
     flash_axis_names_kv: AxisNames = (BATCH, HEAD, KV_LENGTH, D_KV),
-    flash_axis_names_kv_ep: AxisNames = (BATCH_NO_EXP, HEAD, KV_LENGTH, D_KV),
-    flash_axis_names_splash_kernel: AxisNames = (HEAD, LENGTH_NO_EXP),
-    flash_axis_names_splash_kernel_ep: AxisNames = (HEAD, LENGTH),
+    flash_axis_names_splash_kernel: AxisNames = (HEAD, LENGTH),
     prefill_cache_logical_axis_names: AxisNames = (
         CACHE_BATCH_PREFILL,
         CACHE_SEQUENCE,
@@ -364,11 +359,8 @@ def attention_op_as_linen(
       max_prefill_predict_length=max_prefill_predict_length,
       float32_logits=float32_logits,
       flash_axis_names_q=flash_axis_names_q,
-      flash_axis_names_q_ep=flash_axis_names_q_ep,
       flash_axis_names_kv=flash_axis_names_kv,
-      flash_axis_names_kv_ep=flash_axis_names_kv_ep,
       flash_axis_names_splash_kernel=flash_axis_names_splash_kernel,
-      flash_axis_names_splash_kernel_ep=flash_axis_names_splash_kernel_ep,
       prefill_cache_logical_axis_names=prefill_cache_logical_axis_names,
       cache_logical_axis_names=cache_logical_axis_names,
       cache_scale_logical_axis_names=cache_scale_logical_axis_names,
@@ -405,12 +397,9 @@ class AttentionOp(nnx.Module):
       float32_qk_product: bool = False,
       max_prefill_predict_length: int = -1,
       float32_logits: bool = False,
-      flash_axis_names_q: AxisNames = (BATCH, HEAD, LENGTH_NO_EXP, D_KV),
-      flash_axis_names_q_ep: AxisNames = (BATCH_NO_EXP, HEAD, LENGTH, D_KV),
+      flash_axis_names_q: AxisNames = (BATCH, HEAD, LENGTH, D_KV),
       flash_axis_names_kv: AxisNames = (BATCH, HEAD, KV_LENGTH, D_KV),
-      flash_axis_names_kv_ep: AxisNames = (BATCH_NO_EXP, HEAD, KV_LENGTH, D_KV),
-      flash_axis_names_splash_kernel: AxisNames = (HEAD, LENGTH_NO_EXP),
-      flash_axis_names_splash_kernel_ep: AxisNames = (HEAD, LENGTH),
+      flash_axis_names_splash_kernel: AxisNames = (HEAD, LENGTH),
       prefill_cache_logical_axis_names: AxisNames = (
           CACHE_BATCH_PREFILL,
           CACHE_SEQUENCE,
@@ -492,11 +481,8 @@ class AttentionOp(nnx.Module):
     self.max_prefill_predict_length = max_prefill_predict_length
     self.float32_logits = float32_logits
     self.flash_axis_names_q = flash_axis_names_q
-    self.flash_axis_names_q_ep = flash_axis_names_q_ep
     self.flash_axis_names_kv = flash_axis_names_kv
-    self.flash_axis_names_kv_ep = flash_axis_names_kv_ep
     self.flash_axis_names_splash_kernel = flash_axis_names_splash_kernel
-    self.flash_axis_names_splash_kernel_ep = flash_axis_names_splash_kernel_ep
     self.prefill_cache_logical_axis_names = prefill_cache_logical_axis_names
     self.cache_logical_axis_names = cache_logical_axis_names
     self.cache_scale_logical_axis_names = cache_scale_logical_axis_names
@@ -1150,23 +1136,13 @@ class AttentionOp(nnx.Module):
     segment_axis_names_kv = None
     sink_axis_names = self._logical_to_mesh_axes((HEAD,))
     if decoder_segment_ids is not None:
-      if self.config.expert_shard_attention_option == EP_AS_CONTEXT:
-        segment_axis_names_q = self._logical_to_mesh_axes((BATCH_NO_EXP, Q_LENGTH))
-        segment_axis_names_kv = self._logical_to_mesh_axes((BATCH_NO_EXP, KV_LENGTH))
-      else:
-        segment_axis_names_q = self._logical_to_mesh_axes((BATCH, Q_LENGTH_NO_EXP))
-        segment_axis_names_kv = self._logical_to_mesh_axes((BATCH, KV_LENGTH))
+      segment_axis_names_q = self._logical_to_mesh_axes((BATCH, Q_LENGTH_NO_EXP))
+      segment_axis_names_kv = self._logical_to_mesh_axes((BATCH, KV_LENGTH))
 
-    if self.config.expert_shard_attention_option == EP_AS_CONTEXT:
-      axis_names_splash_kernel = self._logical_to_mesh_axes(self.flash_axis_names_splash_kernel_ep)
-      axis_names_q = self._logical_to_mesh_axes(self.flash_axis_names_q_ep)
-      axis_names_kv = self._logical_to_mesh_axes(self.flash_axis_names_kv_ep)
-      indexer_mask_axis_names = self._logical_to_mesh_axes((BATCH_NO_EXP, Q_LENGTH, KV_LENGTH))
-    else:
-      axis_names_splash_kernel = self._logical_to_mesh_axes(self.flash_axis_names_splash_kernel)
-      axis_names_q = self._logical_to_mesh_axes(self.flash_axis_names_q)
-      axis_names_kv = self._logical_to_mesh_axes(self.flash_axis_names_kv)
-      indexer_mask_axis_names = self._logical_to_mesh_axes((BATCH, Q_LENGTH, KV_LENGTH))
+    axis_names_splash_kernel = self._logical_to_mesh_axes(self.flash_axis_names_splash_kernel)
+    axis_names_q = self._logical_to_mesh_axes(self.flash_axis_names_q)
+    axis_names_kv = self._logical_to_mesh_axes(self.flash_axis_names_kv)
+    indexer_mask_axis_names = self._logical_to_mesh_axes((BATCH, Q_LENGTH, KV_LENGTH))
 
     global global_block_q, global_block_kv, global_block_kv_compute, global_block_q_dkv, global_block_kv_dkv
     global global_block_kv_dkv_compute, global_block_q_dq, global_block_kv_dq, global_use_fused_bwd_kernel

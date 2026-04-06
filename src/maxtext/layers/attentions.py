@@ -28,7 +28,6 @@ from flax import nnx
 from maxtext.common.common_types import (
     DecoderBlockType,
     BATCH,
-    BATCH_NO_EXP,
     HEAD,
     PREFILL_LENGTH,
     D_KV,
@@ -149,9 +148,7 @@ def attention_as_linen(
     ep_key_axis_names: AxisNames = (KV_BATCH_NO_EXP, ATTN_LENGTH, KV_HEAD, KV_HEAD_DIM),
     ep_value_axis_names: AxisNames = (KV_BATCH_NO_EXP, ATTN_LENGTH, KV_HEAD, KV_HEAD_DIM),
     input_axis_names: AxisNames = (BATCH, ATTN_LENGTH_NO_EXP, ATTN_EMBED),
-    ep_input_axis_names: AxisNames = (BATCH_NO_EXP, ATTN_LENGTH, ATTN_EMBED),
     out_axis_names: AxisNames = (BATCH, ATTN_LENGTH_NO_EXP, HEAD, D_KV),
-    ep_out_axis_names: AxisNames = (BATCH_NO_EXP, ATTN_LENGTH, HEAD, D_KV),
     prefill_input_axis_names: AxisNames = (PREFILL_KV_BATCH, PREFILL_LENGTH, ATTN_EMBED),
     decode_input_axis_names: AxisNames = (DECODE_BATCH, DECODE_LENGTH, ATTN_EMBED),
     prefill_out_axis_names: AxisNames = (PREFILL_KV_BATCH, PREFILL_LENGTH, HEAD, D_KV),
@@ -215,9 +212,7 @@ def attention_as_linen(
       ep_key_axis_names=ep_key_axis_names,
       ep_value_axis_names=ep_value_axis_names,
       input_axis_names=input_axis_names,
-      ep_input_axis_names=ep_input_axis_names,
       out_axis_names=out_axis_names,
-      ep_out_axis_names=ep_out_axis_names,
       prefill_input_axis_names=prefill_input_axis_names,
       decode_input_axis_names=decode_input_axis_names,
       prefill_out_axis_names=prefill_out_axis_names,
@@ -316,9 +311,7 @@ class Attention(nnx.Module):
       ep_key_axis_names: AxisNames = (KV_BATCH_NO_EXP, ATTN_LENGTH, KV_HEAD, KV_HEAD_DIM),
       ep_value_axis_names: AxisNames = (KV_BATCH_NO_EXP, ATTN_LENGTH, KV_HEAD, KV_HEAD_DIM),
       input_axis_names: AxisNames = (BATCH, ATTN_LENGTH_NO_EXP, ATTN_EMBED),
-      ep_input_axis_names: AxisNames = (BATCH_NO_EXP, ATTN_LENGTH, ATTN_EMBED),
       out_axis_names: AxisNames = (BATCH, ATTN_LENGTH_NO_EXP, HEAD, D_KV),
-      ep_out_axis_names: AxisNames = (BATCH_NO_EXP, ATTN_LENGTH, HEAD, D_KV),
       prefill_input_axis_names: AxisNames = (PREFILL_KV_BATCH, PREFILL_LENGTH, ATTN_EMBED),
       decode_input_axis_names: AxisNames = (DECODE_BATCH, DECODE_LENGTH, ATTN_EMBED),
       prefill_out_axis_names: AxisNames = (PREFILL_KV_BATCH, PREFILL_LENGTH, HEAD, D_KV),
@@ -424,9 +417,7 @@ class Attention(nnx.Module):
     self.ep_key_axis_names = ep_key_axis_names
     self.ep_value_axis_names = ep_value_axis_names
     self.input_axis_names = input_axis_names
-    self.ep_input_axis_names = ep_input_axis_names
     self.out_axis_names = out_axis_names
-    self.ep_out_axis_names = ep_out_axis_names
     self.prefill_input_axis_names = prefill_input_axis_names
     self.decode_input_axis_names = decode_input_axis_names
     self.prefill_out_axis_names = prefill_out_axis_names
@@ -1100,8 +1091,6 @@ class Attention(nnx.Module):
     """
     if model_mode == MODEL_MODE_PREFILL:
       input_axis_names = self.prefill_input_axis_names
-    elif model_mode == MODEL_MODE_TRAIN and self.config.expert_shard_attention_option == EP_AS_CONTEXT:
-      input_axis_names = self.ep_input_axis_names
     elif model_mode == MODEL_MODE_TRAIN:
       input_axis_names = self.input_axis_names
     else:
@@ -1219,8 +1208,6 @@ class Attention(nnx.Module):
     out = jax.ad_checkpoint.checkpoint_name(out, "attention_out")
     if model_mode == MODEL_MODE_PREFILL:
       out = self._maybe_shard_with_logical(out, self.prefill_out_axis_names)
-    elif model_mode == MODEL_MODE_TRAIN and self.config.expert_shard_attention_option == EP_AS_CONTEXT:
-      out = self._maybe_shard_with_logical(out, self.ep_out_axis_names)
     elif model_mode == MODEL_MODE_TRAIN:
       out = self._maybe_shard_with_logical(out, self.out_axis_names)
     else:

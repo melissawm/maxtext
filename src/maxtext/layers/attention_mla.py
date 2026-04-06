@@ -37,7 +37,6 @@ from maxtext.common.common_types import (
     AxisIdxes,
     AxisNames,
     BATCH,
-    BATCH_NO_EXP,
     CACHE_BATCH,
     CACHE_BATCH_PREFILL,
     CACHE_SEQUENCE,
@@ -432,9 +431,7 @@ def mla_as_linen(
     ep_key_axis_names: AxisNames = (KV_BATCH_NO_EXP, LENGTH, KV_HEAD, KV_HEAD_DIM),
     ep_value_axis_names: AxisNames = (KV_BATCH_NO_EXP, LENGTH, KV_HEAD, KV_HEAD_DIM),
     input_axis_names: AxisNames = (BATCH, LENGTH_NO_EXP, EMBED),
-    ep_input_axis_names: AxisNames = (BATCH_NO_EXP, LENGTH, EMBED),
     out_axis_names: AxisNames = (BATCH, LENGTH_NO_EXP, HEAD, D_KV),
-    ep_out_axis_names: AxisNames = (BATCH_NO_EXP, LENGTH, HEAD, D_KV),
     prefill_input_axis_names: AxisNames = (PREFILL_KV_BATCH, PREFILL_LENGTH, EMBED),
     decode_input_axis_names: AxisNames = (DECODE_BATCH, DECODE_LENGTH, EMBED),
     prefill_out_axis_names: AxisNames = (PREFILL_KV_BATCH, PREFILL_LENGTH, HEAD, D_KV),
@@ -503,9 +500,7 @@ def mla_as_linen(
       ep_key_axis_names=ep_key_axis_names,
       ep_value_axis_names=ep_value_axis_names,
       input_axis_names=input_axis_names,
-      ep_input_axis_names=ep_input_axis_names,
       out_axis_names=out_axis_names,
-      ep_out_axis_names=ep_out_axis_names,
       prefill_input_axis_names=prefill_input_axis_names,
       decode_input_axis_names=decode_input_axis_names,
       prefill_out_axis_names=prefill_out_axis_names,
@@ -580,9 +575,7 @@ class MLA(Attention):
       ep_key_axis_names: AxisNames = (KV_BATCH_NO_EXP, LENGTH, KV_HEAD, KV_HEAD_DIM),
       ep_value_axis_names: AxisNames = (KV_BATCH_NO_EXP, LENGTH, KV_HEAD, KV_HEAD_DIM),
       input_axis_names: AxisNames = (BATCH, LENGTH_NO_EXP, EMBED),
-      ep_input_axis_names: AxisNames = (BATCH_NO_EXP, LENGTH, EMBED),
       out_axis_names: AxisNames = (BATCH, LENGTH_NO_EXP, HEAD, D_KV),
-      ep_out_axis_names: AxisNames = (BATCH_NO_EXP, LENGTH, HEAD, D_KV),
       prefill_input_axis_names: AxisNames = (PREFILL_KV_BATCH, PREFILL_LENGTH, EMBED),
       decode_input_axis_names: AxisNames = (DECODE_BATCH, DECODE_LENGTH, EMBED),
       prefill_out_axis_names: AxisNames = (PREFILL_KV_BATCH, PREFILL_LENGTH, HEAD, D_KV),
@@ -668,9 +661,7 @@ class MLA(Attention):
         ep_key_axis_names=ep_key_axis_names,
         ep_value_axis_names=ep_value_axis_names,
         input_axis_names=input_axis_names,
-        ep_input_axis_names=ep_input_axis_names,
         out_axis_names=out_axis_names,
-        ep_out_axis_names=ep_out_axis_names,
         prefill_input_axis_names=prefill_input_axis_names,
         decode_input_axis_names=decode_input_axis_names,
         prefill_out_axis_names=prefill_out_axis_names,
@@ -1178,10 +1169,6 @@ class MLA(Attention):
       inputs_q = self._maybe_shard_with_logical(inputs_q, self.prefill_input_axis_names)
       inputs_kv = self._maybe_shard_with_logical(inputs_kv, self.prefill_input_axis_names)
       out_logical_name = (PREFILL_KV_BATCH, PREFILL_LENGTH, HEAD, D_KV)
-    elif model_mode == MODEL_MODE_TRAIN and self.config.expert_shard_attention_option == EP_AS_CONTEXT:
-      inputs_q = self._maybe_shard_with_logical(inputs_q, self.ep_input_axis_names)
-      inputs_kv = self._maybe_shard_with_logical(inputs_kv, self.ep_input_axis_names)
-      out_logical_name = (BATCH_NO_EXP, LENGTH, HEAD, D_KV)
     else:
       inputs_q = self._maybe_shard_with_logical(inputs_q, self.input_axis_names)
       inputs_kv = self._maybe_shard_with_logical(inputs_kv, self.input_axis_names)

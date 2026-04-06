@@ -32,7 +32,6 @@ AxisNames = tuple[str, ...]
 AxisIdxes = tuple[int, ...]
 
 BATCH = "activation_batch"
-BATCH_NO_EXP = "activation_batch_no_exp"
 
 ATTN_LENGTH = "activation_attn_length"
 ATTN_LENGTH_NO_EXP = "activation_attn_length_no_exp"
