@@ -45,7 +45,7 @@ install_tpu_pre_train_extra_deps
 
 # Option 2: Installing maxtext[cuda12]
 uv pip install maxtext[cuda12]==0.2.1 --resolution=lowest
-install_cuda12_pre_train_extra_dep
+install_cuda12_pre_train_extra_deps
 
 # Option 3: Installing maxtext[tpu-post-train]
 uv pip install maxtext[tpu-post-train]==0.2.1 --resolution=lowest
@@ -54,6 +54,8 @@ install_tpu_post_train_extra_deps
 # Option 4: Installing maxtext[runner]
 uv pip install maxtext[runner]==0.2.1 --resolution=lowest
 ```
+
+> **Note:** The `maxtext[runner]` extra is used for building MaxText Docker images and scheduling workloads through XPK. Once installed, you will have access to the `build_maxtext_docker_image`, `upload_maxtext_docker_image`, and `xpk` commands. For more details on building and uploading Docker images, see the [Build MaxText Docker Image](https://maxtext.readthedocs.io/en/latest/build_maxtext.html) guide.
 
 > **Note:** The `install_tpu_pre_train_extra_deps`, `install_cuda12_pre_train_extra_deps`, and
 > `install_tpu_post_train_extra_deps` commands are temporarily required to install dependencies directly from GitHub
