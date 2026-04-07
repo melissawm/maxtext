@@ -60,7 +60,9 @@ uv venv --python 3.12 --seed ${VENV_NAME?}
 source ${VENV_NAME?}/bin/activate
 
 # Install MaxText with the [runner] extra
-# This enables Docker image building and workload scheduling via XPK
+# This enables Docker image building and workload scheduling via XPK.
+# Once installed, you will have access to the `build_maxtext_docker_image`
+# and `upload_maxtext_docker_image` commands.
 uv pip install maxtext[runner]==0.2.1 --resolution=lowest
 ```
 
@@ -80,8 +82,11 @@ export VENV_NAME=<your virtual env name> # e.g., docker_venv
 uv venv --python 3.12 --seed ${VENV_NAME?}
 source ${VENV_NAME?}/bin/activate
 
-# Install MaxText with the [runner] extra in editable mode
-uv pip install .[runner] --resolution=lowest
+# Install MaxText with the [runner] extra in editable mode.
+# This enables Docker image building and workload scheduling via XPK.
+# Once installed, you will have access to the `build_maxtext_docker_image`
+# and `upload_maxtext_docker_image` commands.
+uv pip install -e .[runner] --resolution=lowest
 ```
 
 > **Note:** The `maxtext[runner]` extra includes all necessary dependencies for building MaxText Docker images and running workloads through XPK. It automatically installs XPK, so you do not need to install it separately to manage your clusters and workloads.
