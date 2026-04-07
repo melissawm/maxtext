@@ -65,7 +65,6 @@ class TrainTests(unittest.TestCase):
           get_test_config_path(),
           f"base_output_directory={_base_output_directory}",
           "run_name=runner_test",
-          f"dataset_path={dataset_path}",
           "steps=2",
           "enable_checkpointing=False",
           "enable_goodput_recording=False",
@@ -78,7 +77,6 @@ class TrainTests(unittest.TestCase):
           get_test_config_path(),
           f"base_output_directory={_base_output_directory}",
           "run_name=runner_test",
-          f"dataset_path={dataset_path}",
           "dataset_type=synthetic",  # use synthetic dataset_type to decrease training time
           "steps=2",
           "enable_checkpointing=False",
@@ -93,7 +91,6 @@ class TrainTests(unittest.TestCase):
           get_test_config_path(),
           f"base_output_directory={_base_output_directory}",
           "run_name=runner_test",
-          f"dataset_path={dataset_path}",
           "dataset_type=synthetic",  # use synthetic dataset_type to decrease training time
           "steps=2",
           "ici_tensor_transpose_parallelism=4",
@@ -106,7 +103,6 @@ class TrainTests(unittest.TestCase):
           get_test_config_path(),
           f"base_output_directory={_base_output_directory}",
           "run_name=runner_test",
-          f"dataset_path={dataset_path}",
           "dataset_type=synthetic",  # use synthetic dataset_type to decrease training time
           "quantization=int8",
           "steps=2",
@@ -120,7 +116,6 @@ class TrainTests(unittest.TestCase):
           get_test_config_path(),
           f"base_output_directory={_base_output_directory}",
           "run_name=runner_test",
-          f"dataset_path={dataset_path}",
           "dataset_type=synthetic",  # use synthetic dataset_type to decrease training time
           "quantization=fp8",
           "steps=2",
@@ -134,7 +129,6 @@ class TrainTests(unittest.TestCase):
           get_test_config_path(),
           f"base_output_directory={_base_output_directory}",
           "run_name=runner_test",
-          f"dataset_path={dataset_path}",
           "dataset_type=synthetic",  # use synthetic dataset_type to decrease training time
           "quantization=nanoo_fp8",
           "steps=2",
@@ -148,7 +142,6 @@ class TrainTests(unittest.TestCase):
           get_test_config_path(),
           f"base_output_directory={_base_output_directory}",
           "run_name=runner_test",
-          f"dataset_path={dataset_path}",
           "dataset_type=synthetic",  # use synthetic dataset_type to decrease training time
           "quantization=te_fp8_delayedscaling",
           "steps=2",
@@ -162,7 +155,6 @@ class TrainTests(unittest.TestCase):
           get_test_config_path(),
           f"base_output_directory={_base_output_directory}",
           "run_name=runner_test",
-          f"dataset_path={dataset_path}",
           "dataset_type=synthetic",  # use synthetic dataset_type to decrease training time
           "quantization=te_fp8_currentscaling",
           "steps=2",
@@ -176,7 +168,6 @@ class TrainTests(unittest.TestCase):
           get_test_config_path(),
           f"base_output_directory={_base_output_directory}",
           "run_name=runner_test",
-          f"dataset_path={dataset_path}",
           "dataset_type=synthetic",  # use synthetic dataset_type to decrease training time
           "quantization=te_mxfp8",
           "steps=2",
@@ -190,7 +181,6 @@ class TrainTests(unittest.TestCase):
           get_test_config_path(),
           f"base_output_directory={_base_output_directory}",
           "run_name=runner_test",
-          f"dataset_path={dataset_path}",
           "dataset_type=synthetic",  # use synthetic dataset_type to decrease training time
           "steps=2",
           "enable_checkpointing=False",
@@ -225,7 +215,7 @@ class TrainTests(unittest.TestCase):
   @pytest.mark.integration_test
   @pytest.mark.tpu_only
   def test_tpu_tokamax(self):
-    train_main(TrainTests.CONFIGS["base"] + ["use_tokamax_splash=true"])
+    train_main(TrainTests.CONFIGS["synthetic"] + ["use_tokamax_splash=true"])
 
   @pytest.mark.integration_test
   @pytest.mark.gpu_only
@@ -342,7 +332,6 @@ class TrainTests(unittest.TestCase):
         get_test_config_path(),
         f"base_output_directory={self._base_output_directory}",
         "run_name=runner_test",
-        f"dataset_path={self.dataset_path}",
         "dataset_type=synthetic",  # use synthetic dataset_type to decrease training time
         "steps=2",
         "enable_checkpointing=False",
@@ -363,7 +352,6 @@ class TrainTests(unittest.TestCase):
         get_test_config_path(),
         f"base_output_directory={self._base_output_directory}",
         "run_name=runner_test",
-        f"dataset_path={self.dataset_path}",
         "dataset_type=synthetic",  # use synthetic dataset_type to decrease training time
         "steps=10",
         "enable_checkpointing=False",
@@ -490,7 +478,7 @@ class TrainTests(unittest.TestCase):
 
   @pytest.mark.integration_test
   def test_base_model_shardy_false(self):
-    train_main(TrainTests.CONFIGS["base"] + ["shardy=False"])
+    train_main(TrainTests.CONFIGS["synthetic"] + ["shardy=False"])
 
   @pytest.mark.integration_test
   @pytest.mark.tpu_only
@@ -570,7 +558,6 @@ class TrainTests(unittest.TestCase):
         get_test_config_path(),
         f"base_output_directory={self._base_output_directory}",
         "run_name=runner_test",
-        f"dataset_path={self.dataset_path}",
         "dataset_type=synthetic",  # use synthetic dataset_type to decrease training time
         "steps=10",
         "enable_checkpointing=False",
@@ -595,7 +582,6 @@ class TrainTests(unittest.TestCase):
         get_test_config_path(),
         f"base_output_directory={self._base_output_directory}",
         "run_name=runner_test",
-        f"dataset_path={self.dataset_path}",
         "dataset_type=synthetic",  # use synthetic dataset_type to decrease training time
         "steps=10",
         "enable_checkpointing=False",
