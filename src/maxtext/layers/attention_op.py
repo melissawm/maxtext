@@ -32,7 +32,7 @@ from jax.experimental.pallas.ops.gpu import decode_attention as gpu_pallas_decod
 from jax.experimental.pallas.ops.tpu.splash_attention import splash_attention_kernel
 from jax.experimental.pallas.ops.tpu.splash_attention import splash_attention_mask
 import jax.numpy as jnp
-from jax.sharding import Mesh, NamedSharding
+from jax.sharding import Mesh
 from maxtext.common.common_types import (
     Array,
     AttentionType,
@@ -78,7 +78,7 @@ from maxtext.layers import nnx_wrappers
 from maxtext.layers.initializers import variable_to_logically_partitioned
 from maxtext.layers.quantizations import AqtQuantization as Quant
 from maxtext.utils import max_utils
-from maxtext.utils.sharding import logical_to_mesh_axes, maybe_shard_with_name
+from maxtext.utils.sharding import logical_to_mesh_axes, maybe_shard_with_pspec
 import numpy as np
 from tokamax._src.ops.experimental.tpu.splash_attention import splash_attention_kernel as tokamax_splash_kernel
 from tokamax._src.ops.experimental.tpu.splash_attention import splash_attention_mask as tokamax_splash_mask
@@ -1484,26 +1484,19 @@ class AttentionOp(nnx.Module):
 
       return attention_output, None
 
-    def _maybe_shard_with_pspec(inputs, pspec: jax.sharding.PartitionSpec | None):
-      # decoder_segment_ids can be None
-      if pspec is None:
-        return None
-      sharding = NamedSharding(self.mesh, pspec)
-      return maybe_shard_with_name(
-          inputs,
-          sharding,
-          shard_mode=self.config.shard_mode,
-          debug_sharding=self.config.debug_sharding,
-          extra_stack_level=1,
-      )
-
-    query = _maybe_shard_with_pspec(query, axis_names_q)
-    key = _maybe_shard_with_pspec(key, axis_names_kv)
-    value = _maybe_shard_with_pspec(value, axis_names_kv)
-    decoder_segment_ids_q = _maybe_shard_with_pspec(decoder_segment_ids, segment_axis_names_q)
-    decoder_segment_ids_kv = _maybe_shard_with_pspec(decoder_segment_ids, segment_axis_names_kv)
-    sinks = _maybe_shard_with_pspec(sinks, sink_axis_names)
-    indexer_mask = _maybe_shard_with_pspec(indexer_mask, indexer_mask_axis_names)
+    query = maybe_shard_with_pspec(query, self.mesh, self.config.shard_mode, axis_names_q, self.config.debug_sharding)
+    key = maybe_shard_with_pspec(key, self.mesh, self.config.shard_mode, axis_names_kv, self.config.debug_sharding)
+    value = maybe_shard_with_pspec(value, self.mesh, self.config.shard_mode, axis_names_kv, self.config.debug_sharding)
+    decoder_segment_ids_q = maybe_shard_with_pspec(
+        decoder_segment_ids, self.mesh, self.config.shard_mode, segment_axis_names_q, self.config.debug_sharding
+    )
+    decoder_segment_ids_kv = maybe_shard_with_pspec(
+        decoder_segment_ids, self.mesh, self.config.shard_mode, segment_axis_names_kv, self.config.debug_sharding
+    )
+    sinks = maybe_shard_with_pspec(sinks, self.mesh, self.config.shard_mode, sink_axis_names, self.config.debug_sharding)
+    indexer_mask = maybe_shard_with_pspec(
+        indexer_mask, self.mesh, self.config.shard_mode, indexer_mask_axis_names, self.config.debug_sharding
+    )
 
     ret = wrap_flash_attention(
         query,
