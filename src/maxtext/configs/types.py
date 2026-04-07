@@ -842,6 +842,7 @@ class LayoutAndSharding(BaseModel):
   shard_optimizer_over_data: bool = Field(False, description="Enable ZeRO-1 optimizer sharding over the data axis.")
   internal_compile: bool = Field(False, description="Use internal_compile to bypass open-source topology mappings.")
   internal_compile_num_devices: int = Field(-1, description="Number of devices when using internal_compile.")
+  compile_xla_flags: str = Field("", description="Compiler options for compilation only.")
 
 
 class DcnParallelism(BaseModel):

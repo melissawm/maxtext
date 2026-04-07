@@ -21,6 +21,7 @@ import functools
 from functools import partial
 import os
 import socket
+import re
 import subprocess
 import time
 from typing import Any
@@ -50,6 +51,43 @@ HYBRID_RING_64X4 = "hybrid_ring_64x4"
 HYBRID_RING_32X8 = "hybrid_ring_32x8"
 
 # pylint: disable=too-many-positional-arguments
+
+
+def parse_libtpu_flags_to_dict(flags_str: str) -> dict:
+  """
+  Parses a string of XLA flags into a dictionary of compilation options.
+  This function is only for compilation usage.
+  """
+  if not flags_str or not flags_str.strip():
+    return {}
+
+  # Clean the string by removing line-continuation backslashes
+  cleaned_str = flags_str.replace("\\", " ")
+
+  # Split by any whitespace (handles single spaces, multiple spaces, newlines)
+  tokens = cleaned_str.split()
+
+  options_dict = {}
+
+  # Regex to strictly match '--key=value' for an isolated token
+  # Key assumes alphanumeric + underscores. Value is anything after the '='.
+  token_pattern = re.compile(r"^--([a-zA-Z0-9_]+)=(.+)$")
+
+  for token in tokens:
+    match = token_pattern.match(token)
+    if not match:
+      # Throw an error immediately if any token fails the strict format
+      raise ValueError(f"Invalid flag format detected: '{token}'. Expected format: '--key=value'")
+
+    key, value = match.groups()
+
+    # Optional: Catch duplicate flags
+    if key in options_dict:
+      raise ValueError(f"Duplicate flag detected: '--{key}'")
+
+    options_dict[key] = value
+
+  return options_dict
 
 
 def with_memory_kind(t, memory_kind):
