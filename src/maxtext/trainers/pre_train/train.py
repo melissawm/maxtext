@@ -41,6 +41,7 @@ from flax.linen import partitioning as nn_partitioning
 from maxtext.configs import pyconfig
 from maxtext.common.common_types import ShardMode
 from maxtext.utils.globals import EPS
+from maxtext.utils import elastic_utils
 # Placeholder: internal
 
 # pylint: disable=too-many-positional-arguments
@@ -675,11 +676,35 @@ def run(config, recorder, diagnostic_config):
     train_loop(config, recorder)
 
 
+def get_train_func(config, recorder, diagnostic_config, argv):
+  """Returns the train function, wrapping in elastic_retry if elastic training is enabled."""
+  if config.elastic_enabled:
+    max_logging.log("Elastic utils: Elastic training enabled.")
+
+    def elastic_train_wrapper(argv: Sequence[str]) -> None:
+      """Wrapper for elastic training initializes variables and runs the train loop."""
+      elastic_config, elastic_recorder, elastic_diagnostic_config = initialize(argv)
+      run(
+          elastic_config,
+          elastic_recorder,
+          elastic_diagnostic_config,
+      )
+
+    train_func = elastic_utils.elastic_retry(config)(functools.partial(elastic_train_wrapper, argv=argv))
+  else:
+    # Use the already initialized variables
+    def train_func():
+      run(config, recorder, diagnostic_config)
+
+  return train_func
+
+
 def main(argv: Sequence[str]) -> None:
   config, recorder, diagnostic_config = initialize(argv)
   record_goodput(recorder, RECORD_JOB_START_TIME)
+  train_func = get_train_func(config, recorder, diagnostic_config, argv)
   with maybe_monitor_goodput(config):
-    run(config, recorder, diagnostic_config)
+    train_func()
 
 
 if __name__ == "__main__":
