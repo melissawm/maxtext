@@ -38,6 +38,9 @@ source maxtext_venv/bin/activate
 
 # 3. Install MaxText and its dependencies. Choose a single
 # installation option from this list to fit your use case.
+# IMPORTANT: If you want to switch to a different installation option
+# (e.g., from [tpu] to [tpu-post-train]), we strongly recommend
+# starting with a fresh virtual environment to avoid dependency conflicts.
 
 # Option 1: Installing maxtext[tpu]
 uv pip install maxtext[tpu]==0.2.1 --resolution=lowest
@@ -80,7 +83,10 @@ uv venv --python 3.12 --seed maxtext_venv
 source maxtext_venv/bin/activate
 
 # 3. Install dependencies in editable mode. Choose a single
-#      installation option from this list to fit your use case.
+# installation option from this list to fit your use case.
+# IMPORTANT: If you want to switch to a different installation option
+# (e.g., from [tpu] to [tpu-post-train]), we strongly recommend
+# starting with a fresh virtual environment to avoid dependency conflicts.
 
 # Option 1: Installing .[tpu]
 uv pip install -e .[tpu] --resolution=lowest
