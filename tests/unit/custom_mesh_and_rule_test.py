@@ -63,6 +63,7 @@ class CustomMeshAndRuleTest(unittest.TestCase):
             "base_emb_dim=256",
             "base_mlp_dim=256",
             "base_num_decoder_layers=4",
+            "use_tokamax_splash=true",
             "custom_mesh_and_rule=pipeline-large-moe",
         )
     )

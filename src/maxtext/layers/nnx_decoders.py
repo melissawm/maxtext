@@ -30,7 +30,6 @@ from jax.ad_checkpoint import checkpoint_name
 from jax.sharding import Mesh
 
 from maxtext.common.common_types import (
-    EP_AS_CONTEXT,
     MODEL_MODE_AUTOREGRESSIVE,
     MODEL_MODE_PREFILL,
     MODEL_MODE_TRAIN,
@@ -169,10 +168,8 @@ class NNXDecoderLayer(nnx.Module):
 
     if self.model_mode == MODEL_MODE_PREFILL:
       logical_axis_names = ("activation_batch", "prefill_activation_length", "activation_embed")
-    elif self.config.expert_shard_attention_option == EP_AS_CONTEXT and self.model_mode == MODEL_MODE_TRAIN:
-      logical_axis_names = ("activation_batch_no_exp", "activation_length", "activation_embed")
     else:
-      logical_axis_names = ("activation_batch", "activation_length_no_exp", "activation_embed")
+      logical_axis_names = ("activation_batch", "activation_length", "activation_embed")
 
     inputs = _maybe_shard_with_logical(inputs, logical_axis_names)
     inputs = checkpoint_name(inputs, "decoder_layer_input")
@@ -739,7 +736,7 @@ class NNXDecoder(nnx.Module):
 
     cfg = self.config
     if cfg.shard_mode == ShardMode.EXPLICIT:
-      norm_out_sharding = create_sharding(self.mesh, ("activation_batch", "activation_length_no_exp", "activation_embed"))
+      norm_out_sharding = create_sharding(self.mesh, ("activation_batch", "activation_length", "activation_embed"))
     else:
       norm_out_sharding = None
 
@@ -750,7 +747,7 @@ class NNXDecoder(nnx.Module):
       out_sharding = create_sharding(self.mesh, (None, None, "activation_vocab"))
     else:
       out_sharding = create_sharding(
-          self.mesh, ("activation_embed_and_logits_batch", "activation_length_no_exp", "activation_vocab")
+          self.mesh, ("activation_embed_and_logits_batch", "activation_length", "activation_vocab")
       )
 
     # [batch, length, emb_dim] -> [batch, length, vocab_size]

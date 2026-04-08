@@ -31,7 +31,6 @@ data_sharding: [['data', 'stage', 'fsdp', 'context', 'tensor', 'expert']]
 logical_axis_rules: [
                       ['activation_batch', ['data', 'fsdp', 'expert']],
                       ['activation_batch_moe', ['data', 'fsdp', 'expert']],
-                      ['activation_batch_no_exp', ['data', 'fsdp']],
                       ['activation_batch_no_exp_moe', ['data', 'fsdp']],
                       ['activation_embed_and_logits_batch', ['data', 'stage', 'fsdp', 'expert']],
                       ['activation_embed_and_logits_batch_sequence', ['data', 'stage', 'fsdp', 'context', 'expert']],
