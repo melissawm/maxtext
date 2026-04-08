@@ -1145,3 +1145,13 @@ def generate_representative_group_sizes(target_m: int, g: int) -> tuple[int, ...
   repr_val = np.int32((repr_val / np.sum(repr_val)) * target_m)
   repr_val[0] += target_m - np.sum(repr_val)
   return tuple(map(int, repr_val))
+
+
+def maybe_pad(inputs, tile_size):
+  """Pads the inputs leading dimension to be divisible by tile_size."""
+  inputs_dim = inputs.shape[0]
+  padding_amount = 0
+  if inputs_dim % tile_size:
+    padding_amount = tile_size - inputs_dim % tile_size
+    inputs = jax.lax.pad(inputs, jnp.array(0.0, dtype=inputs.dtype), [(0, padding_amount, 0), (0, 0, 0)])
+  return inputs, padding_amount

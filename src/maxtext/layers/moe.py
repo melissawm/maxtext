@@ -905,46 +905,86 @@ class RoutedMoE(nnx.Module):
   ):
     """Perform sparse matrix multiplication of inputs and Experts."""
 
-    def gmm(
-        inputs, kernel, tiling, group_sizes, expert_assignments, weight_gather_axes, input_buffer_count, combine_scopes
-    ):
+    def jax_ragged_dot_gmm(inputs, kernel, tiling, group_sizes, expert_assignments, padding_amount):
+      """Execute jax.lax.ragged_dot, with potential quantization"""
+      m, k, n = inputs.shape[0], inputs.shape[1], kernel.shape[2]
+      tiling = (
+          min(tiling[0], m),
+          min(tiling[1], k),
+          min(tiling[2], n),
+      )
+      rhs_inputs = kernel
+      if isinstance(kernel, aqt.QTensor):
+        if kernel.bias or kernel.sparsity_mask or len(kernel.scale) > 1:
+          raise ValueError("Unsupported usecase for ragged_dot with quantized kernel.")
+        rhs_inputs = kernel.qvalue
+      if self.config.use_qwix_quantization:
+        # Use full contraction for QWIX quantization to allow quantization
+        # fusion (max reduce over contracting dimension).
+        tiling = (tiling[0], k, tiling[2])
+
+      is_tpu = self.mesh.devices.flat[0] == "tpu"
+      # TPU needs random mosaic_fusion_group; GPU/CPU needs deterministic ID for autotuner sync
+      mosaic_group_id = f"{random.randint(0, 1000000000)}" if is_tpu else "0"
+      with set_xla_metadata(
+          ragged_dot_tiling=",".join([str(t) for t in tiling]),
+          mosaic_fusion_group=mosaic_group_id,
+      ):
+        output = jax.lax.ragged_dot(
+            lhs=inputs,
+            rhs=rhs_inputs,
+            group_sizes=group_sizes,
+            preferred_element_type=self.dtype,
+        )
+      if isinstance(kernel, aqt.QTensor):
+        # Multiply outputs by the kernely scale
+        scales = jnp.take(kernel.scale[0].squeeze(), indices=expert_assignments, axis=0)
+        if padding_amount > 0:
+          scales = jax.lax.pad(
+              scales,
+              jnp.array(0.0, dtype=scales.dtype),
+              [(0, padding_amount, 0), (0, 0, 0)],
+          )
+        output *= scales
+      return output
+
+    def get_tokamax_group_sizes(group_sizes, inputs, kernel):
       # TODO (b/491979205) pipeline fsdp ag per repeat fails tokamax gmm
       if self.config.using_pipeline_parallelism and self.config.pipeline_fsdp_ag_per_repeat:
-        tokamax_group_sizes = group_sizes
+        return group_sizes
       elif self.config.attention == "vllm_rpa":
-        tokamax_group_sizes = group_sizes
+        return group_sizes
       else:
-        tokamax_group_sizes = tokamax.RaggedDotGroupSizes(
+        return tokamax.RaggedDotGroupSizes(
             group_sizes,
             max_utils.generate_representative_group_sizes(inputs.shape[0], kernel.shape[0]),
         )
-      pad_length = self.config.wi_tile_fwd_batch_seq
-      hs_shape = inputs.shape
-      # pad length is the 1st dimension of tiling size in gmm call
-      if inputs.shape[0] != expert_assignments.shape[0]:
-        raise ValueError("The number of input tokens must match the number of expert" " assignments!")
-      padding_amount = 0
-      if hs_shape[0] % pad_length:
-        padding_amount = pad_length - hs_shape[0] % pad_length
-        inputs = jax.lax.pad(inputs, jnp.array(0.0, dtype=inputs.dtype), [(0, padding_amount, 0), (0, 0, 0)])
 
-      inputs = inputs.astype(self.dtype)
-      kernel = kernel.astype(self.dtype)
-
+    def get_quantization_dtypes():
       lhs_quantize_dtype, rhs_quantize_dtype = None, None
       if self.quant is not None:
         quant_dg = self.quant.quant_dg
         lhs_quantize_dtype = quant_dg.fwd.dg_quantizer.lhs.numerics.get_dtype()
         rhs_quantize_dtype = quant_dg.fwd.dg_quantizer.rhs.numerics.get_dtype()
-      m, k, n = inputs.shape[0], inputs.shape[1], kernel.shape[2]
-      if not self.config.megablox and not self.config.use_tokamax_gmm:
-        tiling = (
-            min(tiling[0], m),
-            min(tiling[1], k),
-            min(tiling[2], n),
-        )
+      return lhs_quantize_dtype, rhs_quantize_dtype
+
+    def gmm(
+        inputs, kernel, tiling, group_sizes, expert_assignments, weight_gather_axes, input_buffer_count, combine_scopes
+    ):
+      if inputs.shape[0] != expert_assignments.shape[0]:
+        raise ValueError("The number of input tokens must match the number of expert assignments!")
+
+      tokamax_group_sizes = get_tokamax_group_sizes(group_sizes, inputs, kernel)
+      orig_inputs_shape = inputs.shape  # save shape of inputs before potentially padding.
+      inputs, padding_amount = max_utils.maybe_pad(inputs, self.config.wi_tile_fwd_batch_seq)
+      inputs = inputs.astype(self.dtype)
+      kernel = kernel.astype(self.dtype)
+      lhs_quantize_dtype, rhs_quantize_dtype = get_quantization_dtypes()
+
+      # We support three implementations for gmm - tokamax, older forked kernel, or jax.lax.ragged_dot
+      # For quantized tokamax we call a forked version that supports our quantization recipes.
       if self.config.use_tokamax_gmm:
-        if self.config.quantization:
+        if self.config.quantization:  # tokamax (quantized)
           output = mblx.gmm(
               lhs=inputs,
               rhs=kernel,
@@ -959,7 +999,7 @@ class RoutedMoE(nnx.Module):
               input_buffer_count=input_buffer_count,
               combine_scopes=combine_scopes,
           )
-        else:
+        else:  # tokamax (unquantized)
           output = tokamax.ragged_dot(
               lhs=inputs,
               rhs=kernel,
@@ -968,56 +1008,23 @@ class RoutedMoE(nnx.Module):
               preferred_element_type=self.dtype,
               implementation="mosaic",
           )
-      else:
-        if self.config.megablox:
-          output = mblx.gmm(
-              lhs=inputs,
-              rhs=kernel,
-              group_sizes=group_sizes,
-              preferred_element_type=self.dtype,
-              tiling=tiling,
-              lhs_quantize_dtype=lhs_quantize_dtype,
-              rhs_quantize_dtype=rhs_quantize_dtype,
-              use_qwix_quantization=self.config.use_qwix_quantization,
-              use_tokamax_backend=self.config.use_tokamax_gmm,
-              weight_gather_axes=weight_gather_axes,
-          )
-        else:
-          rhs_inputs = kernel
-          if isinstance(kernel, aqt.QTensor):
-            if kernel.bias or kernel.sparsity_mask or len(kernel.scale) > 1:
-              raise ValueError("Unsupported usecase for ragged_dot with quantized kernel.")
-            rhs_inputs = kernel.qvalue
-          if self.config.use_qwix_quantization:
-            # Use full contraction for QWIX quantization to allow quantization
-            # fusion (max reduce over contracting dimension).
-            tiling = (tiling[0], k, tiling[2])
-
-          is_tpu = self.mesh.devices.flat[0] == "tpu"
-          # TPU needs random mosaic_fusion_group; GPU/CPU needs deterministic ID for autotuner sync
-          mosaic_group_id = f"{random.randint(0, 1000000000)}" if is_tpu else "0"
-          with set_xla_metadata(
-              ragged_dot_tiling=",".join([str(t) for t in tiling]),
-              mosaic_fusion_group=mosaic_group_id,
-          ):
-            output = jax.lax.ragged_dot(
-                lhs=inputs,
-                rhs=rhs_inputs,
-                group_sizes=group_sizes,
-                preferred_element_type=self.dtype,
-            )
-          if isinstance(kernel, aqt.QTensor):
-            # Multiply outputs by the kernely scale
-            scales = jnp.take(kernel.scale[0].squeeze(), indices=expert_assignments, axis=0)
-            if padding_amount > 0:
-              scales = jax.lax.pad(
-                  scales,
-                  jnp.array(0.0, dtype=scales.dtype),
-                  [(0, padding_amount, 0), (0, 0, 0)],
-              )
-            output *= scales
+      elif self.config.megablox:  # Older forked megablox
+        output = mblx.gmm(
+            lhs=inputs,
+            rhs=kernel,
+            group_sizes=group_sizes,
+            preferred_element_type=self.dtype,
+            tiling=tiling,
+            lhs_quantize_dtype=lhs_quantize_dtype,
+            rhs_quantize_dtype=rhs_quantize_dtype,
+            use_qwix_quantization=self.config.use_qwix_quantization,
+            use_tokamax_backend=self.config.use_tokamax_gmm,
+            weight_gather_axes=weight_gather_axes,
+        )
+      else:  # jax.lax.ragged_dot
+        output = jax_ragged_dot_gmm(inputs, kernel, tiling, group_sizes, expert_assignments, padding_amount)
       if padding_amount > 0:
-        output = output[: hs_shape[0]]
+        output = output[: orig_inputs_shape[0]]
       return output
 
     # Currently, we support data, tensor, and expert parallelism with Megablox.

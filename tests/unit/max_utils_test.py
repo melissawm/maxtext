@@ -318,5 +318,31 @@ class TestGpuDistributedInitialization(unittest.TestCase):
     mock_log.assert_any_call("Using CUDA_VISIBLE_DEVICES to initialize JAX distributed system: 0,2")
 
 
+class TestMaybePad(unittest.TestCase):
+  """Tests that maybe_pad satisfies its contract."""
+
+  def test_odd_shape_padded(self):
+    inputs = jnp.ones((9, 8))
+    tile_size = 4
+
+    target_padding_amount = 3
+    target = jnp.concat((inputs, jnp.zeros((3, 8))))
+
+    padded, padding_amount = max_utils.maybe_pad(inputs, tile_size)
+    self.assertTrue(jnp.equal(padded, target).all())
+    self.assertEqual(padding_amount, target_padding_amount)
+
+  def test_regular_shape_unpadded(self):
+    inputs = jnp.ones((12, 13))
+    tile_size = 4
+
+    target_padding_amount = 0
+    target = jnp.ones((12, 13))
+
+    padded, padding_amount = max_utils.maybe_pad(inputs, tile_size)
+    self.assertTrue(jnp.equal(padded, target).all())
+    self.assertEqual(padding_amount, target_padding_amount)
+
+
 if __name__ == "__main__":
   unittest.main()
