@@ -18,16 +18,19 @@
 
 The contents of `src/MaxText` have moved to `src/maxtext` as part of a larger 
 [restructuring effort in MaxText](https://github.com/AI-Hypercomputer/maxtext/blob/2790ed289c0c4cb704645d5d2ab91da26711b891/RESTRUCTURE.md).
-This directory only contains shim files to temporarily support legacy commands like `python3 -m MaxText.train ...`.
-These legacy commands are now deprecated and will be removed soon. Please migrate your existing commands and avoid using
-legacy ones. The new command locations can be found at:
+
+The legacy `MaxText.*` shim files for the core commands listed below have been removed. 
+Please migrate your existing commands to the new locations:
 
 * `MaxText.decode` → `maxtext.inference.decode`
-* `MaxText.distillation.train_distill` → `maxtext.trainers.post_train.distillation.train_distill`
 * `MaxText.maxengine_server` → `maxtext.inference.maxengine.maxengine_server`
-* `MaxText.rl.evaluate_rl` → `maxtext.trainers.post_train.rl.evaluate_rl`
-* `MaxText.rl.train_rl` → `maxtext.trainers.post_train.rl.train_rl`
-* `MaxText.sft.sft_trainer` → `maxtext.trainers.post_train.sft.train_sft`
 * `MaxText.train` → `maxtext.trainers.pre_train.train`
 * `MaxText.train_compile` → `maxtext.trainers.pre_train.train_compile`
 * `MaxText.train_tokenizer` → `maxtext.trainers.tokenizer.train_tokenizer`
+
+The following shims are still temporarily available in their respective subdirectories but are deprecated and will be removed soon:
+
+* `MaxText.distillation.train_distill` → `maxtext.trainers.post_train.distillation.train_distill`
+* `MaxText.rl.evaluate_rl` → `maxtext.trainers.post_train.rl.evaluate_rl`
+* `MaxText.rl.train_rl` → `maxtext.trainers.post_train.rl.train_rl`
+* `MaxText.sft.sft_trainer` → `maxtext.trainers.post_train.sft.train_sft`
