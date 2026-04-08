@@ -13,7 +13,8 @@
 # limitations under the License.
 
 """Common Max Utils needed by multiple modules.
-All the functions include MaxText modules, such as Pyconfig, should be moved to MaxText utils file."""
+All the functions include MaxText modules, such as Pyconfig, should be moved to MaxText utils file.
+"""
 
 import collections
 from collections.abc import Sequence
@@ -288,12 +289,21 @@ def initialize_jax_for_gpu(raw_keys):
   if os.environ.get("JAX_COORDINATOR_IP") is not None:
     coordinator_ip = str(os.getenv("JAX_COORDINATOR_IP"))
     coordinator_port = str(os.getenv("JAX_COORDINATOR_PORT"))
-    devices = os.getenv("CUDA_VISIBLE_DEVICES")
+    env_var_list = ["CUDA_VISIBLE_DEVICES", "SLURM_STEP_GPUS"]
+    for env_var in env_var_list:
+      devices = os.getenv(env_var)
+      if devices is not None:
+        max_logging.log(f"Using {env_var} to initialize JAX distributed system: {devices}")
+        break
+    if devices is None:
+      jax.config.update("jax_cuda_visible_devices", "all")
+      jax.config.update("jax_rocm_visible_devices", "all")
+
     if devices is not None:
       try:
         devices = [int(x) for x in devices.split(",")]
       except (ValueError, TypeError) as e:
-        max_logging.log(f"Error parsing CUDA_VISIBLE_DEVICES: {e}")
+        max_logging.log(f"Error parsing {env_var}: {e}")
         devices = None
 
     jax.distributed.initialize(
@@ -886,7 +896,14 @@ def reorder_causal_load_balanced(batch, cp_size):
           cp_size=cp_size,
       )
       if key
-      in ["inputs", "targets", "inputs_position", "targets_position", "inputs_segmentation", "targets_segmentation"]
+      in [
+          "inputs",
+          "targets",
+          "inputs_position",
+          "targets_position",
+          "inputs_segmentation",
+          "targets_segmentation",
+      ]
       else value
       for key, value in batch.items()
   }
