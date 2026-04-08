@@ -83,6 +83,8 @@ def create_training_tools(config, model, mesh):
         config.colocated_python_checkpointing,
         config.enable_single_replica_ckpt_restoring,
         config.enable_autocheckpoint,
+        config.checkpoint_todelete_subdir,
+        config.checkpoint_todelete_full_path,
     )
 
   return init_rng, checkpoint_manager, learning_rate_schedule, tx
