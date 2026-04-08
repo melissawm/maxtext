@@ -2,31 +2,31 @@
   "Activation Sharding Dump": [
     {
       "attentions/inputs_q: bfloat16[768,2048,1024]": {
-        "logic_axes": "('activation_batch', 'activation_attn_length_no_exp', 'activation_attn_embed')",
+        "logic_axes": "('activation_batch', 'activation_attn_length', 'activation_attn_embed')",
         "PartitionSpec": "P(('data', 'fsdp'), None, None)"
       }
     },
     {
       "attentions/inputs_kv: bfloat16[768,2048,1024]": {
-        "logic_axes": "('activation_batch', 'activation_attn_length_no_exp', 'activation_attn_embed')",
+        "logic_axes": "('activation_batch', 'activation_attn_length', 'activation_attn_embed')",
         "PartitionSpec": "P(('data', 'fsdp'), None, None)"
       }
     },
     {
       "attentions/query: bfloat16[768,2048,16,128]": {
-        "logic_axes": "('activation_kv_batch', 'activation_attn_length_no_exp', 'activation_kv_heads', 'activation_kv_head_dim')",
+        "logic_axes": "('activation_kv_batch', 'activation_attn_length', 'activation_kv_heads', 'activation_kv_head_dim')",
         "PartitionSpec": "P(('data', 'fsdp'), None, None, None)"
       }
     },
     {
       "attentions/key: bfloat16[768,2048,8,128]": {
-        "logic_axes": "('activation_kv_batch', 'activation_attn_length_no_exp', 'activation_kv_heads', 'activation_kv_head_dim')",
+        "logic_axes": "('activation_kv_batch', 'activation_attn_length', 'activation_kv_heads', 'activation_kv_head_dim')",
         "PartitionSpec": "P(('data', 'fsdp'), None, None, None)"
       }
     },
     {
       "attentions/value: bfloat16[768,2048,8,128]": {
-        "logic_axes": "('activation_kv_batch', 'activation_attn_length_no_exp', 'activation_kv_heads', 'activation_kv_head_dim')",
+        "logic_axes": "('activation_kv_batch', 'activation_attn_length', 'activation_kv_heads', 'activation_kv_head_dim')",
         "PartitionSpec": "P(('data', 'fsdp'), None, None, None)"
       }
     },
@@ -50,7 +50,7 @@
     },
     {
       "attentions/out: bfloat16[768,2048,16,128]": {
-        "logic_axes": "('activation_batch', 'activation_attn_length_no_exp', 'activation_heads', 'activation_kv')",
+        "logic_axes": "('activation_batch', 'activation_attn_length', 'activation_heads', 'activation_kv')",
         "PartitionSpec": "P(('data', 'fsdp'), None, None, None)"
       }
     },

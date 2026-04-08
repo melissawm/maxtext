@@ -34,7 +34,6 @@ from maxtext.common.common_types import (
     AxisNames,
     AxisIdxes,
     ATTN_LENGTH,
-    ATTN_LENGTH_NO_EXP,
     DType,
     Config,
     Array,
@@ -44,12 +43,10 @@ from maxtext.common.common_types import (
     KV_HEAD,
     KV_HEAD_DIM,
     KV_BATCH,
-    KV_BATCH_NO_EXP,
     ATTN_EMBED,
     MODEL_MODE_AUTOREGRESSIVE,
     MODEL_MODE_TRAIN,
     MODEL_MODE_PREFILL,
-    EP_AS_CONTEXT,
     AttentionType,
 )
 from maxtext.layers import nnx_wrappers
@@ -141,14 +138,11 @@ def attention_as_linen(
     prefill_query_axis_names: AxisNames = (PREFILL_KV_BATCH, PREFILL_LENGTH, KV_HEAD, KV_HEAD_DIM),
     prefill_key_axis_names: AxisNames = (PREFILL_KV_BATCH, PREFILL_LENGTH, KV_HEAD, KV_HEAD_DIM),
     prefill_value_axis_names: AxisNames = (PREFILL_KV_BATCH, PREFILL_LENGTH, KV_HEAD, KV_HEAD_DIM),
-    query_axis_names: AxisNames = (KV_BATCH, ATTN_LENGTH_NO_EXP, KV_HEAD, KV_HEAD_DIM),
-    key_axis_names: AxisNames = (KV_BATCH, ATTN_LENGTH_NO_EXP, KV_HEAD, KV_HEAD_DIM),
-    value_axis_names: AxisNames = (KV_BATCH, ATTN_LENGTH_NO_EXP, KV_HEAD, KV_HEAD_DIM),
-    ep_query_axis_names: AxisNames = (KV_BATCH_NO_EXP, ATTN_LENGTH, KV_HEAD, KV_HEAD_DIM),
-    ep_key_axis_names: AxisNames = (KV_BATCH_NO_EXP, ATTN_LENGTH, KV_HEAD, KV_HEAD_DIM),
-    ep_value_axis_names: AxisNames = (KV_BATCH_NO_EXP, ATTN_LENGTH, KV_HEAD, KV_HEAD_DIM),
-    input_axis_names: AxisNames = (BATCH, ATTN_LENGTH_NO_EXP, ATTN_EMBED),
-    out_axis_names: AxisNames = (BATCH, ATTN_LENGTH_NO_EXP, HEAD, D_KV),
+    query_axis_names: AxisNames = (KV_BATCH, ATTN_LENGTH, KV_HEAD, KV_HEAD_DIM),
+    key_axis_names: AxisNames = (KV_BATCH, ATTN_LENGTH, KV_HEAD, KV_HEAD_DIM),
+    value_axis_names: AxisNames = (KV_BATCH, ATTN_LENGTH, KV_HEAD, KV_HEAD_DIM),
+    input_axis_names: AxisNames = (BATCH, ATTN_LENGTH, ATTN_EMBED),
+    out_axis_names: AxisNames = (BATCH, ATTN_LENGTH, HEAD, D_KV),
     prefill_input_axis_names: AxisNames = (PREFILL_KV_BATCH, PREFILL_LENGTH, ATTN_EMBED),
     decode_input_axis_names: AxisNames = (DECODE_BATCH, DECODE_LENGTH, ATTN_EMBED),
     prefill_out_axis_names: AxisNames = (PREFILL_KV_BATCH, PREFILL_LENGTH, HEAD, D_KV),
@@ -208,9 +202,6 @@ def attention_as_linen(
       query_axis_names=query_axis_names,
       key_axis_names=key_axis_names,
       value_axis_names=value_axis_names,
-      ep_query_axis_names=ep_query_axis_names,
-      ep_key_axis_names=ep_key_axis_names,
-      ep_value_axis_names=ep_value_axis_names,
       input_axis_names=input_axis_names,
       out_axis_names=out_axis_names,
       prefill_input_axis_names=prefill_input_axis_names,
@@ -304,14 +295,11 @@ class Attention(nnx.Module):
       prefill_query_axis_names: AxisNames = (PREFILL_KV_BATCH, PREFILL_LENGTH, KV_HEAD, KV_HEAD_DIM),
       prefill_key_axis_names: AxisNames = (PREFILL_KV_BATCH, PREFILL_LENGTH, KV_HEAD, KV_HEAD_DIM),
       prefill_value_axis_names: AxisNames = (PREFILL_KV_BATCH, PREFILL_LENGTH, KV_HEAD, KV_HEAD_DIM),
-      query_axis_names: AxisNames = (KV_BATCH, ATTN_LENGTH_NO_EXP, KV_HEAD, KV_HEAD_DIM),
-      key_axis_names: AxisNames = (KV_BATCH, ATTN_LENGTH_NO_EXP, KV_HEAD, KV_HEAD_DIM),
-      value_axis_names: AxisNames = (KV_BATCH, ATTN_LENGTH_NO_EXP, KV_HEAD, KV_HEAD_DIM),
-      ep_query_axis_names: AxisNames = (KV_BATCH_NO_EXP, ATTN_LENGTH, KV_HEAD, KV_HEAD_DIM),
-      ep_key_axis_names: AxisNames = (KV_BATCH_NO_EXP, ATTN_LENGTH, KV_HEAD, KV_HEAD_DIM),
-      ep_value_axis_names: AxisNames = (KV_BATCH_NO_EXP, ATTN_LENGTH, KV_HEAD, KV_HEAD_DIM),
-      input_axis_names: AxisNames = (BATCH, ATTN_LENGTH_NO_EXP, ATTN_EMBED),
-      out_axis_names: AxisNames = (BATCH, ATTN_LENGTH_NO_EXP, HEAD, D_KV),
+      query_axis_names: AxisNames = (KV_BATCH, ATTN_LENGTH, KV_HEAD, KV_HEAD_DIM),
+      key_axis_names: AxisNames = (KV_BATCH, ATTN_LENGTH, KV_HEAD, KV_HEAD_DIM),
+      value_axis_names: AxisNames = (KV_BATCH, ATTN_LENGTH, KV_HEAD, KV_HEAD_DIM),
+      input_axis_names: AxisNames = (BATCH, ATTN_LENGTH, ATTN_EMBED),
+      out_axis_names: AxisNames = (BATCH, ATTN_LENGTH, HEAD, D_KV),
       prefill_input_axis_names: AxisNames = (PREFILL_KV_BATCH, PREFILL_LENGTH, ATTN_EMBED),
       decode_input_axis_names: AxisNames = (DECODE_BATCH, DECODE_LENGTH, ATTN_EMBED),
       prefill_out_axis_names: AxisNames = (PREFILL_KV_BATCH, PREFILL_LENGTH, HEAD, D_KV),
@@ -413,9 +401,6 @@ class Attention(nnx.Module):
     self.query_axis_names = query_axis_names
     self.key_axis_names = key_axis_names
     self.value_axis_names = value_axis_names
-    self.ep_query_axis_names = ep_query_axis_names
-    self.ep_key_axis_names = ep_key_axis_names
-    self.ep_value_axis_names = ep_value_axis_names
     self.input_axis_names = input_axis_names
     self.out_axis_names = out_axis_names
     self.prefill_input_axis_names = prefill_input_axis_names
@@ -1161,10 +1146,6 @@ class Attention(nnx.Module):
       query = self._maybe_shard_with_logical(query, (DECODE_BATCH, DECODE_LENGTH, HEAD, D_KV))
       key = self._maybe_shard_with_logical(key, (DECODE_BATCH, DECODE_LENGTH, KV_HEAD, D_KV))
       value = self._maybe_shard_with_logical(value, (DECODE_BATCH, DECODE_LENGTH, KV_HEAD, D_KV))
-    elif model_mode == MODEL_MODE_TRAIN and self.config.expert_shard_attention_option == EP_AS_CONTEXT:
-      query = self._maybe_shard_with_logical(query, self.ep_query_axis_names)
-      key = self._maybe_shard_with_logical(key, self.ep_key_axis_names)
-      value = self._maybe_shard_with_logical(value, self.ep_value_axis_names)
     else:
       query = self._maybe_shard_with_logical(query, self.query_axis_names)
       key = self._maybe_shard_with_logical(key, self.key_axis_names)

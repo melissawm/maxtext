@@ -24,7 +24,6 @@ logical_axis_rules: [
                       ['activation_embed_and_logits_batch_sequence', ['fsdp']],
                       ['activation_prefill_kv_batch', ['fsdp']],
                       ['activation_kv_batch', ['fsdp']],
-                      ['activation_kv_batch_no_exp', ['fsdp']],
                       ['decode_batch', ['fsdp']],
                       ['embed', ['fsdp']],
                       ['embed_no_exp', ['fsdp']],
