@@ -1,4 +1,4 @@
-# Copyright 2023–2025 Google LLC
+# Copyright 2023–2026 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -38,13 +38,13 @@ def data_load_loop(config, state=None):
   """Main data loader loop.
   Loads batches of data for each training step.
   """
-  _, _, _, _, mesh, _, data_iterator, _, _, _, state = setup_train_loop(config, recorder=None)
+  _, _, _, model, mesh, _, data_iterator, _, _, _, state = setup_train_loop(config, recorder=None)
   data_loader = DataLoader(config, mesh, data_iterator, None)
 
   example_batch = None
 
   start = datetime.datetime.now()
-  start_step = get_first_step(state)
+  start_step = get_first_step(model, state)
   example_batch = data_loader.load_next_batch()
   jax.block_until_ready(example_batch)
   first_end = datetime.datetime.now()

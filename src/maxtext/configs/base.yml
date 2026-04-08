@@ -1,4 +1,4 @@
-# Copyright 2023–2025 Google LLC
+# Copyright 2023–2026 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -59,6 +59,10 @@ max_num_checkpoints_to_keep: None
 enable_continuous_checkpointing: False
 # enables one replica to read the ckpt then broadcast to the rest
 enable_single_replica_ckpt_restoring: False
+# Subdirectory to move checkpoints to before deletion. For example: ".todelete" (Ignored if directory is prefixed with gs://)
+checkpoint_todelete_subdir: None
+# Full path to move checkpoints to before deletion.
+checkpoint_todelete_full_path: None
 
 force_unroll: False # during generate_param_only_checkpoint should we unroll the loop?
 
@@ -158,6 +162,9 @@ base_num_kv_heads: 16
 base_mlp_dim: 7168
 base_num_decoder_layers: 16
 head_dim: 128
+# Those parameters are only used with global attention for Gemma4.
+global_head_dim: 0
+global_num_kv_heads: 0
 mlp_activations: ["silu", "linear"]
 mlp_activations_limit: -1.0
 dropout_rate: 0.0
@@ -168,6 +175,7 @@ cast_logits_to_fp32: true # whether to cast the logits to fp32. the higher preci
 float32_qk_product: false # in dot_product attention, whether to cast to fp32 the inputs to qk product
 float32_logits: false # in dot_product attention, whether to cast to fp32 the inputs to softmax
 float32_weight_sum: true # whether to use full fp32 precision to sum expert weights for numerical stability
+float32_gate_logits: false # whether to cast inputs to fp32 to compute MoE gate logits for numerical stability
 
 # multi-token prediction configs
 # the number of auxiliary prediction layers to use for mtp.
@@ -302,7 +310,7 @@ pipeline_fsdp_ag_per_repeat: False
 # It may be useful to do the reverse when the layers_per_stage is very large.
 # The below settings only have effect when using pipeline parallelism.
 scan_pipeline_iterations: True
-scan_pipeline_repeats: True
+scan_pipeline_repeats: False
 scan_layers_per_stage: False
 set_remat_policy_on_pipeline_iterations: True
 set_remat_policy_on_layers_per_stage: False
@@ -354,6 +362,8 @@ final_logits_soft_cap: 0.0
 z_loss_multiplier: 0.0
 use_post_attn_norm: False
 use_post_ffw_norm: False
+v_norm_with_scale: True
+qk_norm_with_scale: True
 mla_naive_kvcache: True
 
 
@@ -436,6 +446,7 @@ hardware: 'tpu' # Supported hardware types are 'tpu', 'gpu', 'gpu_multiprocess' 
 # internal_compile allows bypassing open-source topology name mappings when using internal topologies directly via get_topology_desc.
 internal_compile: False
 internal_compile_num_devices: -1 # You must specify the number of devices when using internal_compile.
+compile_xla_flags: "" # Compiler options e.g. compile_xla_flags="--xla_tpu_num_sparse_cores_for_gather_offloading=1 --xla_tpu_scoped_vmem_limit_kib=65536" 
 
 # Parallelism
 shard_mode: "auto" # can be either auto or explicit
@@ -811,6 +822,15 @@ gradient_clipping_threshold: 1.0
 gradient_accumulation_steps: 1
 
 opt_type: "adamw"  # one of "adamw", "adam_pax", "sgd", or "muon"
+
+# If True, skip the training step when loss or gradient spike is detected
+# No updates for both weights and momentums (if applies)
+skip_step_on_spikes: False
+# The rolling interval to calculate the mean and standard deviation
+skip_step_interval: 128
+# The scaling factor to determine if a spike occurred
+skip_step_scaling_factor: 6.0
+
 # List of parameter names/patterns to train.
 # If non-empty, all other parameters will be frozen. Example: ['.*indexer.*'].
 # If empty (default), all parameters are trained.
@@ -853,6 +873,9 @@ rope_use_scale: True # apply rope scaling for llama3.1 (see class `LLaMARotaryEm
 rope_min_timescale: 1
 rope_max_timescale: 10_000 # Timescale For global Attention
 local_rope_max_timescale: -1 # If positive used for local window Attention, otherwise `rope_max_timescale` is used for both local and global
+global_rope_max_timescale: -1 # Timescale For global Attention (Gemma 4 specific)
+global_rope_proportion: 0.25
+local_rope_proportion: 1.0
 
 # yarn RoPE parameters
 max_position_embeddings: 163840
@@ -1062,6 +1085,7 @@ posemb_type_for_vit: "learn"
 # -1 means no limit, and will pad to the max possible number of images determined by sequence length.
 # Set it to avoid unnecessary padding if you know the maximum number of images per example.
 max_num_images_per_example: -1
+vision_output_length: -1 # The output length (number of soft tokens) from vision encoder, used in Gemma4.
 
 ### llama4 multi modal configs
 hidden_size_for_vit: 1408
@@ -1115,8 +1139,9 @@ position_id_per_seconds: 25
 subslice_shape: ""
 
 # NNX
-enable_nnx: false
-pure_nnx_decoder: false
+enable_nnx: False
+pure_nnx_decoder: False
+pure_nnx: False
 
 ################################## Qwen3-Next Specific Configs ##################################
 # Kernel size for the 1D convolution in the Gated Delta Net
@@ -1183,3 +1208,9 @@ distill_temperature: 1.0
 # 0.0 value disables this feature.
 distill_beta: 0.0
 distill_layer_indices: None
+
+##### Elastic training parameters
+# Elastic training is Pathways-specific and does not work on McJAX.
+elastic_enabled: false
+elastic_timeout_seconds: 300
+elastic_max_retries: 10

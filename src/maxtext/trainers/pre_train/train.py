@@ -27,6 +27,7 @@ import os
 from absl import app
 
 import numpy as np
+import optax
 
 import pathwaysutils  # pylint: disable=unused-import
 
@@ -41,6 +42,7 @@ from flax.linen import partitioning as nn_partitioning
 from maxtext.configs import pyconfig
 from maxtext.common.common_types import ShardMode
 from maxtext.utils.globals import EPS
+from maxtext.utils import elastic_utils
 # Placeholder: internal
 
 # pylint: disable=too-many-positional-arguments
@@ -75,8 +77,10 @@ diagnostic, debug_configuration, diagnostic_configuration, stack_trace_configura
 VertexTensorboardManager, _vertex_tb_is_stub = vertex_tensorboard_modules()
 
 
-def get_first_step(state):
-  return int(state.step)
+def get_first_step(model, state):
+  if isinstance(model, nn.Module):
+    return int(state.step)
+  return int(state.optimizer.step.get_value())
 
 
 # -----------------------------------------------------------------------------
@@ -396,7 +400,20 @@ def train_step(model, config, state_mesh_shardings, params_shardings, state, dat
             jax.tree_util.tree_map_with_path(move, state_mesh_shardings.params),
         )
     )
-  new_state = state.apply_gradients(grads=grads)
+
+  if getattr(config, "skip_step_on_spikes", False):
+    grad_norm = max_utils.l2norm_pytree(grads)
+    # TrainState.apply_gradients doesn't pass **kwargs to tx.update, so we unpack it manually.
+    updates, new_opt_state = state.tx.update(grads, state.opt_state, state.params, loss=loss, grad_norm=grad_norm)
+    new_params = optax.apply_updates(state.params, updates)
+
+    new_state = state.replace(
+        step=state.step + 1,
+        params=new_params,
+        opt_state=new_opt_state,
+    )
+  else:
+    new_state = state.apply_gradients(grads=grads)
 
   # Apply updates for Auxiliary-Loss-Free load balancing for DeepSeek family
   if config.routed_bias and config.routed_bias_update_rate > 0.0 and moe_bias_updates is not None:
@@ -528,7 +545,7 @@ def train_loop(config, recorder, state=None):
       compiled_stats = compiled.memory_analysis()
       max_utils.print_compiled_memory_stats(compiled_stats)
 
-  start_step = get_first_step(state)  # this is the start_step for training
+  start_step = get_first_step(model, state)  # this is the start_step for training
   prof = profiler.Profiler(config, offset_step=start_step)
   metric_logger = MetricLogger(config=config, learning_rate_schedule=learning_rate_schedule)
 
@@ -675,11 +692,35 @@ def run(config, recorder, diagnostic_config):
     train_loop(config, recorder)
 
 
+def get_train_func(config, recorder, diagnostic_config, argv):
+  """Returns the train function, wrapping in elastic_retry if elastic training is enabled."""
+  if config.elastic_enabled:
+    max_logging.log("Elastic utils: Elastic training enabled.")
+
+    def elastic_train_wrapper(argv: Sequence[str]) -> None:
+      """Wrapper for elastic training initializes variables and runs the train loop."""
+      elastic_config, elastic_recorder, elastic_diagnostic_config = initialize(argv)
+      run(
+          elastic_config,
+          elastic_recorder,
+          elastic_diagnostic_config,
+      )
+
+    train_func = elastic_utils.elastic_retry(config)(functools.partial(elastic_train_wrapper, argv=argv))
+  else:
+    # Use the already initialized variables
+    def train_func():
+      run(config, recorder, diagnostic_config)
+
+  return train_func
+
+
 def main(argv: Sequence[str]) -> None:
   config, recorder, diagnostic_config = initialize(argv)
   record_goodput(recorder, RECORD_JOB_START_TIME)
+  train_func = get_train_func(config, recorder, diagnostic_config, argv)
   with maybe_monitor_goodput(config):
-    run(config, recorder, diagnostic_config)
+    train_func()
 
 
 if __name__ == "__main__":

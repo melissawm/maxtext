@@ -122,9 +122,20 @@ class PyconfigTest(unittest.TestCase):
 
   def test_module_from_path(self):
     import maxtext.trainers.pre_train.train as train_module
+
     module_file = train_module.__file__
     result = _module_from_path(module_file)
     self.assertEqual(result, "maxtext.trainers.pre_train.train")
+
+  def test_hlo_dump_module_names_none_coercion(self):
+    config = pyconfig.initialize(
+        [os.path.join(MAXTEXT_PKG_DIR, "train.py"), get_test_config_path()],
+        skip_jax_distributed_system=True,
+        dump_hlo_local_module_name=None,
+        dump_hlo_module_name=None,
+    )
+    self.assertEqual(config.dump_hlo_local_module_name, "")
+    self.assertEqual(config.dump_hlo_module_name, "")
 
   def test_unknown_module_raises(self):
     with self.assertRaises(ValueError):
