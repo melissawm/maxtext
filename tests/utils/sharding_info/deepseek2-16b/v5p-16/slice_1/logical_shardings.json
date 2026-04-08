@@ -157,8 +157,8 @@
     "partition_spec": [
       "exp",
       "moe_layers",
-      "embed_no_exp_moe",
-      "mlp"
+      "embed_moe",
+      "mlp_moe"
     ],
     "shape": [
       64,
@@ -171,8 +171,8 @@
     "partition_spec": [
       "exp",
       "moe_layers",
-      "embed_no_exp_moe",
-      "mlp"
+      "embed_moe",
+      "mlp_moe"
     ],
     "shape": [
       64,
@@ -185,8 +185,8 @@
     "partition_spec": [
       "exp",
       "moe_layers",
-      "mlp",
-      "embed_no_exp_moe"
+      "mlp_moe",
+      "embed_moe"
     ],
     "shape": [
       64,
@@ -483,8 +483,8 @@
     "partition_spec": [
       "exp",
       "moe_layers",
-      "embed_no_exp_moe",
-      "mlp"
+      "embed_moe",
+      "mlp_moe"
     ],
     "shape": [
       64,
@@ -497,8 +497,8 @@
     "partition_spec": [
       "exp",
       "moe_layers",
-      "embed_no_exp_moe",
-      "mlp"
+      "embed_moe",
+      "mlp_moe"
     ],
     "shape": [
       64,
@@ -511,8 +511,8 @@
     "partition_spec": [
       "exp",
       "moe_layers",
-      "mlp",
-      "embed_no_exp_moe"
+      "mlp_moe",
+      "embed_moe"
     ],
     "shape": [
       64,
@@ -805,8 +805,8 @@
     "partition_spec": [
       "exp",
       "moe_layers",
-      "embed_no_exp_moe",
-      "mlp"
+      "embed_moe",
+      "mlp_moe"
     ],
     "shape": [
       64,
@@ -819,8 +819,8 @@
     "partition_spec": [
       "exp",
       "moe_layers",
-      "embed_no_exp_moe",
-      "mlp"
+      "embed_moe",
+      "mlp_moe"
     ],
     "shape": [
       64,
@@ -833,8 +833,8 @@
     "partition_spec": [
       "exp",
       "moe_layers",
-      "mlp",
-      "embed_no_exp_moe"
+      "mlp_moe",
+      "embed_moe"
     ],
     "shape": [
       64,
