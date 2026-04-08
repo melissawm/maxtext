@@ -83,9 +83,7 @@ def _resolve_or_infer_config(argv: list[str]) -> tuple[str, list[str]]:
     return resolve_config_path(argv[1]), argv[2:]
   module = _module_from_path(argv[0])
   if module not in _CONFIG_FILE_MAPPING:
-    raise ValueError(
-        f"No config file provided and no default config found for module '{module}'"
-    )
+    raise ValueError(f"No config file provided and no default config found for module '{module}'")
   config_path = os.path.join(MAXTEXT_CONFIGS_DIR, _CONFIG_FILE_MAPPING[module])
   logger.warning("No config file provided, using default config mapping: %s", config_path)
   return config_path, argv[1:]
@@ -201,6 +199,9 @@ def _prepare_for_pydantic(raw_keys: dict[str, Any]) -> dict[str, Any]:
       new_value = None
 
     if key == "run_name" and new_value is None:
+      new_value = ""
+
+    if key in ("dump_hlo_local_module_name", "dump_hlo_module_name") and new_value is None:
       new_value = ""
 
     if key == "tokenizer_path" and new_value is None:
