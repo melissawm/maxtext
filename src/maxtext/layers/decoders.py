@@ -42,6 +42,7 @@ from maxtext.layers.quantizations import AqtQuantization as Quant
 from maxtext.models import (
     deepseek,
     deepseek_batchsplit,
+    deepseek_batchsplit_fp8,
     gemma,
     gemma2,
     gemma3,
@@ -913,17 +914,28 @@ class Decoder(nn.Module):
             # as detected by immutable params, use deepseek_batchsplit custom
             # scan with initialized parameters.
             if cfg.use_batch_split_schedule and not self.is_mutable_collection("params"):
-              y = deepseek_batchsplit.scan_batch_split_layers(
-                  y,
-                  self.variables["params"]["moe_layers"],
-                  decoder_positions,
-                  decoder_segment_ids,
-                  model_mode=model_mode,
-                  mesh=mesh,
-                  quant=self.quant,
-                  cfg=cfg,
-                  policy=policy,
-              )
+              if cfg.use_qwix_quantization:
+                y = deepseek_batchsplit_fp8.scan_batch_split_layers(
+                    y,
+                    self.variables["params"]["moe_layers"],
+                    decoder_positions,
+                    decoder_segment_ids,
+                    model_mode=model_mode,
+                    mesh=mesh,
+                    quant=self.quant,
+                    cfg=cfg,
+                    policy=policy,
+                )
+              else:
+                # bf16 code path
+                y = deepseek_batchsplit.scan_batch_split_layers(
+                    y,
+                    self.variables["params"]["moe_layers"],
+                    decoder_positions,
+                    mesh=mesh,
+                    cfg=cfg,
+                    num_layers=num_moe_layers,
+                )
             else:
               y, _ = self.scan_decoder_layers(
                   cfg,
