@@ -63,7 +63,7 @@ from maxtext.common.common_types import (
     MODEL_MODE_PREFILL,
     MODEL_MODE_TRAIN,
     PREFILL_LENGTH,
-    Q_LENGTH_NO_EXP,
+    Q_LENGTH,
 )
 from maxtext.inference import page_manager
 from maxtext.inference.kvcache import KVQuant, KVTensor
@@ -1134,13 +1134,13 @@ class AttentionOp(nnx.Module):
     segment_axis_names_kv = None
     sink_axis_names = self._logical_to_mesh_axes((HEAD,))
     if decoder_segment_ids is not None:
-      segment_axis_names_q = self._logical_to_mesh_axes((BATCH, Q_LENGTH_NO_EXP))
+      segment_axis_names_q = self._logical_to_mesh_axes((BATCH, Q_LENGTH))
       segment_axis_names_kv = self._logical_to_mesh_axes((BATCH, KV_LENGTH))
 
     axis_names_splash_kernel = self._logical_to_mesh_axes(self.flash_axis_names_splash_kernel)
     axis_names_q = self._logical_to_mesh_axes(self.flash_axis_names_q)
     axis_names_kv = self._logical_to_mesh_axes(self.flash_axis_names_kv)
-    indexer_mask_axis_names = self._logical_to_mesh_axes((BATCH, Q_LENGTH_NO_EXP, KV_LENGTH))
+    indexer_mask_axis_names = self._logical_to_mesh_axes((BATCH, Q_LENGTH, KV_LENGTH))
 
     global global_block_q, global_block_kv, global_block_kv_compute, global_block_q_dkv, global_block_kv_dkv
     global global_block_kv_dkv_compute, global_block_q_dq, global_block_kv_dq, global_use_fused_bwd_kernel
@@ -1269,11 +1269,11 @@ class AttentionOp(nnx.Module):
         return splash_kernel
 
       splash_kernel = wrap_splash_kernel(single_head_mask)
-      segment_axis_names_splash_kernel = self._logical_to_mesh_axes((Q_LENGTH_NO_EXP,))
+      segment_axis_names_splash_kernel = self._logical_to_mesh_axes((Q_LENGTH,))
     elif self.config.use_jax_splash and self.config.expert_shard_attention_option == EP_AS_FSDP:
       if self.config.use_max_logit_estimate > 0:
         sa_config = dataclasses.replace(sa_config, max_logit_const=self.config.use_max_logit_estimate)
-      segment_axis_names_splash_kernel = nn.logical_to_mesh_axes((Q_LENGTH_NO_EXP,))
+      segment_axis_names_splash_kernel = nn.logical_to_mesh_axes((Q_LENGTH,))
     else:
       # Create multi-head mask
       multi_head_mask = splash_attention_mask.MultiHeadMask(masks=(mask,) * query.shape[1])
