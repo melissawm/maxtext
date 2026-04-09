@@ -20,7 +20,6 @@ import jax
 import jax.numpy as jnp
 
 import optax
-from maxtext.utils import max_logging
 from optax.contrib._muon import muon
 from maxtext.utils.muon_utils import get_muon_weight_dimension_numbers
 
@@ -140,8 +139,7 @@ def skip_step_on_spikes(
       return inner_opt.update(updates, state["inner_state"], params, **extra_args)
 
     def skip_update():
-      # use callback to work with jax.jit and jax.lax.cond for logging
-      jax.debug.callback(lambda c: max_logging.warning(f"Step {c}: Optimizer step skipped due to spike."), count)
+      # b/500923599: Investigate logging compatible with jax.jit, jax.lax.cond, and Pathway
       inner_updates = jax.tree_util.tree_map(jnp.zeros_like, updates)
       return inner_updates, state["inner_state"]
 
