@@ -67,7 +67,6 @@ from transformers import AutoTokenizer
 from tunix.rl import rl_cluster as rl_cluster_lib
 from tunix.rl.rollout import base_rollout
 from tunix.rl.grpo.grpo_learner import GrpoConfig, GrpoLearner
-from tunix.rl.agentic.agentic_grpo_learner import GrpoConfig as AgenticGrpoConfig, GrpoLearner as AgenticGrpoLearner
 from tunix.sft import metrics_logger, profiler
 
 # for vLLM we can skip JAX precompilation with this flag, it makes startup faster
@@ -601,6 +600,15 @@ def create_rl_components(
   max_logging.log("Setting up RL trainer...")
   if trainer_config.rl.use_agentic_rollout:
     max_logging.log("Using AgenticGRPOLearner with async online rollouts.")
+    # TODO: Remove this try-except once the dependency on tunix is fixed.
+    try:
+      from tunix.rl.agentic.agentic_grpo_learner import GrpoConfig as AgenticGrpoConfig  # pylint: disable=import-outside-toplevel
+      from tunix.rl.agentic.agentic_grpo_learner import GrpoLearner as AgenticGrpoLearner  # pylint: disable=import-outside-toplevel
+    except ImportError as e:
+      raise ValueError(
+          "tunix.rl.agentic dependencies are not installed! "
+          "Please install tunix with agentic support to use 'use_agentic_rollout'."
+      ) from e
     grpo_config = AgenticGrpoConfig(
         num_generations=trainer_config.rl.num_generations,
         num_iterations=trainer_config.rl.num_iterations,
