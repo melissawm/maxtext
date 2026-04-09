@@ -48,7 +48,7 @@ MFU = \\frac{\\text{theoretically optimal step time}}
 {\\text{measured step time}}
 $$
 
-Finally, we can also look at throughput utilization. In each training step, the model processes $(batch_size x seq_length)$ tokens. Since the (optimal or measured) number of tokens per second is just the number of tokens per step divided by step time (optimal or measured, respectively), we get that:
+Finally, we can also look at throughput utilization. In each training step, the model processes $\text{batch\_size} \times \text{seq\_length}$ tokens. Since the (optimal or measured) number of tokens per second is just the number of tokens per step divided by step time (optimal or measured, respectively), we get that:
 
 $$
 MFU = \\frac{\\text{theoretically optimal step time}}
