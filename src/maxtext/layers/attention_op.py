@@ -55,6 +55,7 @@ from maxtext.common.common_types import (
     DEFAULT_MASK_VALUE,
     DType,
     D_KV,
+    EP_AS_FSDP,
     HEAD,
     KV_LENGTH,
     LENGTH,
@@ -1269,7 +1270,7 @@ class AttentionOp(nnx.Module):
 
       splash_kernel = wrap_splash_kernel(single_head_mask)
       segment_axis_names_splash_kernel = self._logical_to_mesh_axes((Q_LENGTH,))
-    elif self.config.use_jax_splash:
+    elif self.config.use_jax_splash and self.config.expert_shard_attention_option == EP_AS_FSDP:
       if self.config.use_max_logit_estimate > 0:
         sa_config = dataclasses.replace(sa_config, max_logit_const=self.config.use_max_logit_estimate)
       segment_axis_names_splash_kernel = nn.logical_to_mesh_axes((Q_LENGTH,))

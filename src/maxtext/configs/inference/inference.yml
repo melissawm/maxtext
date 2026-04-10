@@ -28,7 +28,6 @@ logical_axis_rules: [
                       ['mlp', ['fsdp_transpose', 'tensor', 'tensor_sequence', 'autoregressive']],
                       ['mlp_moe', ['fsdp_transpose', 'tensor', 'tensor_sequence', 'autoregressive']],
                       ['vocab', ['tensor', 'tensor_transpose', 'tensor_sequence', 'autoregressive','context_autoregressive']],
-                      ['embed_vocab', ['fsdp', 'fsdp_transpose', 'sequence', 'context', 'expert']],
                       ['heads', ['tensor', 'tensor_transpose', 'tensor_sequence', 'autoregressive']],
                       ['q_heads', ['tensor', 'tensor_transpose', 'tensor_sequence', 'autoregressive']],
                       ['kv_heads', ['tensor', 'tensor_transpose', 'tensor_sequence', 'autoregressive']],

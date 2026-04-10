@@ -96,6 +96,11 @@ Dropping:
 
 ## 2. Sharding
 
+`expert_shard_attention_option`: Determines how the "expert" axis is interpreted when sharding attention layers. Options include:
+
+- `fsdp`: Treats the expert axis as a FSDP axis.
+- `context`: Treats the expert axis as a context parallelism axis, useful for long context.
+
 `use_ring_of_experts` (experimental): This feature requires expert parallelism. If enabled, it replaces the standard two All-to-All communications with All-Gather in dispatch and Reduce-Scatter in collect. By gathering inputs across all shards, it allows for local routing and Top-K calculations, followed by result aggregation via Reduce-Scatter. This approach is particularly effective for models with a large Top-K, as it gathers activations before they are replicated k times to reduce communication.
 
 `moe_fsdp_use_two_stage_all_gather`: If enabled, split the All-Gather operation for MoE weights into two separate stages when using FSDP/FSDP-transpose sharding. This is preferred when 3D All-Gather support is unavailable.
