@@ -24,6 +24,7 @@ logical_axis_rules: [
                       ['activation_stage', 'stage'],
                       ['activation_exp', ['expert', 'context_autoregressive']],
                       ['decode_batch', ['data', 'fsdp', 'fsdp_transpose', 'expert', 'context_autoregressive']],
+                      ['decode_batch_moe', ['data', 'fsdp', 'fsdp_transpose', 'context_autoregressive']],
                       ['decode_length', []],
                       ['mlp', ['fsdp_transpose', 'tensor', 'tensor_sequence', 'autoregressive']],
                       ['mlp_moe', ['fsdp_transpose', 'tensor', 'tensor_sequence', 'autoregressive']],

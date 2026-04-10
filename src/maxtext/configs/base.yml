@@ -488,6 +488,7 @@ logical_axis_rules: [
                       ['activation_stage', 'stage'],
                       ['activation_exp', ['expert']],
                       ['decode_batch', ['data', 'fsdp', 'fsdp_transpose', 'expert']],
+                      ['decode_batch_moe', ['data', 'fsdp', 'fsdp_transpose']],
                       ['decode_length', ['sequence']],
                       ['mlp', ['fsdp_transpose', 'tensor', 'tensor_sequence', 'autoregressive']],
                       ['mlp_moe', ['fsdp_transpose', 'tensor', 'tensor_sequence', 'autoregressive']],
