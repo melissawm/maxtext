@@ -115,6 +115,19 @@ def maybe_shard_with_name(
     return jax.lax.with_sharding_constraint(inputs, named_sharding)
 
 
+def maybe_shard_with_pspec(inputs, mesh, shard_mode, pspec: jax.sharding.PartitionSpec | None, debug_sharding=False):
+  if pspec is None:
+    return None
+  sharding = NamedSharding(mesh, pspec)
+  return maybe_shard_with_name(
+      inputs,
+      sharding,
+      shard_mode=shard_mode,
+      debug_sharding=debug_sharding,
+      extra_stack_level=1,
+  )
+
+
 def maybe_shard_with_logical(
     inputs, logical_axes, mesh, shard_mode, rules=None, debug_sharding=False, extra_stack_level=0, sharding_desc=""
 ):
