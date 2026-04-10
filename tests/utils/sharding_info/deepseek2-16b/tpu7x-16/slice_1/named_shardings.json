@@ -692,8 +692,7 @@
         "fsdp_transpose",
         "sequence",
         "tensor_transpose",
-        "context",
-        "expert"
+        "context"
       ],
       null,
       null
@@ -2140,8 +2139,7 @@
         "fsdp_transpose",
         "sequence",
         "tensor_transpose",
-        "context",
-        "expert"
+        "context"
       ],
       null,
       null
@@ -3552,8 +3550,7 @@
         "fsdp_transpose",
         "sequence",
         "tensor_transpose",
-        "context",
-        "expert"
+        "context"
       ],
       null,
       null

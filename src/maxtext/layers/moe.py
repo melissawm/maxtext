@@ -102,8 +102,8 @@ _sort_activations_custom.defvjp(_sort_activations_custom_fwd, _sort_activations_
 
 def get_batchsplit_init_kernel_axes():
   return (
-      ("embed_no_exp", "fsdp_transpose_only", "expert_only"),
-      ("embed_no_exp", "fsdp_transpose_and_expert", None),
+      ("embed_moe", "fsdp_transpose_only", "expert_only"),
+      ("embed_moe", "fsdp_transpose_and_expert", None),
   )
 
 
@@ -278,7 +278,7 @@ class GateLogit(nnx.Module):
 
     contract_ind = tuple(range(0, len(norm_axis)))
     output_sharding = (
-        create_sharding(self.mesh, ("activation_batch_no_exp_moe", "activation_length_moe", None))
+        create_sharding(self.mesh, ("activation_batch", "activation_length", None))
         if self.shard_mode == ShardMode.EXPLICIT
         else None
     )
@@ -351,16 +351,16 @@ class RoutedMoE(nnx.Module):
 
     if self.config.shard_exp_on_fsdp:
       # special sharding for dsv3
-      self.wi_kernel_axes = ("embed_no_exp_moe", None, "mlp")
-      self.wo_kernel_axes = ("embed_no_exp_moe", "mlp", None)
+      self.wi_kernel_axes = ("embed_moe", None, "mlp_moe")
+      self.wo_kernel_axes = ("embed_moe", "mlp_moe", None)
     elif self.config.use_2d_fsdp_sharding:
-      self.wi_kernel_axes = ("embed_no_exp_moe", "mlp", None)
-      self.wo_kernel_axes = ("embed_no_exp_moe", "mlp", None)
+      self.wi_kernel_axes = ("embed_moe", "mlp_moe", None)
+      self.wo_kernel_axes = ("embed_moe", "mlp_moe", None)
     elif self.config.use_batch_split_schedule:
       self.wi_kernel_axes, self.wo_kernel_axes = get_batchsplit_init_kernel_axes()
     else:
-      self.wi_kernel_axes = ("exp", "embed_no_exp_moe", "mlp")
-      self.wo_kernel_axes = ("exp", "mlp", "embed_no_exp_moe")
+      self.wi_kernel_axes = ("exp", "embed_moe", "mlp_moe")
+      self.wo_kernel_axes = ("exp", "mlp_moe", "embed_moe")
 
     if self.config.attention == "vllm_rpa":
       # vLLM uses 'model' as the tensor parallelism axis name
@@ -437,7 +437,7 @@ class RoutedMoE(nnx.Module):
 
     if self.config.mlp_bias:
       wi_bias_axes = ("exp", "activation_mlp")
-      wo_bias_axes = ("exp", "activation_embed_moe")
+      wo_bias_axes = ("exp", "activation_embed")
       wi_bias_shape = (self.num_experts, self.intermediate_dim)
       wo_bias_shape = (self.num_experts, self.config.emb_dim)
       self.wi_0_bias = nnx.Param(
@@ -1020,48 +1020,24 @@ class RoutedMoE(nnx.Module):
         output = output[: hs_shape[0]]
       return output
 
-    # Currently, we support data, tensor, and expert parallelism with Megablox.
-    # We all gather the input activations over tensor parallelism to follow
-    # https://parsa.epfl.ch/course-info/cs723/papers/Megatron.pdf.
-
-    # Check if the batch should be sharded by expert and whether the batch_size
-    # supports this. For example, for interleaved inference, prefill always has
-    # batch_size=1 while decode can have batch_size > 1.
-    try:
-      is_batch_sharded_by_expert = (
-          self._expert_parallelism_name
-          in tuple(
-              filter(
-                  lambda tup: tup[0] == "activation_batch_moe",
-                  self.config.logical_axis_rules,
-              )
-          )[
-              0
-          ][1]
-      )
-    except:  # pylint: disable=bare-except
-      is_batch_sharded_by_expert = False
-    if is_batch_sharded_by_expert and inputs.shape[0] > 1:
-      batch_logical_axis = "activation_batch_moe"
-    else:
-      batch_logical_axis = "activation_batch_no_exp_moe"
+    batch_logical_axis = "activation_batch"
 
     if self.get_tensor_transpose_parallelism_size() > 1:
       input_partition_pspec = self._logical_to_mesh_axes(
-          (batch_logical_axis, "activation_norm_length_moe", "activation_embed_moe")
+          (batch_logical_axis, "activation_norm_length", "activation_embed")
       )
       w0_bias_pspec = self._logical_to_mesh_axes(("exp", None))
       w1_bias_pspec = self._logical_to_mesh_axes(("exp", None))
-      wo_bias_pspec = self._logical_to_mesh_axes(("exp", "activation_embed_moe"))
+      wo_bias_pspec = self._logical_to_mesh_axes(("exp", "activation_embed"))
     else:
-      input_partition_pspec = self._logical_to_mesh_axes((batch_logical_axis, "activation_norm_length_moe", None))
+      input_partition_pspec = self._logical_to_mesh_axes((batch_logical_axis, "activation_norm_length", None))
       w0_bias_pspec = self._logical_to_mesh_axes(("exp", "activation_mlp"))
       w1_bias_pspec = self._logical_to_mesh_axes(("exp", "activation_mlp"))
-      wo_bias_pspec = self._logical_to_mesh_axes(("exp", "activation_embed_moe"))
+      wo_bias_pspec = self._logical_to_mesh_axes(("exp", "activation_embed"))
 
-    gate_logits_pspec = self._logical_to_mesh_axes((batch_logical_axis, "activation_norm_length_moe", None))
+    gate_logits_pspec = self._logical_to_mesh_axes((batch_logical_axis, "activation_norm_length", None))
     if self.config.model_name.startswith("deepseek3"):
-      pre_bias_logits_pspec = self._logical_to_mesh_axes((batch_logical_axis, "activation_norm_length_moe", None))
+      pre_bias_logits_pspec = self._logical_to_mesh_axes((batch_logical_axis, "activation_norm_length", None))
     else:
       # pre_bias_logits is None for non-DeepSeek v3 models
       pre_bias_logits_pspec = None
@@ -1113,7 +1089,7 @@ class RoutedMoE(nnx.Module):
             P(),  # Replicate the input key
         ),
         out_specs=(
-            self._logical_to_mesh_axes((batch_logical_axis, "activation_norm_length_moe", "activation_embed_moe")),
+            self._logical_to_mesh_axes((batch_logical_axis, "activation_norm_length", "activation_embed")),
             P(),  # Handle None or replicate the output
             P(),  # Handle None or replicate the output
         ),
@@ -1159,58 +1135,47 @@ class RoutedMoE(nnx.Module):
         )
 
         if num_expert_parallelism > 1:
-          batch_axis = self._expert_parallelism_name if is_batch_sharded_by_expert else "data"
           # get group sizes for all shards
           local_expert_size = self.config.num_experts // num_expert_parallelism
           reshaped_group_sizes = jnp.sum(group_sizes.reshape(-1, local_expert_size), axis=1)
           global_group_sizes = group_sizes
-          if is_batch_sharded_by_expert:
-            all_shards_group_sizes = jax.lax.all_gather(reshaped_group_sizes, axis_name=batch_axis)
-            input_offsets, send_sizes, output_offsets, recv_sizes = RoutedMoE.get_all_to_all_params(
-                all_shards_group_sizes,
-                expert_shard_id,
-                num_expert_parallelism,
-            )
 
-            # TODO(ranran): For better performance, we could update output buffer to a smaller
-            # size to replace self.get_expert_parallelism_size() for efficiency,
-            # Or we could apply capacity_factor for excessive experts.
-            # Note: Reducing buffer increase the risk of token dropping under unbalanced distribution.
+          all_shards_group_sizes = jax.lax.all_gather(reshaped_group_sizes, axis_name=self._expert_parallelism_name)
+          input_offsets, send_sizes, output_offsets, recv_sizes = RoutedMoE.get_all_to_all_params(
+              all_shards_group_sizes,
+              expert_shard_id,
+              num_expert_parallelism,
+          )
 
-            # In the worst case, all of the global input data is assigned to each expert in the current shard.
-            # This would result in num_expert_shards * input_size * experts_per_shard assignments. However, if
-            # experts_per_shard > num_experts_per_tok we cannot assign more than num_experts_per_tok to all of the inputs.
-            max_local_experts_per_tok = min(local_expert_size, self.config.num_experts_per_tok)
-            buffer_size = int(num_expert_parallelism * batch_size * sequence_length * max_local_experts_per_tok)
-            output_shape = jax.lax.empty((buffer_size, self.config.emb_dim), dtype=x.dtype)
+          # TODO(ranran): For better performance, we could update output buffer to a smaller
+          # size to replace self.get_expert_parallelism_size() for efficiency,
+          # Or we could apply capacity_factor for excessive experts.
+          # Note: Reducing buffer increase the risk of token dropping under unbalanced distribution.
 
-            x = jax.lax.ragged_all_to_all(
-                x,
-                output_shape,
-                input_offsets,
-                send_sizes,
-                output_offsets,
-                recv_sizes,
-                axis_name=self._expert_parallelism_name,
-            )
-            global_group_sizes = jax.lax.all_gather(group_sizes, axis_name=self._expert_parallelism_name)
-            x, local_sorted_indices, group_sizes, selected_experts = RoutedMoE.local_permute(
-                x,
-                global_group_sizes,
-                local_expert_size,
-                shard_index=expert_shard_id,
-                use_custom_sort_vjp=self.config.use_custom_sort_vjp,
-            )
-          else:
-            x, local_sorted_indices, group_sizes, selected_experts = RoutedMoE.local_permute(
-                x,
-                global_group_sizes[None, :],
-                local_expert_size,
-                shard_index=expert_shard_id,
-                is_offset=True,
-                global_sorted_experts=selected_experts,
-                use_custom_sort_vjp=self.config.use_custom_sort_vjp,
-            )
+          # In the worst case, all of the global input data is assigned to each expert in the current shard.
+          # This would result in num_expert_shards * input_size * experts_per_shard assignments. However, if
+          # experts_per_shard > num_experts_per_tok we cannot assign more than num_experts_per_tok to all of the inputs.
+          max_local_experts_per_tok = min(local_expert_size, self.config.num_experts_per_tok)
+          buffer_size = int(num_expert_parallelism * batch_size * sequence_length * max_local_experts_per_tok)
+          output_shape = jax.lax.empty((buffer_size, self.config.emb_dim), dtype=x.dtype)
+
+          x = jax.lax.ragged_all_to_all(
+              x,
+              output_shape,
+              input_offsets,
+              send_sizes,
+              output_offsets,
+              recv_sizes,
+              axis_name=self._expert_parallelism_name,
+          )
+          global_group_sizes = jax.lax.all_gather(group_sizes, axis_name=self._expert_parallelism_name)
+          x, local_sorted_indices, group_sizes, selected_experts = RoutedMoE.local_permute(
+              x,
+              global_group_sizes,
+              local_expert_size,
+              shard_index=expert_shard_id,
+              use_custom_sort_vjp=self.config.use_custom_sort_vjp,
+          )
 
       if self.config.mlp_bias:
         w0_bias, w1_bias, wo_bias = self.transform_bias(selected_experts, w0_bias, w1_bias, wo_bias)
@@ -1352,47 +1317,27 @@ class RoutedMoE(nnx.Module):
               ),
               dtype=intermediate_output.dtype,
           )
-          if is_batch_sharded_by_expert:
-            # locally unpermute back to the original order
-            local_output = _sort_activations(
-                intermediate_output,
-                jnp.argsort(local_sorted_indices),  # pylint: disable=undefined-variable
-                self.config.use_custom_sort_vjp,
-            )
-            input_offsets, send_sizes, output_offsets, recv_sizes = RoutedMoE.get_all_to_all_params(
-                jnp.transpose(all_shards_group_sizes),  # pylint: disable=undefined-variable
-                expert_shard_id,
-                num_expert_parallelism,
-            )
-            intermediate_output = jax.lax.ragged_all_to_all(
-                local_output,
-                output_shape,
-                input_offsets,
-                send_sizes,
-                output_offsets,
-                recv_sizes,
-                axis_name=self._expert_parallelism_name,
-            )
-          else:
-            # If bach is replicated across EP shards then each shard should send
-            # 0..local_shard_size data to the other shards and receive the
-            # local_shard data from all of the other shards using
-            # ragged_all_to_all.
-            input_offsets, send_sizes, output_offsets, recv_sizes = RoutedMoE.get_all_to_all_params(
-                reshaped_group_sizes,  # pylint: disable=undefined-variable
-                expert_shard_id,
-                num_expert_parallelism,
-                is_batch_sharded=False,
-            )
-            intermediate_output = jax.lax.ragged_all_to_all(
-                intermediate_output,
-                output_shape,
-                input_offsets,
-                send_sizes,
-                output_offsets,
-                recv_sizes,
-                axis_name=self._expert_parallelism_name,
-            )
+
+          # locally unpermute back to the original order
+          local_output = _sort_activations(
+              intermediate_output,
+              jnp.argsort(local_sorted_indices),  # pylint: disable=undefined-variable
+              self.config.use_custom_sort_vjp,
+          )
+          input_offsets, send_sizes, output_offsets, recv_sizes = RoutedMoE.get_all_to_all_params(
+              jnp.transpose(all_shards_group_sizes),  # pylint: disable=undefined-variable
+              expert_shard_id,
+              num_expert_parallelism,
+          )
+          intermediate_output = jax.lax.ragged_all_to_all(
+              local_output,
+              output_shape,
+              input_offsets,
+              send_sizes,
+              output_offsets,
+              recv_sizes,
+              axis_name=self._expert_parallelism_name,
+          )
 
         output = self.unpermute(
             intermediate_output,
@@ -1425,13 +1370,13 @@ class RoutedMoE(nnx.Module):
       wo_kernel = self._maybe_shard_with_logical(wo_kernel, ("exp_with_fsdp", "mlp_no_fsdp", "embed_tensor_transpose"))
 
     if self.get_tensor_transpose_parallelism_size() > 1:
-      input_axes = (batch_logical_axis, "activation_norm_length_moe", "activation_embed_moe")
+      input_axes = (batch_logical_axis, "activation_norm_length", "activation_embed")
     else:
-      input_axes = (batch_logical_axis, "activation_norm_length_moe", None)
+      input_axes = (batch_logical_axis, "activation_norm_length", None)
 
-    gate_logits_axes = (batch_logical_axis, "activation_norm_length_moe", None)
+    gate_logits_axes = (batch_logical_axis, "activation_norm_length", None)
     if self.config.model_name.startswith("deepseek3"):
-      pre_bias_logits_axes = (batch_logical_axis, "activation_norm_length_moe", None)
+      pre_bias_logits_axes = (batch_logical_axis, "activation_norm_length", None)
     else:
       pre_bias_logits_axes = None
 
@@ -1449,14 +1394,12 @@ class RoutedMoE(nnx.Module):
     # output of updated weights: (batch_size, seq_len, num_experts)
     update_weights = jnp.zeros((weights.shape[0], weights.shape[1], self.num_experts), dtype=self.dtype)
     index_update = (
-        self._maybe_shard_with_logical(
-            jnp.arange(weights.shape[0])[:, None, None], ("activation_batch_no_exp_moe", None, None)
-        ),
-        self._maybe_shard_with_logical(jnp.arange(weights.shape[1])[:, None], ("activation_length_moe", None)),
+        self._maybe_shard_with_logical(jnp.arange(weights.shape[0])[:, None, None], ("activation_batch", None, None)),
+        self._maybe_shard_with_logical(jnp.arange(weights.shape[1])[:, None], ("activation_length", None)),
         indices,
     )
     weight_sharding = (
-        create_sharding(self.mesh, ("activation_batch_no_exp_moe", "activation_length_moe", None))
+        create_sharding(self.mesh, ("activation_batch", "activation_length", None))
         if self.config.shard_mode == ShardMode.EXPLICIT
         else None
     )
@@ -1511,7 +1454,7 @@ class RoutedMoE(nnx.Module):
         expert_mask,
         (batch_size, cp, sub_seq * self.num_experts_per_tok, self.num_experts),
     )
-    expert_mask_fused = self._maybe_shard_with_logical(expert_mask_fused, ("activation_batch_moe", None, None, None))
+    expert_mask_fused = self._maybe_shard_with_logical(expert_mask_fused, ("activation_batch", None, None, None))
     expert_token_count_fused = jnp.cumsum(expert_mask_fused, axis=2)
     expert_token_count = jnp.reshape(
         expert_token_count_fused,
@@ -1519,7 +1462,7 @@ class RoutedMoE(nnx.Module):
     )
     expert_token_count = self._maybe_shard_with_logical(
         expert_token_count,
-        ("activation_batch_moe", "activation_norm_length_moe", None, None, None),
+        ("activation_batch", "activation_norm_length", None, None, None),
     )
     trunc_expert_mask = expert_mask * jnp.less_equal(expert_token_count, expert_capacity_per_batch)
     combined_expert_mask = jnp.sum(trunc_expert_mask, axis=3)
@@ -1607,7 +1550,7 @@ class RoutedMoE(nnx.Module):
     )
     expert_token_count = self._maybe_shard_with_logical(
         expert_token_count,
-        ("activation_batch_moe", "activation_norm_length_moe", None, None),
+        ("activation_batch", "activation_norm_length", None, None),
     )
     trunc_expert_mask = expert_mask * jnp.less_equal(expert_token_count, expert_capacity_per_batch)
     combined_expert_mask = jnp.sum(trunc_expert_mask, axis=2)
@@ -1752,13 +1695,13 @@ class RoutedMoE(nnx.Module):
         mask_axes = ("activation_batch_moe", "activation_norm_length_moe", None, None)
         dispatch_axis = (
             "activation_exp",
-            "activation_batch_no_exp_moe",
+            "activation_batch_moe",
             None,
             "activation_embed_moe",
         )
         mlp_axis = (
             "activation_exp",
-            "activation_batch_no_exp_moe",
+            "activation_batch_moe",
             None,
             "activation_mlp",
         )
@@ -1787,14 +1730,14 @@ class RoutedMoE(nnx.Module):
           )
           dispatch_axis = (
               "activation_exp",
-              "activation_batch_no_exp_moe",
+              "activation_batch_moe",
               None,
               None,
               "activation_embed_moe",
           )
           mlp_axis = (
               "activation_exp",
-              "activation_batch_no_exp_moe",
+              "activation_batch_moe",
               None,
               None,
               "activation_mlp",
@@ -1815,14 +1758,14 @@ class RoutedMoE(nnx.Module):
           )
           dispatch_axis = (
               "activation_exp",
-              "activation_batch_no_exp_moe",
+              "activation_batch_moe",
               None,
               None,
               "activation_embed_moe",
           )
           mlp_axis = (
               "activation_exp",
-              "activation_batch_no_exp_moe",
+              "activation_batch_moe",
               None,
               None,
               "activation_mlp",
@@ -1848,7 +1791,7 @@ class RoutedMoE(nnx.Module):
               dispatch,
               (
                   None,
-                  "activation_batch_no_exp_moe",
+                  "activation_batch_moe",
                   "activation_norm_length_moe",
                   None,
                   "activation_embed_moe",
@@ -1911,7 +1854,7 @@ class RoutedMoE(nnx.Module):
               intermediate_layer,
               (
                   "activation_exp",
-                  "activation_batch_no_exp_moe",
+                  "activation_batch_moe",
                   None,
                   "activation_embed_moe",
               ),
