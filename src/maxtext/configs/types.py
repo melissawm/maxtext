@@ -646,6 +646,7 @@ class MoEGeneral(BaseModel):
   num_experts: PositiveInt = Field(1, description="The total number of experts in each MoE layer.")
   num_experts_per_tok: PositiveInt = Field(1, description="The number of experts to route each token to.")
   capacity_factor: float = Field(-1.0, description="Expert capacity factor. If < 0, no token dropping.")
+  ragged_buffer_factor: float = Field(-1.0, description="Ragged buffer factor. If < 0, ragged buffer is worst case size.")
   load_balance_loss_weight: NonNegativeFloat = Field(0.0, description="Weight for the load balancing auxiliary loss.")
   use_custom_sort_vjp: bool = Field(
       True,
@@ -2085,6 +2086,12 @@ class MaxTextConfig(
     """This method is a no-op because `pyconfig` handles model-specific config loading."""
     return values
 
+  def validate_ragged_buffer_factor(self):
+    if self.ragged_buffer_factor <= 0:
+      return  # Nothing to validate if not using ragged buffer factor
+    if self.use_ring_of_experts:
+      raise ValueError("Currently we only support ragged buffer factor with ragged a2a approach.")
+
   @model_validator(mode="after")
   def set_derived_and_validate_values(self) -> "MaxTextConfig":
     """
@@ -2566,6 +2573,7 @@ class MaxTextConfig(
         raise ValueError("GPT-OSS MoE only supports dropless (capacity_factor=-1) with dense matmul.")
       if self.routed_bias and self.routed_bias_update_rate > 0.0 and self.decoder_block != DecoderBlockType.DEEPSEEK:
         raise ValueError("Loss-free load balancing is only supported for the DeepSeek decoder block.")
+      self.validate_ragged_buffer_factor()
     if self.use_multimodal:
       valid_mm_models = (
           "gemma3-4b",
