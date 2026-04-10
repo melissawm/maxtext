@@ -97,18 +97,6 @@
       }
     },
     {
-      "attention_op/arr: int8[1,4,4]": {
-        "logic_axes": "Unknown",
-        "PartitionSpec": "P(None, None)"
-      }
-    },
-    {
-      "attention_op/arr: int32[2048]": {
-        "logic_axes": "Unknown",
-        "PartitionSpec": "P(None,)"
-      }
-    },
-    {
       "attention_mla/out: bfloat16[192,2048,16,128]": {
         "logic_axes": "('activation_batch', 'activation_length', 'activation_heads', 'activation_kv')",
         "PartitionSpec": "P('fsdp', None, None, None)"

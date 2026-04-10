@@ -67,24 +67,6 @@
       }
     },
     {
-      "attention_op/arr: int8[1,4,2]": {
-        "logic_axes": "Unknown",
-        "PartitionSpec": "P(None, None)"
-      }
-    },
-    {
-      "attention_op/arr: bool[2,512,512]": {
-        "logic_axes": "Unknown",
-        "PartitionSpec": "P()"
-      }
-    },
-    {
-      "attention_op/arr: int8[1,2,4]": {
-        "logic_axes": "Unknown",
-        "PartitionSpec": "P(None, None)"
-      }
-    },
-    {
       "attentions/out: bfloat16[192,2048,64,64]": {
         "logic_axes": "('activation_batch', 'activation_attn_length', 'activation_heads', 'activation_kv')",
         "PartitionSpec": "P(('fsdp', 'expert'), None, None, None)"
