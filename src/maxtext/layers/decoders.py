@@ -1102,11 +1102,14 @@ class Decoder(nn.Module):
       logits = None
     # When in the Indexer Dense Warm-up stage, skip the expensive output head projection
     # for efficiency, as the main model is frozen and the LM loss is not needed.
-    elif (cfg.use_indexer and not cfg.indexer_sparse_training) and self.model_mode == MODEL_MODE_TRAIN:
+    # TODO(b/501446870): Investigate model_mode as train at beginning for decoding stage
+    elif (
+        cfg.use_indexer and cfg.indexer_loss_scaling_factor > 0.0 and not cfg.indexer_sparse_training
+    ) and model_mode == MODEL_MODE_TRAIN:
       logits = None
     # When vocab tiling is enabled in training mode, full logits won't generate to reduce memory
     # Instead, we keep track on the hidden states, which has smaller size compared to full logits
-    elif cfg.num_vocab_tiling > 1 and self.model_mode == MODEL_MODE_TRAIN:
+    elif cfg.num_vocab_tiling > 1 and model_mode == MODEL_MODE_TRAIN:
       logits = None
       self.sow("intermediates", "hidden_states", hidden_state)
 
