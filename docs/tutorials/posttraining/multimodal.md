@@ -155,7 +155,7 @@ python -m maxtext.trainers.post_train.sft.train_sft_deprecated \
 
     $\text{Text Tokens} \approx 1.3 \times \text{Number of Words in Prompt}$.
 
-  - For Gemma3, each image is resized to 896*896 and contributes 256 tokens:
+  - For Gemma3, each image is resized to 896\*896 and contributes 256 tokens:
 
     $\text{Total Tokens} \approx \text{Text Tokens} + \text{Number of Images} * 256$.
 
