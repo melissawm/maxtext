@@ -6,7 +6,7 @@ This guide provides instructions to use [checkpoint conversion scripts](https://
 
 The following models are supported:
 
-| Model Family            | Sizes                  | HF $\\to$ Orbax (scan) | HF $\\to$ Orbax (unscan) | Orbax (scan) $\\to$ HF | Orbax (unscan) $\\to$ HF |
+| Model Family            | Sizes                  | HF $\to$ Orbax (scan) | HF $\to$ Orbax (unscan) | Orbax (scan) $\to$ HF | Orbax (unscan) $\to$ HF |
 | :---------------------- | :--------------------- | :--------------------: | :----------------------: | :--------------------: | :----------------------: |
 | **Gemma2**              | 2B, 9B, 27B            |           √            |            √             |           √            |            √             |
 | **Gemma3** (Multimodal) | 4B, 12B, 27B           |           √            |            √             |           √            |            √             |
