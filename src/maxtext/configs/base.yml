@@ -237,11 +237,6 @@ merge_gating_gmm: False
 
 norm_topk_prob: false # boolean to enable the top-k probability normalization. qwen3-specific normalization of router weights.
 
-# how the expert axis is used to shard attention weights and activations
-# "fsdp" (ep acts as fsdp parallelism)
-# "context" (ep acts as context parallelism, training only)
-expert_shard_attention_option: "fsdp"
-
 # when moe weight matrices are sharded on both fsdp and fsdp-transpose axes, use two separate all-gather calls
 moe_fsdp_use_two_stage_all_gather: false
 # Shard the expert dimension of the MLP weights on the FSDP axis.
@@ -461,9 +456,9 @@ logical_axis_rules: [
                       ['activation_embed_and_logits_batch', ['data', 'stage', 'fsdp', 'fsdp_transpose', 'expert']],
                       ['activation_embed_and_logits_batch_sequence', ['data', 'stage', 'fsdp', 'fsdp_transpose', 'sequence', 'context', 'expert']],
                       ['activation_vocab', ['tensor', 'tensor_transpose', 'tensor_sequence']],
-                      # ['activation_vocab', ['tensor', 'tensor_transpose']],
-                      # ['activation_vocab', 'tensor_sequence'],
-                      # ['activation_vocab', ['sequence', 'context']],
+                      ['activation_vocab', ['tensor', 'tensor_transpose']],
+                      ['activation_vocab', 'tensor_sequence'],
+                      ['activation_vocab', ['sequence', 'context']],
                       # Vocab Weights
                       ['vocab', ['tensor', 'tensor_transpose', 'tensor_sequence', 'autoregressive']],
                       ['embed_vocab', ['fsdp', 'fsdp_transpose', 'sequence', 'context', 'expert']],
@@ -489,14 +484,14 @@ logical_axis_rules: [
                       ['kv', []],
                       ['kv_head_dim', []],
                       ['q_lora', ['fsdp', 'fsdp_transpose', 'sequence', 'context', 'tensor_transpose', 'expert']],
-                      # ['q_lora', ['fsdp', 'sequence', 'context', 'tensor_transpose', 'expert']],
-                      # ['q_lora', ['fsdp', 'fsdp_transpose', 'sequence', 'context', 'expert']],
-                      # ['q_lora', ['fsdp', 'sequence', 'context', 'expert']],
+                      ['q_lora', ['fsdp', 'sequence', 'context', 'tensor_transpose', 'expert']],
+                      ['q_lora', ['fsdp', 'fsdp_transpose', 'sequence', 'context', 'expert']],
+                      ['q_lora', ['fsdp', 'sequence', 'context', 'expert']],
                       ["q_lora_up_proj", []],
                       ['kv_lora', ['fsdp', 'fsdp_transpose', 'sequence', 'context', 'tensor_transpose', 'expert']],
-                      # ['kv_lora', ['fsdp', 'sequence', 'context', 'tensor_transpose', 'expert']],
-                      # ['kv_lora', ['fsdp', 'fsdp_transpose', 'sequence', 'context', 'expert']],
-                      # ['kv_lora', ['fsdp', 'sequence', 'context', 'expert']],
+                      ['kv_lora', ['fsdp', 'sequence', 'context', 'tensor_transpose', 'expert']],
+                      ['kv_lora', ['fsdp', 'fsdp_transpose', 'sequence', 'context', 'expert']],
+                      ['kv_lora', ['fsdp', 'sequence', 'context', 'expert']],
                       ["kv_lora_up_proj", []],
                       # ==========================================
                       # Mixture of Experts (MoE)
@@ -513,9 +508,9 @@ logical_axis_rules: [
                       ['exp', 'expert'],
                       ['mlp_moe', ['fsdp_transpose', 'tensor', 'tensor_sequence', 'autoregressive']],
                       ['embed_moe', ['fsdp', 'fsdp_transpose', 'sequence', 'tensor_transpose', 'context']],
-                      # ['embed_moe', ['fsdp', 'sequence', 'tensor_transpose', 'context']],
-                      # ['embed_moe', ['fsdp', 'fsdp_transpose', 'sequence', 'context']],
-                      # ['embed_moe', ['fsdp', 'sequence', 'context']],
+                      ['embed_moe', ['fsdp', 'sequence', 'tensor_transpose', 'context']],
+                      ['embed_moe', ['fsdp', 'fsdp_transpose', 'sequence', 'context']],
+                      ['embed_moe', ['fsdp', 'sequence', 'context']],
                       # ==========================================
                       # Standard MLP / Dense Layers / Model Structure
                       # ==========================================
@@ -530,9 +525,9 @@ logical_axis_rules: [
                       # General Weights
                       ['mlp', ['fsdp_transpose', 'tensor', 'tensor_sequence', 'autoregressive']],
                       ['embed', ['fsdp', 'fsdp_transpose', 'sequence', 'tensor_transpose', 'context', 'expert']],
-                      # ['embed', ['fsdp', 'sequence', 'tensor_transpose', 'context', 'expert']],
-                      # ['embed', ['fsdp', 'fsdp_transpose', 'sequence', 'context', 'expert']],
-                      # ['embed', ['fsdp', 'sequence', 'context', 'expert']],
+                      ['embed', ['fsdp', 'sequence', 'tensor_transpose', 'context', 'expert']],
+                      ['embed', ['fsdp', 'fsdp_transpose', 'sequence', 'context', 'expert']],
+                      ['embed', ['fsdp', 'sequence', 'context', 'expert']],
                       ['norm', ['tensor', 'tensor_transpose']],
                       ['layers', 'stage'],
                       ['diloco', 'diloco'],

@@ -48,7 +48,6 @@ from maxtext.common.common_types import (
     D_KV,
     DType,
     EMBED,
-    EP_AS_CONTEXT,
     HEAD,
     Q_LORA_UP_PROJ,
     KV_BATCH,
@@ -901,9 +900,6 @@ class MLA(Attention):
     if model_mode == MODEL_MODE_PREFILL:
       key_logical_name = self.prefill_key_axis_names
       value_logical_name = self.prefill_value_axis_names
-    elif model_mode == MODEL_MODE_TRAIN and self.config.expert_shard_attention_option == EP_AS_CONTEXT:
-      key_logical_name = self.ep_key_axis_names
-      value_logical_name = self.ep_value_axis_names
     else:
       key_logical_name = self.key_axis_names
       value_logical_name = self.value_axis_names
@@ -1224,10 +1220,7 @@ class MLA(Attention):
       )
 
     out = jax.ad_checkpoint.checkpoint_name(out, "attention_out")
-    if model_mode == MODEL_MODE_TRAIN and self.config.expert_shard_attention_option == EP_AS_CONTEXT:
-      out = self._maybe_shard_with_logical(out, self.ep_out_axis_names)
-    else:
-      out = self._maybe_shard_with_logical(out, self.out_axis_names)
+    out = self._maybe_shard_with_logical(out, self.out_axis_names)
 
     out_sharding = create_sharding(self.mesh, out_logical_name)
     out = self.out_projection(out, out_sharding=out_sharding)
