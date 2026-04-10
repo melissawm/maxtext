@@ -51,6 +51,7 @@ extensions = [
     "sphinx_design",
     "sphinx_copybutton",
     "sphinx.ext.napoleon",
+    "sphinx.ext.mathjax",
     # This needs to be before autodoc^
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
