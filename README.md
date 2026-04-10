@@ -77,7 +77,7 @@ See our guide on running MaxText in decoupled mode, without any GCP dependencies
 
 MaxText provides a library of models and demonstrates how to perform pre-training or post-training with high performance and scale.
 
-MaxText leverages [JAX AI libraries](https://docs.jaxstack.ai/en/latest/getting_started.html) and presents a cohesive and comprehensive demonstration of training at scale by using [Flax](https://flax.readthedocs.io/en/latest/) (neural networks), [Tunix](https://github.com/google/tunix) (post-training), [Orbax](https://orbax.readthedocs.io/en/latest/) (checkpointing), [Optax](https://optax.readthedocs.io/en/latest/) (optimization), and [Grain](https://google-grain.readthedocs.io/en/latest/) (dataloading).
+MaxText leverages [JAX AI libraries](https://docs.cloud.google.com/tpu/docs/jax-ai-stack) and presents a cohesive and comprehensive demonstration of training at scale by using [Flax](https://flax.readthedocs.io/en/latest/) (neural networks), [Tunix](https://github.com/google/tunix) (post-training), [Orbax](https://orbax.readthedocs.io/en/latest/) (checkpointing), [Optax](https://optax.readthedocs.io/en/latest/) (optimization), and [Grain](https://google-grain.readthedocs.io/en/latest/) (dataloading).
 
 In addition to pure text-based LLMs, we also support multi-modal training with Gemma 3, Gemma 4, and Llama 4 VLMs.
 
