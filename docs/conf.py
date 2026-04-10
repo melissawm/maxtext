@@ -162,6 +162,8 @@ linkcheck_ignore = [
     r"https://cla\.developers\.google\.com/.*",
     # Ignore GitHub commit history links which frequently trigger rate limiting (429)
     r"https://github\.com/jax-ml/jax/commits/.*",
+    # Ignore Hugging Face settings links which require login
+    r"https://huggingface\.co/settings/tokens",
 ]
 
 

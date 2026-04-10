@@ -38,15 +38,27 @@ Login to Hugging Face. Provide your access token when prompted:
 hf auth login
 ```
 
-Set the following environment variables before running SFT.
+Set up the following environment variables to configure your training run. Replace
+placeholders with your actual values.
 
-```sh
+```bash
 # -- Model configuration --
+# The MaxText model name. See `src/maxtext/configs/types.py` for `ModelName` for a
+# full list of supported models.
 export MODEL=<MaxText Model> # e.g., 'llama3.1-8b-Instruct'
 
 # -- MaxText configuration --
-export BASE_OUTPUT_DIRECTORY=<output directory to store run logs> # e.g., gs://my-bucket/my-output-directory
-export RUN_NAME=<name for this run> # e.g., $(date +%Y-%m-%d-%H-%M-%S)
+# Use a GCS bucket you own to store logs and checkpoints. Ideally in the same
+# region as your TPUs to minimize latency and costs.
+# You can list your buckets and their locations in the
+# [Cloud Console](https://console.cloud.google.com/storage/browser).
+export BASE_OUTPUT_DIRECTORY=<gcs bucket path> # e.g., gs://my-bucket/maxtext-runs
+
+# An arbitrary string to identify this specific run.
+# We recommend to include the model, user, and timestamp.
+# Note: Kubernetes requires workload names to be valid DNS labels (lowercase, no underscores or periods).
+export RUN_NAME=<Name for this run>
+
 export STEPS=<number of fine-tuning steps to run> # e.g., 1000
 export PER_DEVICE_BATCH_SIZE=<batch size per device> # e.g., 1
 
