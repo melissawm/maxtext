@@ -292,39 +292,38 @@ class TestCreateNNXAbstractModel(unittest.TestCase):
 
 
 class TestCreateNnxModel(unittest.TestCase):
-  """Tests for create_nnx_model()."""
+  """Tests for from_pretrained()."""
 
   def setUp(self):
     self.config = _make_config()
     self.mesh = _make_mesh(self.config)
 
   def test_no_checkpoint_returns_model_and_mesh(self):
-    """Without load_parameters_path, should return (model, mesh) cleanly."""
-    model, mesh = model_creation_utils.create_nnx_model(self.config, self.mesh)
+    """Without load_parameters_path, should return the model cleanly."""
+    model = model_creation_utils.from_pretrained(self.config, self.mesh)
     self.assertIsInstance(model, models.Transformer)
-    self.assertIsInstance(mesh, Mesh)
 
   def test_mesh_none_uses_abstract_model_mesh(self):
     """When mesh=None is passed, the function resolves it from the abstract model."""
-    model, mesh = model_creation_utils.create_nnx_model(self.config, mesh=None)
+    model, mesh = model_creation_utils.from_pretrained(self.config, mesh=None)
     self.assertIsInstance(model, models.Transformer)
     self.assertIsInstance(mesh, Mesh)
 
   def test_explicit_rng_key(self):
     """An explicit rng_key should be accepted without error."""
     rng_key = jax.random.PRNGKey(99)
-    model, _ = model_creation_utils.create_nnx_model(self.config, self.mesh, rng_key=rng_key)
+    model = model_creation_utils.from_pretrained(self.config, self.mesh, rng_key=rng_key)
     self.assertIsInstance(model, models.Transformer)
 
   def test_inference_mode_disables_dropout_rng(self):
     """MODEL_MODE_PREFILL should create rngs without a dropout key."""
-    model, _ = model_creation_utils.create_nnx_model(self.config, self.mesh, model_mode=MODEL_MODE_PREFILL)
+    model = model_creation_utils.from_pretrained(self.config, self.mesh, model_mode=MODEL_MODE_PREFILL)
     self.assertIsInstance(model, models.Transformer)
 
   def test_debug_sharding_flag(self):
     """debug_sharding=True should execute the sharding-print path without error."""
     cfg = _make_config(debug_sharding=True)
-    model, _ = model_creation_utils.create_nnx_model(cfg, self.mesh)
+    model = model_creation_utils.from_pretrained(cfg, self.mesh)
     self.assertIsInstance(model, models.Transformer)
 
   # ---- checkpoint loading: mocked paths ----
@@ -367,7 +366,7 @@ class TestCreateNnxModel(unittest.TestCase):
     mock_ocp.ArrayRestoreArgs = ocp.ArrayRestoreArgs
 
     cfg = _make_config(enable_checkpointing=True, load_parameters_path="gs://fake/nnx_ckpt")
-    model, _ = model_creation_utils.create_nnx_model(cfg, self.mesh)
+    model = model_creation_utils.from_pretrained(cfg, self.mesh)
     self.assertIsInstance(model, models.Transformer)
 
   @patch("maxtext.utils.model_creation_utils.ocp")
@@ -395,7 +394,7 @@ class TestCreateNnxModel(unittest.TestCase):
     mock_ocp.ArrayRestoreArgs = ocp.ArrayRestoreArgs
 
     cfg = _make_config(enable_checkpointing=True, load_parameters_path="gs://fake/linen_ckpt")
-    model, _ = model_creation_utils.create_nnx_model(cfg, self.mesh)
+    model = model_creation_utils.from_pretrained(cfg, self.mesh)
     self.assertIsInstance(model, models.Transformer)
 
   @patch("maxtext.utils.model_creation_utils.ocp")
@@ -408,7 +407,7 @@ class TestCreateNnxModel(unittest.TestCase):
 
     cfg = _make_config(enable_checkpointing=True, load_parameters_path="gs://fake/bad_ckpt")
     with self.assertRaises(ValueError):
-      model_creation_utils.create_nnx_model(cfg, self.mesh)
+      model_creation_utils.from_pretrained(cfg, self.mesh)
 
 
 if __name__ == "__main__":

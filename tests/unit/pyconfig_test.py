@@ -149,9 +149,10 @@ class PyconfigTest(unittest.TestCase):
     self.assertEqual(config.dump_hlo_local_module_name, "")
     self.assertEqual(config.dump_hlo_module_name, "")
 
-  def test_unknown_module_raises(self):
-    with self.assertRaises(ValueError):
-      pyconfig.initialize_pydantic(["/custom_rl/module.py", "run_name=test"])
+  def test_unknown_module_falls_back_to_base_yml(self):
+    """An unknown module should fall back to base.yml with a warning (not raise)."""
+    config = pyconfig.initialize_pydantic(["/custom_rl/module.py", "run_name=test", "skip_jax_distributed_system=True"])
+    self.assertEqual(config.run_name, "test")
 
 
 if __name__ == "__main__":

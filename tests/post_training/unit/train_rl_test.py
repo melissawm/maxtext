@@ -29,6 +29,7 @@ train_rl = pytest.importorskip(
     "maxtext.trainers.post_train.rl.train_rl",
     reason="Tunix is not installed on the GPU image",
 )
+from maxtext.utils import model_creation_utils
 
 
 def _get_mock_devices(devices_per_slice, num_slices=1):
@@ -62,9 +63,9 @@ class TrainRLTest(unittest.TestCase):
     # Following the pattern in distillation_checkpointing_test.py for mocking jax objects
     with (
         mock.patch.object(jax, "devices", return_value=mock_devices),
-        mock.patch("maxtext.trainers.post_train.rl.train_rl.pyconfig.initialize_pydantic", return_value=mock_config),
+        mock.patch("maxtext.utils.model_creation_utils.pyconfig.initialize_pydantic", return_value=mock_config),
     ):
-      trainer_config, sampler_config, trainer_devices, sampler_devices = train_rl.setup_configs_and_devices(
+      trainer_config, sampler_config, trainer_devices, sampler_devices = model_creation_utils.setup_configs_and_devices(
           ["dummy", "dummy"]
       )
 
@@ -91,9 +92,9 @@ class TrainRLTest(unittest.TestCase):
 
     with (
         mock.patch.object(jax, "devices", return_value=mock_devices),
-        mock.patch("maxtext.trainers.post_train.rl.train_rl.pyconfig.initialize_pydantic", return_value=mock_config),
+        mock.patch("maxtext.utils.model_creation_utils.pyconfig.initialize_pydantic", return_value=mock_config),
     ):
-      _, _, trainer_devices, sampler_devices = train_rl.setup_configs_and_devices(["dummy", "dummy"])
+      _, _, trainer_devices, sampler_devices = model_creation_utils.setup_configs_and_devices(["dummy", "dummy"])
 
       self.assertEqual(len(trainer_devices), 2)
       self.assertEqual(len(sampler_devices), 6)
@@ -118,12 +119,12 @@ class TrainRLTest(unittest.TestCase):
     with (
         mock.patch.object(jax, "devices", return_value=mock_devices),
         mock.patch(
-            "maxtext.trainers.post_train.rl.train_rl.pyconfig.initialize_pydantic",
+            "maxtext.utils.model_creation_utils.pyconfig.initialize_pydantic",
             side_effect=side_effect,
         ),
     ):
       with self.assertRaisesRegex(ValueError, "Not enough slices for trainer and samplers"):
-        train_rl.setup_configs_and_devices(["dummy", "dummy"])
+        model_creation_utils.setup_configs_and_devices(["dummy", "dummy"])
 
   @pytest.mark.cpu_only
   def test_setup_configs_and_devices_multislice_invalid_tp(self):
@@ -145,12 +146,12 @@ class TrainRLTest(unittest.TestCase):
     with (
         mock.patch.object(jax, "devices", return_value=mock_devices),
         mock.patch(
-            "maxtext.trainers.post_train.rl.train_rl.pyconfig.initialize_pydantic",
+            "maxtext.utils.model_creation_utils.pyconfig.initialize_pydantic",
             side_effect=side_effect,
         ),
     ):
       with self.assertRaisesRegex(ValueError, "must be divisible by tensor parallelism"):
-        train_rl.setup_configs_and_devices(["dummy", "dummy"])
+        model_creation_utils.setup_configs_and_devices(["dummy", "dummy"])
 
   @pytest.mark.cpu_only
   def test_setup_configs_and_devices_multislice_invalid_tp_fsdp(self):
@@ -172,12 +173,12 @@ class TrainRLTest(unittest.TestCase):
     with (
         mock.patch.object(jax, "devices", return_value=mock_devices),
         mock.patch(
-            "maxtext.trainers.post_train.rl.train_rl.pyconfig.initialize_pydantic",
+            "maxtext.utils.model_creation_utils.pyconfig.initialize_pydantic",
             side_effect=side_effect,
         ),
     ):
       with self.assertRaisesRegex(ValueError, "must equal devices_per_slice"):
-        train_rl.setup_configs_and_devices(["dummy", "dummy"])
+        model_creation_utils.setup_configs_and_devices(["dummy", "dummy"])
 
   @pytest.mark.cpu_only
   def test_get_rollout_kwargs_no_dp(self):
