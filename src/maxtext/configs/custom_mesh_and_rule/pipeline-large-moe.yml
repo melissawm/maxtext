@@ -46,7 +46,7 @@ logical_axis_rules: [
                       ['activation_mlp', ['tensor']],
                       ['activation_mlp_moe', ['tensor']],
                       ['activation_kv', ['tensor']],
-                      ['activation_kv_batch', ['data', 'fsdp']],
+                      ['activation_kv_batch', ['data', 'fsdp', 'expert']],
                       ['activation_kv_head_dim', ['tensor']],
                       ['activation_vocab', ['tensor']],
                       ['activation_stage', 'stage'],
