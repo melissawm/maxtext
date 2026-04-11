@@ -1194,6 +1194,8 @@ distill_temperature: 1.0
 # distill_beta is used for cosine similarity loss between intermediate activataitions of out_proj in teacher/student models.
 # 0.0 value disables this feature.
 distill_beta: 0.0
+# distill_feature_loss_type is the type of loss to use for feature distillation ("cosine" or "l2").
+distill_feature_loss_type: "cosine"
 distill_layer_indices: None
 
 ##### Elastic training parameters

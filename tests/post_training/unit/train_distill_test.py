@@ -24,6 +24,7 @@ pytestmark = [pytest.mark.tpu_only, pytest.mark.post_training]
 import shutil
 import tempfile
 import unittest
+from typing import Literal
 from unittest import mock
 import jax
 import jax.numpy as jnp
@@ -372,12 +373,14 @@ class TrainDistillTest(unittest.TestCase):
       train_distill.get_distillation_optimizer(config, max_train_steps=100)
 
   def test_monitored_strategy(self):
-    self._test_monitored_strategy(False)
+    self._test_monitored_strategy(sft_mode=False, feature_loss_type="cosine")
+    self._test_monitored_strategy(sft_mode=False, feature_loss_type="l2")
 
   def test_monitored_strategy_sft(self):
-    self._test_monitored_strategy(True)
+    self._test_monitored_strategy(sft_mode=True, feature_loss_type="cosine")
+    self._test_monitored_strategy(sft_mode=True, feature_loss_type="l2")
 
-  def _test_monitored_strategy(self, sft_mode: bool):
+  def _test_monitored_strategy(self, *, sft_mode: bool, feature_loss_type: Literal["cosine", "l2"] = "cosine"):
     """Verifies the strategy calculates metrics and returns the correct tuple."""
     strategy = distillation_utils.CombinedDistillationStrategy(
         student_forward_fn=lambda m, **k: None,
@@ -386,6 +389,7 @@ class TrainDistillTest(unittest.TestCase):
         temperature=1.0,
         alpha=0.5,
         beta_feature=1.0,
+        feature_loss_type=feature_loss_type,
         layer_indices=None,
     )
 
@@ -1012,6 +1016,7 @@ class TrainDistillTest(unittest.TestCase):
     mock_student_cfg.distill_alpha = 0.5
     mock_student_cfg.distill_beta = 0.0
     mock_student_cfg.distill_layer_indices = None
+    mock_student_cfg.distill_feature_loss_type = "cosine"
     mock_student_cfg.use_sft = False
     mock_student_cfg.enable_dropout = False
 
@@ -1091,6 +1096,7 @@ class TrainDistillTest(unittest.TestCase):
     mock_student_cfg.distill_alpha = 0.5
     mock_student_cfg.distill_beta = 0.0
     mock_student_cfg.distill_layer_indices = None
+    mock_student_cfg.distill_feature_loss_type = "cosine"
     mock_student_cfg.use_sft = False
     mock_student_cfg.enable_dropout = False
 

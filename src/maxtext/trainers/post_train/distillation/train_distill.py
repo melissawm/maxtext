@@ -507,6 +507,7 @@ def build_training_components(
       alpha=student_config.distill_alpha,
       beta_feature=student_config.distill_beta,
       layer_indices=student_config.distill_layer_indices,
+      feature_loss_type=student_config.distill_feature_loss_type,
       vocab_size=student_config.vocab_size,
   )
 

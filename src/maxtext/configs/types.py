@@ -1155,6 +1155,9 @@ class Distillation(BaseModel):
   distill_alpha: float = Field(0.5, description="Weight for the distillation loss component.")
   distill_temperature: float = Field(1.0, description="Temperature for distillation softening.")
   distill_beta: float = Field(0.0, description="Weight for the feature loss component. Use 0.0 to disable")
+  distill_feature_loss_type: Literal["cosine", "l2"] = Field(
+      "cosine", description="The type of loss to use for feature distillation ('cosine' or 'l2')."
+  )
   distill_layer_indices: None | list = Field(None, description="Feature indices for feature loss.")
 
   # --- Distillation freezing filter --
