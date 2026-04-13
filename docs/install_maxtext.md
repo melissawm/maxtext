@@ -31,6 +31,8 @@ This is the easiest way to get started with the latest stable version.
 ```bash
 # 1. Install uv, a fast Python package installer
 pip install uv
+# Alternatively, if pip install fails:
+# curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # 2. Create virtual environment
 uv venv --python 3.12 --seed maxtext_venv
@@ -79,6 +81,8 @@ cd maxtext
 
 # 2. Create virtual environment
 pip install uv
+# Alternatively, if pip install fails:
+# curl -LsSf https://astral.sh/uv/install.sh | sh
 uv venv --python 3.12 --seed maxtext_venv
 source maxtext_venv/bin/activate
 
@@ -128,7 +132,22 @@ The following sections provide detailed instructions for each step.
 
 ## Step 1: Install seed-env
 
-First, you need to install the `seed-env` command-line tool by running `pip install seed-env uv`. Or follow the instructions in the
+First, you need to install the `seed-env` command-line tool. We recommend installing `uv` first and then using it to install `seed-env`:
+
+```bash
+# Install uv
+pip install uv
+# Alternatively, if pip install fails:
+# curl -LsSf https://astral.sh/uv/install.sh | sh
+
+uv venv --python 3.12 --seed seed_venv
+source seed_venv/bin/activate
+
+# Install seed-env using uv
+uv pip install seed-env
+```
+
+Alternatively, follow the instructions in the
 [seed-env repository](https://github.com/google-ml-infra/actions/tree/main/python_seed_env#install-the-seed-env-tool) if you want to build `seed-env` from source.
 
 ## Step 2: Find the JAX Build Commit Hash
