@@ -54,6 +54,7 @@ logical_axis_rules: [
                       ['activation_norm_length_moe', []],
                       ['activation_exp', ['expert', 'attn_dp_expert']],
                       ['decode_batch', ['expert', 'attn_dp_expert']],
+                      ['decode_batch_moe', []],
                       ['decode_length', []],
                       ['mlp', ['model', 'attn_dp']],
                       ['mlp_moe', ['model', 'attn_dp']],
