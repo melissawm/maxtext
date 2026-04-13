@@ -18,7 +18,7 @@
       ],
       "shape": {
         "diloco": 1,
-        "data": 4,
+        "data": 1,
         "stage": 1,
         "fsdp": 8,
         "fsdp_transpose": 1,
@@ -28,7 +28,7 @@
         "tensor": 1,
         "tensor_transpose": 1,
         "tensor_sequence": 1,
-        "expert": 1,
+        "expert": 2,
         "autoregressive": 1
       }
     },
@@ -54,7 +54,7 @@
       ],
       "shape": {
         "diloco": 1,
-        "data": 4,
+        "data": 1,
         "stage": 1,
         "fsdp": 8,
         "fsdp_transpose": 1,
@@ -64,7 +64,7 @@
         "tensor": 1,
         "tensor_transpose": 1,
         "tensor_sequence": 1,
-        "expert": 1,
+        "expert": 2,
         "autoregressive": 1
       }
     },
@@ -75,10 +75,10 @@
       ]
     ],
     "shape": [
-      2048
+      2880
     ]
   },
-  ".params/['params']/['decoder']/['dense_layers']/['mlp']/['wi_0']/['kernel']": {
+  ".params/['params']/['decoder']/['layers']/['layers_0']/['GptOssAttention']/['key']/['bias']": {
     "mesh": {
       "axis_names": [
         "diloco",
@@ -97,7 +97,7 @@
       ],
       "shape": {
         "diloco": 1,
-        "data": 4,
+        "data": 1,
         "stage": 1,
         "fsdp": 8,
         "fsdp_transpose": 1,
@@ -107,19 +107,578 @@
         "tensor": 1,
         "tensor_transpose": 1,
         "tensor_sequence": 1,
-        "expert": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      [
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "autoregressive"
+      ],
+      "stage",
+      null
+    ],
+    "shape": [
+      8,
+      12,
+      64
+    ]
+  },
+  ".params/['params']/['decoder']/['layers']/['layers_0']/['GptOssAttention']/['key']/['kernel']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
         "autoregressive": 1
       }
     },
     "partition_spec": [
       [
         "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "expert"
+      ],
+      "stage",
+      [
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "autoregressive"
+      ],
+      null
+    ],
+    "shape": [
+      2880,
+      12,
+      8,
+      64
+    ]
+  },
+  ".params/['params']/['decoder']/['layers']/['layers_0']/['GptOssAttention']/['out']/['bias']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      [
+        "fsdp",
+        "fsdp_transpose",
         "sequence",
         "tensor_transpose",
         "context",
         "expert"
       ],
+      "stage"
+    ],
+    "shape": [
+      2880,
+      12
+    ]
+  },
+  ".params/['params']/['decoder']/['layers']/['layers_0']/['GptOssAttention']/['out']/['kernel']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      [
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "autoregressive"
+      ],
+      "stage",
       null,
+      [
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "expert"
+      ]
+    ],
+    "shape": [
+      64,
+      12,
+      64,
+      2880
+    ]
+  },
+  ".params/['params']/['decoder']/['layers']/['layers_0']/['GptOssAttention']/['query']/['bias']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      [
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "autoregressive"
+      ],
+      "stage",
+      null
+    ],
+    "shape": [
+      64,
+      12,
+      64
+    ]
+  },
+  ".params/['params']/['decoder']/['layers']/['layers_0']/['GptOssAttention']/['query']/['kernel']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      [
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "expert"
+      ],
+      "stage",
+      [
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "autoregressive"
+      ],
+      null
+    ],
+    "shape": [
+      2880,
+      12,
+      64,
+      64
+    ]
+  },
+  ".params/['params']/['decoder']/['layers']/['layers_0']/['GptOssAttention']/['sinks']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      null,
+      "stage"
+    ],
+    "shape": [
+      64,
+      12
+    ]
+  },
+  ".params/['params']/['decoder']/['layers']/['layers_0']/['GptOssAttention']/['value']/['bias']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      [
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "autoregressive"
+      ],
+      "stage",
+      null
+    ],
+    "shape": [
+      8,
+      12,
+      64
+    ]
+  },
+  ".params/['params']/['decoder']/['layers']/['layers_0']/['GptOssAttention']/['value']/['kernel']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      [
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "expert"
+      ],
+      "stage",
+      [
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "autoregressive"
+      ],
+      null
+    ],
+    "shape": [
+      2880,
+      12,
+      8,
+      64
+    ]
+  },
+  ".params/['params']/['decoder']/['layers']/['layers_0']/['GptOssMlp']/['gate']/['bias']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      null,
+      "stage"
+    ],
+    "shape": [
+      32,
+      12
+    ]
+  },
+  ".params/['params']/['decoder']/['layers']/['layers_0']/['GptOssMlp']/['gate']/['kernel']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      [
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "tensor_transpose",
+        "context",
+        "expert"
+      ],
+      "stage",
+      null
+    ],
+    "shape": [
+      2880,
+      12,
+      32
+    ]
+  },
+  ".params/['params']/['decoder']/['layers']/['layers_0']/['GptOssMlp']/['wi_0']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      "expert",
+      "stage",
+      [
+        "fsdp",
+        "sequence",
+        "tensor_transpose",
+        "context"
+      ],
       [
         "fsdp_transpose",
         "tensor",
@@ -128,12 +687,13 @@
       ]
     ],
     "shape": [
-      2048,
-      1,
-      10944
+      32,
+      12,
+      2880,
+      2880
     ]
   },
-  ".params/['params']/['decoder']/['dense_layers']/['mlp']/['wi_1']/['kernel']": {
+  ".params/['params']/['decoder']/['layers']/['layers_0']/['GptOssMlp']/['wi_0_bias']": {
     "mesh": {
       "axis_names": [
         "diloco",
@@ -152,7 +712,7 @@
       ],
       "shape": {
         "diloco": 1,
-        "data": 4,
+        "data": 1,
         "stage": 1,
         "fsdp": 8,
         "fsdp_transpose": 1,
@@ -162,19 +722,67 @@
         "tensor": 1,
         "tensor_transpose": 1,
         "tensor_sequence": 1,
-        "expert": 1,
+        "expert": 2,
         "autoregressive": 1
       }
     },
     "partition_spec": [
+      "expert",
+      "stage",
+      [
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence"
+      ]
+    ],
+    "shape": [
+      32,
+      12,
+      2880
+    ]
+  },
+  ".params/['params']/['decoder']/['layers']/['layers_0']/['GptOssMlp']/['wi_1']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      "expert",
+      "stage",
       [
         "fsdp",
         "sequence",
         "tensor_transpose",
-        "context",
-        "expert"
+        "context"
       ],
-      null,
       [
         "fsdp_transpose",
         "tensor",
@@ -183,12 +791,13 @@
       ]
     ],
     "shape": [
-      2048,
-      1,
-      10944
+      32,
+      12,
+      2880,
+      2880
     ]
   },
-  ".params/['params']/['decoder']/['dense_layers']/['mlp']/['wo']/['kernel']": {
+  ".params/['params']/['decoder']/['layers']/['layers_0']/['GptOssMlp']/['wi_1_bias']": {
     "mesh": {
       "axis_names": [
         "diloco",
@@ -207,7 +816,7 @@
       ],
       "shape": {
         "diloco": 1,
-        "data": 4,
+        "data": 1,
         "stage": 1,
         "fsdp": 8,
         "fsdp_transpose": 1,
@@ -217,33 +826,26 @@
         "tensor": 1,
         "tensor_transpose": 1,
         "tensor_sequence": 1,
-        "expert": 1,
+        "expert": 2,
         "autoregressive": 1
       }
     },
     "partition_spec": [
+      "expert",
+      "stage",
       [
-        "fsdp_transpose",
         "tensor",
-        "tensor_sequence",
-        "autoregressive"
-      ],
-      null,
-      [
-        "fsdp",
-        "sequence",
         "tensor_transpose",
-        "context",
-        "expert"
+        "tensor_sequence"
       ]
     ],
     "shape": [
-      10944,
-      1,
-      2048
+      32,
+      12,
+      2880
     ]
   },
-  ".params/['params']/['decoder']/['dense_layers']/['post_self_attention_layer_norm']/['scale']": {
+  ".params/['params']/['decoder']/['layers']/['layers_0']/['GptOssMlp']/['wo']": {
     "mesh": {
       "axis_names": [
         "diloco",
@@ -262,7 +864,7 @@
       ],
       "shape": {
         "diloco": 1,
-        "data": 4,
+        "data": 1,
         "stage": 1,
         "fsdp": 8,
         "fsdp_transpose": 1,
@@ -272,7 +874,110 @@
         "tensor": 1,
         "tensor_transpose": 1,
         "tensor_sequence": 1,
-        "expert": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      "expert",
+      "stage",
+      [
+        "fsdp_transpose",
+        "tensor",
+        "tensor_sequence",
+        "autoregressive"
+      ],
+      [
+        "fsdp",
+        "sequence",
+        "tensor_transpose",
+        "context"
+      ]
+    ],
+    "shape": [
+      32,
+      12,
+      2880,
+      2880
+    ]
+  },
+  ".params/['params']/['decoder']/['layers']/['layers_0']/['GptOssMlp']/['wo_bias']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      "expert",
+      "stage",
+      [
+        "tensor",
+        "tensor_transpose"
+      ]
+    ],
+    "shape": [
+      32,
+      12,
+      2880
+    ]
+  },
+  ".params/['params']/['decoder']/['layers']/['layers_0']/['post_self_attention_layer_norm']/['scale']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
         "autoregressive": 1
       }
     },
@@ -281,14 +986,14 @@
         "tensor",
         "tensor_transpose"
       ],
-      null
+      "stage"
     ],
     "shape": [
-      2048,
-      1
+      2880,
+      12
     ]
   },
-  ".params/['params']/['decoder']/['dense_layers']/['pre_self_attention_layer_norm']/['scale']": {
+  ".params/['params']/['decoder']/['layers']/['layers_0']/['pre_self_attention_layer_norm']/['scale']": {
     "mesh": {
       "axis_names": [
         "diloco",
@@ -307,7 +1012,7 @@
       ],
       "shape": {
         "diloco": 1,
-        "data": 4,
+        "data": 1,
         "stage": 1,
         "fsdp": 8,
         "fsdp_transpose": 1,
@@ -317,7 +1022,7 @@
         "tensor": 1,
         "tensor_transpose": 1,
         "tensor_sequence": 1,
-        "expert": 1,
+        "expert": 2,
         "autoregressive": 1
       }
     },
@@ -326,14 +1031,14 @@
         "tensor",
         "tensor_transpose"
       ],
-      null
+      "stage"
     ],
     "shape": [
-      2048,
-      1
+      2880,
+      12
     ]
   },
-  ".params/['params']/['decoder']/['dense_layers']/['self_attention']/['kv_norm']/['scale']": {
+  ".params/['params']/['decoder']/['layers']/['layers_1']/['GptOssAttention']/['key']/['bias']": {
     "mesh": {
       "axis_names": [
         "diloco",
@@ -352,7 +1057,7 @@
       ],
       "shape": {
         "diloco": 1,
-        "data": 4,
+        "data": 1,
         "stage": 1,
         "fsdp": 8,
         "fsdp_transpose": 1,
@@ -362,23 +1067,27 @@
         "tensor": 1,
         "tensor_transpose": 1,
         "tensor_sequence": 1,
-        "expert": 1,
+        "expert": 2,
         "autoregressive": 1
       }
     },
     "partition_spec": [
       [
         "tensor",
-        "tensor_transpose"
+        "tensor_transpose",
+        "tensor_sequence",
+        "autoregressive"
       ],
+      "stage",
       null
     ],
     "shape": [
-      512,
-      1
+      8,
+      12,
+      64
     ]
   },
-  ".params/['params']/['decoder']/['dense_layers']/['self_attention']/['out']/['kernel']": {
+  ".params/['params']/['decoder']/['layers']/['layers_1']/['GptOssAttention']/['key']/['kernel']": {
     "mesh": {
       "axis_names": [
         "diloco",
@@ -397,7 +1106,7 @@
       ],
       "shape": {
         "diloco": 1,
-        "data": 4,
+        "data": 1,
         "stage": 1,
         "fsdp": 8,
         "fsdp_transpose": 1,
@@ -407,7 +1116,113 @@
         "tensor": 1,
         "tensor_transpose": 1,
         "tensor_sequence": 1,
-        "expert": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      [
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "expert"
+      ],
+      "stage",
+      [
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "autoregressive"
+      ],
+      null
+    ],
+    "shape": [
+      2880,
+      12,
+      8,
+      64
+    ]
+  },
+  ".params/['params']/['decoder']/['layers']/['layers_1']/['GptOssAttention']/['out']/['bias']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      [
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "tensor_transpose",
+        "context",
+        "expert"
+      ],
+      "stage"
+    ],
+    "shape": [
+      2880,
+      12
+    ]
+  },
+  ".params/['params']/['decoder']/['layers']/['layers_1']/['GptOssAttention']/['out']/['kernel']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
         "autoregressive": 1
       }
     },
@@ -418,7 +1233,7 @@
         "tensor_sequence",
         "autoregressive"
       ],
-      null,
+      "stage",
       null,
       [
         "fsdp",
@@ -429,13 +1244,13 @@
       ]
     ],
     "shape": [
-      16,
-      1,
-      128,
-      2048
+      64,
+      12,
+      64,
+      2880
     ]
   },
-  ".params/['params']/['decoder']/['dense_layers']/['self_attention']/['query']/['kernel']": {
+  ".params/['params']/['decoder']/['layers']/['layers_1']/['GptOssAttention']/['query']/['bias']": {
     "mesh": {
       "axis_names": [
         "diloco",
@@ -454,7 +1269,7 @@
       ],
       "shape": {
         "diloco": 1,
-        "data": 4,
+        "data": 1,
         "stage": 1,
         "fsdp": 8,
         "fsdp_transpose": 1,
@@ -464,35 +1279,27 @@
         "tensor": 1,
         "tensor_transpose": 1,
         "tensor_sequence": 1,
-        "expert": 1,
+        "expert": 2,
         "autoregressive": 1
       }
     },
     "partition_spec": [
-      [
-        "fsdp",
-        "fsdp_transpose",
-        "sequence",
-        "context",
-        "expert"
-      ],
-      null,
       [
         "tensor",
         "tensor_transpose",
         "tensor_sequence",
         "autoregressive"
       ],
+      "stage",
       null
     ],
     "shape": [
-      2048,
-      1,
-      16,
-      192
+      64,
+      12,
+      64
     ]
   },
-  ".params/['params']/['decoder']/['dense_layers']/['self_attention']/['wkv_a']/['kernel']": {
+  ".params/['params']/['decoder']/['layers']/['layers_1']/['GptOssAttention']/['query']/['kernel']": {
     "mesh": {
       "axis_names": [
         "diloco",
@@ -511,7 +1318,7 @@
       ],
       "shape": {
         "diloco": 1,
-        "data": 4,
+        "data": 1,
         "stage": 1,
         "fsdp": 8,
         "fsdp_transpose": 1,
@@ -521,7 +1328,7 @@
         "tensor": 1,
         "tensor_transpose": 1,
         "tensor_sequence": 1,
-        "expert": 1,
+        "expert": 2,
         "autoregressive": 1
       }
     },
@@ -530,20 +1337,26 @@
         "fsdp",
         "fsdp_transpose",
         "sequence",
-        "tensor_transpose",
         "context",
         "expert"
       ],
-      null,
+      "stage",
+      [
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "autoregressive"
+      ],
       null
     ],
     "shape": [
-      2048,
-      1,
-      576
+      2880,
+      12,
+      64,
+      64
     ]
   },
-  ".params/['params']/['decoder']/['dense_layers']/['self_attention']/['wkv_b']/['kernel']": {
+  ".params/['params']/['decoder']/['layers']/['layers_1']/['GptOssAttention']/['sinks']": {
     "mesh": {
       "axis_names": [
         "diloco",
@@ -562,7 +1375,7 @@
       ],
       "shape": {
         "diloco": 1,
-        "data": 4,
+        "data": 1,
         "stage": 1,
         "fsdp": 8,
         "fsdp_transpose": 1,
@@ -572,7 +1385,98 @@
         "tensor": 1,
         "tensor_transpose": 1,
         "tensor_sequence": 1,
-        "expert": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      null,
+      "stage"
+    ],
+    "shape": [
+      64,
+      12
+    ]
+  },
+  ".params/['params']/['decoder']/['layers']/['layers_1']/['GptOssAttention']/['value']/['bias']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      [
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "autoregressive"
+      ],
+      "stage",
+      null
+    ],
+    "shape": [
+      8,
+      12,
+      64
+    ]
+  },
+  ".params/['params']/['decoder']/['layers']/['layers_1']/['GptOssAttention']/['value']/['kernel']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
         "autoregressive": 1
       }
     },
@@ -584,7 +1488,7 @@
         "context",
         "expert"
       ],
-      null,
+      "stage",
       [
         "tensor",
         "tensor_transpose",
@@ -594,10 +1498,504 @@
       null
     ],
     "shape": [
-      512,
-      1,
-      16,
-      256
+      2880,
+      12,
+      8,
+      64
+    ]
+  },
+  ".params/['params']/['decoder']/['layers']/['layers_1']/['GptOssMlp']/['gate']/['bias']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      null,
+      "stage"
+    ],
+    "shape": [
+      32,
+      12
+    ]
+  },
+  ".params/['params']/['decoder']/['layers']/['layers_1']/['GptOssMlp']/['gate']/['kernel']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      [
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "tensor_transpose",
+        "context",
+        "expert"
+      ],
+      "stage",
+      null
+    ],
+    "shape": [
+      2880,
+      12,
+      32
+    ]
+  },
+  ".params/['params']/['decoder']/['layers']/['layers_1']/['GptOssMlp']/['wi_0']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      "expert",
+      "stage",
+      [
+        "fsdp",
+        "sequence",
+        "tensor_transpose",
+        "context"
+      ],
+      [
+        "fsdp_transpose",
+        "tensor",
+        "tensor_sequence",
+        "autoregressive"
+      ]
+    ],
+    "shape": [
+      32,
+      12,
+      2880,
+      2880
+    ]
+  },
+  ".params/['params']/['decoder']/['layers']/['layers_1']/['GptOssMlp']/['wi_0_bias']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      "expert",
+      "stage",
+      [
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence"
+      ]
+    ],
+    "shape": [
+      32,
+      12,
+      2880
+    ]
+  },
+  ".params/['params']/['decoder']/['layers']/['layers_1']/['GptOssMlp']/['wi_1']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      "expert",
+      "stage",
+      [
+        "fsdp",
+        "sequence",
+        "tensor_transpose",
+        "context"
+      ],
+      [
+        "fsdp_transpose",
+        "tensor",
+        "tensor_sequence",
+        "autoregressive"
+      ]
+    ],
+    "shape": [
+      32,
+      12,
+      2880,
+      2880
+    ]
+  },
+  ".params/['params']/['decoder']/['layers']/['layers_1']/['GptOssMlp']/['wi_1_bias']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      "expert",
+      "stage",
+      [
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence"
+      ]
+    ],
+    "shape": [
+      32,
+      12,
+      2880
+    ]
+  },
+  ".params/['params']/['decoder']/['layers']/['layers_1']/['GptOssMlp']/['wo']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      "expert",
+      "stage",
+      [
+        "fsdp_transpose",
+        "tensor",
+        "tensor_sequence",
+        "autoregressive"
+      ],
+      [
+        "fsdp",
+        "sequence",
+        "tensor_transpose",
+        "context"
+      ]
+    ],
+    "shape": [
+      32,
+      12,
+      2880,
+      2880
+    ]
+  },
+  ".params/['params']/['decoder']/['layers']/['layers_1']/['GptOssMlp']/['wo_bias']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      "expert",
+      "stage",
+      [
+        "tensor",
+        "tensor_transpose"
+      ]
+    ],
+    "shape": [
+      32,
+      12,
+      2880
+    ]
+  },
+  ".params/['params']/['decoder']/['layers']/['layers_1']/['post_self_attention_layer_norm']/['scale']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      [
+        "tensor",
+        "tensor_transpose"
+      ],
+      "stage"
+    ],
+    "shape": [
+      2880,
+      12
+    ]
+  },
+  ".params/['params']/['decoder']/['layers']/['layers_1']/['pre_self_attention_layer_norm']/['scale']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      [
+        "tensor",
+        "tensor_transpose"
+      ],
+      "stage"
+    ],
+    "shape": [
+      2880,
+      12
     ]
   },
   ".params/['params']/['decoder']/['logits_dense']/['kernel']": {
@@ -619,7 +2017,7 @@
       ],
       "shape": {
         "diloco": 1,
-        "data": 4,
+        "data": 1,
         "stage": 1,
         "fsdp": 8,
         "fsdp_transpose": 1,
@@ -629,7 +2027,7 @@
         "tensor": 1,
         "tensor_transpose": 1,
         "tensor_sequence": 1,
-        "expert": 1,
+        "expert": 2,
         "autoregressive": 1
       }
     },
@@ -649,748 +2047,8 @@
       ]
     ],
     "shape": [
-      2048,
-      102400
-    ]
-  },
-  ".params/['params']/['decoder']/['moe_layers']/['DeepSeekMoeBlock_0']/['MoeBlock_0']/['gate']/['kernel']": {
-    "mesh": {
-      "axis_names": [
-        "diloco",
-        "data",
-        "stage",
-        "fsdp",
-        "fsdp_transpose",
-        "sequence",
-        "context",
-        "context_autoregressive",
-        "tensor",
-        "tensor_transpose",
-        "tensor_sequence",
-        "expert",
-        "autoregressive"
-      ],
-      "shape": {
-        "diloco": 1,
-        "data": 4,
-        "stage": 1,
-        "fsdp": 8,
-        "fsdp_transpose": 1,
-        "sequence": 1,
-        "context": 1,
-        "context_autoregressive": 1,
-        "tensor": 1,
-        "tensor_transpose": 1,
-        "tensor_sequence": 1,
-        "expert": 1,
-        "autoregressive": 1
-      }
-    },
-    "partition_spec": [
-      [
-        "fsdp",
-        "fsdp_transpose",
-        "sequence",
-        "tensor_transpose",
-        "context"
-      ],
-      null,
-      null
-    ],
-    "shape": [
-      2048,
-      26,
-      64
-    ]
-  },
-  ".params/['params']/['decoder']/['moe_layers']/['DeepSeekMoeBlock_0']/['MoeBlock_0']/['wi_0']": {
-    "mesh": {
-      "axis_names": [
-        "diloco",
-        "data",
-        "stage",
-        "fsdp",
-        "fsdp_transpose",
-        "sequence",
-        "context",
-        "context_autoregressive",
-        "tensor",
-        "tensor_transpose",
-        "tensor_sequence",
-        "expert",
-        "autoregressive"
-      ],
-      "shape": {
-        "diloco": 1,
-        "data": 4,
-        "stage": 1,
-        "fsdp": 8,
-        "fsdp_transpose": 1,
-        "sequence": 1,
-        "context": 1,
-        "context_autoregressive": 1,
-        "tensor": 1,
-        "tensor_transpose": 1,
-        "tensor_sequence": 1,
-        "expert": 1,
-        "autoregressive": 1
-      }
-    },
-    "partition_spec": [
-      "expert",
-      null,
-      [
-        "fsdp",
-        "sequence",
-        "tensor_transpose",
-        "context"
-      ],
-      [
-        "fsdp_transpose",
-        "tensor",
-        "tensor_sequence",
-        "autoregressive"
-      ]
-    ],
-    "shape": [
-      64,
-      26,
-      2048,
-      1408
-    ]
-  },
-  ".params/['params']/['decoder']/['moe_layers']/['DeepSeekMoeBlock_0']/['MoeBlock_0']/['wi_1']": {
-    "mesh": {
-      "axis_names": [
-        "diloco",
-        "data",
-        "stage",
-        "fsdp",
-        "fsdp_transpose",
-        "sequence",
-        "context",
-        "context_autoregressive",
-        "tensor",
-        "tensor_transpose",
-        "tensor_sequence",
-        "expert",
-        "autoregressive"
-      ],
-      "shape": {
-        "diloco": 1,
-        "data": 4,
-        "stage": 1,
-        "fsdp": 8,
-        "fsdp_transpose": 1,
-        "sequence": 1,
-        "context": 1,
-        "context_autoregressive": 1,
-        "tensor": 1,
-        "tensor_transpose": 1,
-        "tensor_sequence": 1,
-        "expert": 1,
-        "autoregressive": 1
-      }
-    },
-    "partition_spec": [
-      "expert",
-      null,
-      [
-        "fsdp",
-        "sequence",
-        "tensor_transpose",
-        "context"
-      ],
-      [
-        "fsdp_transpose",
-        "tensor",
-        "tensor_sequence",
-        "autoregressive"
-      ]
-    ],
-    "shape": [
-      64,
-      26,
-      2048,
-      1408
-    ]
-  },
-  ".params/['params']/['decoder']/['moe_layers']/['DeepSeekMoeBlock_0']/['MoeBlock_0']/['wo']": {
-    "mesh": {
-      "axis_names": [
-        "diloco",
-        "data",
-        "stage",
-        "fsdp",
-        "fsdp_transpose",
-        "sequence",
-        "context",
-        "context_autoregressive",
-        "tensor",
-        "tensor_transpose",
-        "tensor_sequence",
-        "expert",
-        "autoregressive"
-      ],
-      "shape": {
-        "diloco": 1,
-        "data": 4,
-        "stage": 1,
-        "fsdp": 8,
-        "fsdp_transpose": 1,
-        "sequence": 1,
-        "context": 1,
-        "context_autoregressive": 1,
-        "tensor": 1,
-        "tensor_transpose": 1,
-        "tensor_sequence": 1,
-        "expert": 1,
-        "autoregressive": 1
-      }
-    },
-    "partition_spec": [
-      "expert",
-      null,
-      [
-        "fsdp_transpose",
-        "tensor",
-        "tensor_sequence",
-        "autoregressive"
-      ],
-      [
-        "fsdp",
-        "sequence",
-        "tensor_transpose",
-        "context"
-      ]
-    ],
-    "shape": [
-      64,
-      26,
-      1408,
-      2048
-    ]
-  },
-  ".params/['params']/['decoder']/['moe_layers']/['DeepSeekMoeBlock_0']/['shared_experts']/['wi_0']/['kernel']": {
-    "mesh": {
-      "axis_names": [
-        "diloco",
-        "data",
-        "stage",
-        "fsdp",
-        "fsdp_transpose",
-        "sequence",
-        "context",
-        "context_autoregressive",
-        "tensor",
-        "tensor_transpose",
-        "tensor_sequence",
-        "expert",
-        "autoregressive"
-      ],
-      "shape": {
-        "diloco": 1,
-        "data": 4,
-        "stage": 1,
-        "fsdp": 8,
-        "fsdp_transpose": 1,
-        "sequence": 1,
-        "context": 1,
-        "context_autoregressive": 1,
-        "tensor": 1,
-        "tensor_transpose": 1,
-        "tensor_sequence": 1,
-        "expert": 1,
-        "autoregressive": 1
-      }
-    },
-    "partition_spec": [
-      [
-        "fsdp",
-        "sequence",
-        "tensor_transpose",
-        "context",
-        "expert"
-      ],
-      null,
-      [
-        "fsdp_transpose",
-        "tensor",
-        "tensor_sequence",
-        "autoregressive"
-      ]
-    ],
-    "shape": [
-      2048,
-      26,
-      2816
-    ]
-  },
-  ".params/['params']/['decoder']/['moe_layers']/['DeepSeekMoeBlock_0']/['shared_experts']/['wi_1']/['kernel']": {
-    "mesh": {
-      "axis_names": [
-        "diloco",
-        "data",
-        "stage",
-        "fsdp",
-        "fsdp_transpose",
-        "sequence",
-        "context",
-        "context_autoregressive",
-        "tensor",
-        "tensor_transpose",
-        "tensor_sequence",
-        "expert",
-        "autoregressive"
-      ],
-      "shape": {
-        "diloco": 1,
-        "data": 4,
-        "stage": 1,
-        "fsdp": 8,
-        "fsdp_transpose": 1,
-        "sequence": 1,
-        "context": 1,
-        "context_autoregressive": 1,
-        "tensor": 1,
-        "tensor_transpose": 1,
-        "tensor_sequence": 1,
-        "expert": 1,
-        "autoregressive": 1
-      }
-    },
-    "partition_spec": [
-      [
-        "fsdp",
-        "sequence",
-        "tensor_transpose",
-        "context",
-        "expert"
-      ],
-      null,
-      [
-        "fsdp_transpose",
-        "tensor",
-        "tensor_sequence",
-        "autoregressive"
-      ]
-    ],
-    "shape": [
-      2048,
-      26,
-      2816
-    ]
-  },
-  ".params/['params']/['decoder']/['moe_layers']/['DeepSeekMoeBlock_0']/['shared_experts']/['wo']/['kernel']": {
-    "mesh": {
-      "axis_names": [
-        "diloco",
-        "data",
-        "stage",
-        "fsdp",
-        "fsdp_transpose",
-        "sequence",
-        "context",
-        "context_autoregressive",
-        "tensor",
-        "tensor_transpose",
-        "tensor_sequence",
-        "expert",
-        "autoregressive"
-      ],
-      "shape": {
-        "diloco": 1,
-        "data": 4,
-        "stage": 1,
-        "fsdp": 8,
-        "fsdp_transpose": 1,
-        "sequence": 1,
-        "context": 1,
-        "context_autoregressive": 1,
-        "tensor": 1,
-        "tensor_transpose": 1,
-        "tensor_sequence": 1,
-        "expert": 1,
-        "autoregressive": 1
-      }
-    },
-    "partition_spec": [
-      [
-        "fsdp_transpose",
-        "tensor",
-        "tensor_sequence",
-        "autoregressive"
-      ],
-      null,
-      [
-        "fsdp",
-        "sequence",
-        "tensor_transpose",
-        "context",
-        "expert"
-      ]
-    ],
-    "shape": [
-      2816,
-      26,
-      2048
-    ]
-  },
-  ".params/['params']/['decoder']/['moe_layers']/['post_self_attention_layer_norm']/['scale']": {
-    "mesh": {
-      "axis_names": [
-        "diloco",
-        "data",
-        "stage",
-        "fsdp",
-        "fsdp_transpose",
-        "sequence",
-        "context",
-        "context_autoregressive",
-        "tensor",
-        "tensor_transpose",
-        "tensor_sequence",
-        "expert",
-        "autoregressive"
-      ],
-      "shape": {
-        "diloco": 1,
-        "data": 4,
-        "stage": 1,
-        "fsdp": 8,
-        "fsdp_transpose": 1,
-        "sequence": 1,
-        "context": 1,
-        "context_autoregressive": 1,
-        "tensor": 1,
-        "tensor_transpose": 1,
-        "tensor_sequence": 1,
-        "expert": 1,
-        "autoregressive": 1
-      }
-    },
-    "partition_spec": [
-      [
-        "tensor",
-        "tensor_transpose"
-      ],
-      null
-    ],
-    "shape": [
-      2048,
-      26
-    ]
-  },
-  ".params/['params']/['decoder']/['moe_layers']/['pre_self_attention_layer_norm']/['scale']": {
-    "mesh": {
-      "axis_names": [
-        "diloco",
-        "data",
-        "stage",
-        "fsdp",
-        "fsdp_transpose",
-        "sequence",
-        "context",
-        "context_autoregressive",
-        "tensor",
-        "tensor_transpose",
-        "tensor_sequence",
-        "expert",
-        "autoregressive"
-      ],
-      "shape": {
-        "diloco": 1,
-        "data": 4,
-        "stage": 1,
-        "fsdp": 8,
-        "fsdp_transpose": 1,
-        "sequence": 1,
-        "context": 1,
-        "context_autoregressive": 1,
-        "tensor": 1,
-        "tensor_transpose": 1,
-        "tensor_sequence": 1,
-        "expert": 1,
-        "autoregressive": 1
-      }
-    },
-    "partition_spec": [
-      [
-        "tensor",
-        "tensor_transpose"
-      ],
-      null
-    ],
-    "shape": [
-      2048,
-      26
-    ]
-  },
-  ".params/['params']/['decoder']/['moe_layers']/['self_attention']/['kv_norm']/['scale']": {
-    "mesh": {
-      "axis_names": [
-        "diloco",
-        "data",
-        "stage",
-        "fsdp",
-        "fsdp_transpose",
-        "sequence",
-        "context",
-        "context_autoregressive",
-        "tensor",
-        "tensor_transpose",
-        "tensor_sequence",
-        "expert",
-        "autoregressive"
-      ],
-      "shape": {
-        "diloco": 1,
-        "data": 4,
-        "stage": 1,
-        "fsdp": 8,
-        "fsdp_transpose": 1,
-        "sequence": 1,
-        "context": 1,
-        "context_autoregressive": 1,
-        "tensor": 1,
-        "tensor_transpose": 1,
-        "tensor_sequence": 1,
-        "expert": 1,
-        "autoregressive": 1
-      }
-    },
-    "partition_spec": [
-      [
-        "tensor",
-        "tensor_transpose"
-      ],
-      null
-    ],
-    "shape": [
-      512,
-      26
-    ]
-  },
-  ".params/['params']/['decoder']/['moe_layers']/['self_attention']/['out']/['kernel']": {
-    "mesh": {
-      "axis_names": [
-        "diloco",
-        "data",
-        "stage",
-        "fsdp",
-        "fsdp_transpose",
-        "sequence",
-        "context",
-        "context_autoregressive",
-        "tensor",
-        "tensor_transpose",
-        "tensor_sequence",
-        "expert",
-        "autoregressive"
-      ],
-      "shape": {
-        "diloco": 1,
-        "data": 4,
-        "stage": 1,
-        "fsdp": 8,
-        "fsdp_transpose": 1,
-        "sequence": 1,
-        "context": 1,
-        "context_autoregressive": 1,
-        "tensor": 1,
-        "tensor_transpose": 1,
-        "tensor_sequence": 1,
-        "expert": 1,
-        "autoregressive": 1
-      }
-    },
-    "partition_spec": [
-      [
-        "tensor",
-        "tensor_transpose",
-        "tensor_sequence",
-        "autoregressive"
-      ],
-      null,
-      null,
-      [
-        "fsdp",
-        "fsdp_transpose",
-        "sequence",
-        "context",
-        "expert"
-      ]
-    ],
-    "shape": [
-      16,
-      26,
-      128,
-      2048
-    ]
-  },
-  ".params/['params']/['decoder']/['moe_layers']/['self_attention']/['query']/['kernel']": {
-    "mesh": {
-      "axis_names": [
-        "diloco",
-        "data",
-        "stage",
-        "fsdp",
-        "fsdp_transpose",
-        "sequence",
-        "context",
-        "context_autoregressive",
-        "tensor",
-        "tensor_transpose",
-        "tensor_sequence",
-        "expert",
-        "autoregressive"
-      ],
-      "shape": {
-        "diloco": 1,
-        "data": 4,
-        "stage": 1,
-        "fsdp": 8,
-        "fsdp_transpose": 1,
-        "sequence": 1,
-        "context": 1,
-        "context_autoregressive": 1,
-        "tensor": 1,
-        "tensor_transpose": 1,
-        "tensor_sequence": 1,
-        "expert": 1,
-        "autoregressive": 1
-      }
-    },
-    "partition_spec": [
-      [
-        "fsdp",
-        "fsdp_transpose",
-        "sequence",
-        "context",
-        "expert"
-      ],
-      null,
-      [
-        "tensor",
-        "tensor_transpose",
-        "tensor_sequence",
-        "autoregressive"
-      ],
-      null
-    ],
-    "shape": [
-      2048,
-      26,
-      16,
-      192
-    ]
-  },
-  ".params/['params']/['decoder']/['moe_layers']/['self_attention']/['wkv_a']/['kernel']": {
-    "mesh": {
-      "axis_names": [
-        "diloco",
-        "data",
-        "stage",
-        "fsdp",
-        "fsdp_transpose",
-        "sequence",
-        "context",
-        "context_autoregressive",
-        "tensor",
-        "tensor_transpose",
-        "tensor_sequence",
-        "expert",
-        "autoregressive"
-      ],
-      "shape": {
-        "diloco": 1,
-        "data": 4,
-        "stage": 1,
-        "fsdp": 8,
-        "fsdp_transpose": 1,
-        "sequence": 1,
-        "context": 1,
-        "context_autoregressive": 1,
-        "tensor": 1,
-        "tensor_transpose": 1,
-        "tensor_sequence": 1,
-        "expert": 1,
-        "autoregressive": 1
-      }
-    },
-    "partition_spec": [
-      [
-        "fsdp",
-        "fsdp_transpose",
-        "sequence",
-        "tensor_transpose",
-        "context",
-        "expert"
-      ],
-      null,
-      null
-    ],
-    "shape": [
-      2048,
-      26,
-      576
-    ]
-  },
-  ".params/['params']/['decoder']/['moe_layers']/['self_attention']/['wkv_b']/['kernel']": {
-    "mesh": {
-      "axis_names": [
-        "diloco",
-        "data",
-        "stage",
-        "fsdp",
-        "fsdp_transpose",
-        "sequence",
-        "context",
-        "context_autoregressive",
-        "tensor",
-        "tensor_transpose",
-        "tensor_sequence",
-        "expert",
-        "autoregressive"
-      ],
-      "shape": {
-        "diloco": 1,
-        "data": 4,
-        "stage": 1,
-        "fsdp": 8,
-        "fsdp_transpose": 1,
-        "sequence": 1,
-        "context": 1,
-        "context_autoregressive": 1,
-        "tensor": 1,
-        "tensor_transpose": 1,
-        "tensor_sequence": 1,
-        "expert": 1,
-        "autoregressive": 1
-      }
-    },
-    "partition_spec": [
-      [
-        "fsdp",
-        "fsdp_transpose",
-        "sequence",
-        "context",
-        "expert"
-      ],
-      null,
-      [
-        "tensor",
-        "tensor_transpose",
-        "tensor_sequence",
-        "autoregressive"
-      ],
-      null
-    ],
-    "shape": [
-      512,
-      26,
-      16,
-      256
+      2880,
+      201088
     ]
   },
   ".params/['params']/['token_embedder']/['embedding']": {
@@ -1412,7 +2070,7 @@
       ],
       "shape": {
         "diloco": 1,
-        "data": 4,
+        "data": 1,
         "stage": 1,
         "fsdp": 8,
         "fsdp_transpose": 1,
@@ -1422,7 +2080,7 @@
         "tensor": 1,
         "tensor_transpose": 1,
         "tensor_sequence": 1,
-        "expert": 1,
+        "expert": 2,
         "autoregressive": 1
       }
     },
@@ -1442,8 +2100,8 @@
       ]
     ],
     "shape": [
-      102400,
-      2048
+      201088,
+      2880
     ]
   },
   ".opt_state/[0]/.count": {
@@ -1465,7 +2123,7 @@
       ],
       "shape": {
         "diloco": 1,
-        "data": 4,
+        "data": 1,
         "stage": 1,
         "fsdp": 8,
         "fsdp_transpose": 1,
@@ -1475,7 +2133,7 @@
         "tensor": 1,
         "tensor_transpose": 1,
         "tensor_sequence": 1,
-        "expert": 1,
+        "expert": 2,
         "autoregressive": 1
       }
     },
@@ -1501,7 +2159,7 @@
       ],
       "shape": {
         "diloco": 1,
-        "data": 4,
+        "data": 1,
         "stage": 1,
         "fsdp": 8,
         "fsdp_transpose": 1,
@@ -1511,7 +2169,7 @@
         "tensor": 1,
         "tensor_transpose": 1,
         "tensor_sequence": 1,
-        "expert": 1,
+        "expert": 2,
         "autoregressive": 1
       }
     },
@@ -1522,10 +2180,10 @@
       ]
     ],
     "shape": [
-      2048
+      2880
     ]
   },
-  ".opt_state/[0]/.mu/['params']/['decoder']/['dense_layers']/['mlp']/['wi_0']/['kernel']": {
+  ".opt_state/[0]/.mu/['params']/['decoder']/['layers']/['layers_0']/['GptOssAttention']/['key']/['bias']": {
     "mesh": {
       "axis_names": [
         "diloco",
@@ -1544,7 +2202,7 @@
       ],
       "shape": {
         "diloco": 1,
-        "data": 4,
+        "data": 1,
         "stage": 1,
         "fsdp": 8,
         "fsdp_transpose": 1,
@@ -1554,19 +2212,578 @@
         "tensor": 1,
         "tensor_transpose": 1,
         "tensor_sequence": 1,
-        "expert": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      [
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "autoregressive"
+      ],
+      "stage",
+      null
+    ],
+    "shape": [
+      8,
+      12,
+      64
+    ]
+  },
+  ".opt_state/[0]/.mu/['params']/['decoder']/['layers']/['layers_0']/['GptOssAttention']/['key']/['kernel']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
         "autoregressive": 1
       }
     },
     "partition_spec": [
       [
         "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "expert"
+      ],
+      "stage",
+      [
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "autoregressive"
+      ],
+      null
+    ],
+    "shape": [
+      2880,
+      12,
+      8,
+      64
+    ]
+  },
+  ".opt_state/[0]/.mu/['params']/['decoder']/['layers']/['layers_0']/['GptOssAttention']/['out']/['bias']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      [
+        "fsdp",
+        "fsdp_transpose",
         "sequence",
         "tensor_transpose",
         "context",
         "expert"
       ],
+      "stage"
+    ],
+    "shape": [
+      2880,
+      12
+    ]
+  },
+  ".opt_state/[0]/.mu/['params']/['decoder']/['layers']/['layers_0']/['GptOssAttention']/['out']/['kernel']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      [
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "autoregressive"
+      ],
+      "stage",
       null,
+      [
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "expert"
+      ]
+    ],
+    "shape": [
+      64,
+      12,
+      64,
+      2880
+    ]
+  },
+  ".opt_state/[0]/.mu/['params']/['decoder']/['layers']/['layers_0']/['GptOssAttention']/['query']/['bias']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      [
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "autoregressive"
+      ],
+      "stage",
+      null
+    ],
+    "shape": [
+      64,
+      12,
+      64
+    ]
+  },
+  ".opt_state/[0]/.mu/['params']/['decoder']/['layers']/['layers_0']/['GptOssAttention']/['query']/['kernel']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      [
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "expert"
+      ],
+      "stage",
+      [
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "autoregressive"
+      ],
+      null
+    ],
+    "shape": [
+      2880,
+      12,
+      64,
+      64
+    ]
+  },
+  ".opt_state/[0]/.mu/['params']/['decoder']/['layers']/['layers_0']/['GptOssAttention']/['sinks']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      null,
+      "stage"
+    ],
+    "shape": [
+      64,
+      12
+    ]
+  },
+  ".opt_state/[0]/.mu/['params']/['decoder']/['layers']/['layers_0']/['GptOssAttention']/['value']/['bias']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      [
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "autoregressive"
+      ],
+      "stage",
+      null
+    ],
+    "shape": [
+      8,
+      12,
+      64
+    ]
+  },
+  ".opt_state/[0]/.mu/['params']/['decoder']/['layers']/['layers_0']/['GptOssAttention']/['value']/['kernel']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      [
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "expert"
+      ],
+      "stage",
+      [
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "autoregressive"
+      ],
+      null
+    ],
+    "shape": [
+      2880,
+      12,
+      8,
+      64
+    ]
+  },
+  ".opt_state/[0]/.mu/['params']/['decoder']/['layers']/['layers_0']/['GptOssMlp']/['gate']/['bias']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      null,
+      "stage"
+    ],
+    "shape": [
+      32,
+      12
+    ]
+  },
+  ".opt_state/[0]/.mu/['params']/['decoder']/['layers']/['layers_0']/['GptOssMlp']/['gate']/['kernel']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      [
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "tensor_transpose",
+        "context",
+        "expert"
+      ],
+      "stage",
+      null
+    ],
+    "shape": [
+      2880,
+      12,
+      32
+    ]
+  },
+  ".opt_state/[0]/.mu/['params']/['decoder']/['layers']/['layers_0']/['GptOssMlp']/['wi_0']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      "expert",
+      "stage",
+      [
+        "fsdp",
+        "sequence",
+        "tensor_transpose",
+        "context"
+      ],
       [
         "fsdp_transpose",
         "tensor",
@@ -1575,12 +2792,13 @@
       ]
     ],
     "shape": [
-      2048,
-      1,
-      10944
+      32,
+      12,
+      2880,
+      2880
     ]
   },
-  ".opt_state/[0]/.mu/['params']/['decoder']/['dense_layers']/['mlp']/['wi_1']/['kernel']": {
+  ".opt_state/[0]/.mu/['params']/['decoder']/['layers']/['layers_0']/['GptOssMlp']/['wi_0_bias']": {
     "mesh": {
       "axis_names": [
         "diloco",
@@ -1599,7 +2817,7 @@
       ],
       "shape": {
         "diloco": 1,
-        "data": 4,
+        "data": 1,
         "stage": 1,
         "fsdp": 8,
         "fsdp_transpose": 1,
@@ -1609,19 +2827,67 @@
         "tensor": 1,
         "tensor_transpose": 1,
         "tensor_sequence": 1,
-        "expert": 1,
+        "expert": 2,
         "autoregressive": 1
       }
     },
     "partition_spec": [
+      "expert",
+      "stage",
+      [
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence"
+      ]
+    ],
+    "shape": [
+      32,
+      12,
+      2880
+    ]
+  },
+  ".opt_state/[0]/.mu/['params']/['decoder']/['layers']/['layers_0']/['GptOssMlp']/['wi_1']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      "expert",
+      "stage",
       [
         "fsdp",
         "sequence",
         "tensor_transpose",
-        "context",
-        "expert"
+        "context"
       ],
-      null,
       [
         "fsdp_transpose",
         "tensor",
@@ -1630,12 +2896,13 @@
       ]
     ],
     "shape": [
-      2048,
-      1,
-      10944
+      32,
+      12,
+      2880,
+      2880
     ]
   },
-  ".opt_state/[0]/.mu/['params']/['decoder']/['dense_layers']/['mlp']/['wo']/['kernel']": {
+  ".opt_state/[0]/.mu/['params']/['decoder']/['layers']/['layers_0']/['GptOssMlp']/['wi_1_bias']": {
     "mesh": {
       "axis_names": [
         "diloco",
@@ -1654,7 +2921,7 @@
       ],
       "shape": {
         "diloco": 1,
-        "data": 4,
+        "data": 1,
         "stage": 1,
         "fsdp": 8,
         "fsdp_transpose": 1,
@@ -1664,33 +2931,26 @@
         "tensor": 1,
         "tensor_transpose": 1,
         "tensor_sequence": 1,
-        "expert": 1,
+        "expert": 2,
         "autoregressive": 1
       }
     },
     "partition_spec": [
+      "expert",
+      "stage",
       [
-        "fsdp_transpose",
         "tensor",
-        "tensor_sequence",
-        "autoregressive"
-      ],
-      null,
-      [
-        "fsdp",
-        "sequence",
         "tensor_transpose",
-        "context",
-        "expert"
+        "tensor_sequence"
       ]
     ],
     "shape": [
-      10944,
-      1,
-      2048
+      32,
+      12,
+      2880
     ]
   },
-  ".opt_state/[0]/.mu/['params']/['decoder']/['dense_layers']/['post_self_attention_layer_norm']/['scale']": {
+  ".opt_state/[0]/.mu/['params']/['decoder']/['layers']/['layers_0']/['GptOssMlp']/['wo']": {
     "mesh": {
       "axis_names": [
         "diloco",
@@ -1709,7 +2969,7 @@
       ],
       "shape": {
         "diloco": 1,
-        "data": 4,
+        "data": 1,
         "stage": 1,
         "fsdp": 8,
         "fsdp_transpose": 1,
@@ -1719,7 +2979,110 @@
         "tensor": 1,
         "tensor_transpose": 1,
         "tensor_sequence": 1,
-        "expert": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      "expert",
+      "stage",
+      [
+        "fsdp_transpose",
+        "tensor",
+        "tensor_sequence",
+        "autoregressive"
+      ],
+      [
+        "fsdp",
+        "sequence",
+        "tensor_transpose",
+        "context"
+      ]
+    ],
+    "shape": [
+      32,
+      12,
+      2880,
+      2880
+    ]
+  },
+  ".opt_state/[0]/.mu/['params']/['decoder']/['layers']/['layers_0']/['GptOssMlp']/['wo_bias']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      "expert",
+      "stage",
+      [
+        "tensor",
+        "tensor_transpose"
+      ]
+    ],
+    "shape": [
+      32,
+      12,
+      2880
+    ]
+  },
+  ".opt_state/[0]/.mu/['params']/['decoder']/['layers']/['layers_0']/['post_self_attention_layer_norm']/['scale']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
         "autoregressive": 1
       }
     },
@@ -1728,14 +3091,14 @@
         "tensor",
         "tensor_transpose"
       ],
-      null
+      "stage"
     ],
     "shape": [
-      2048,
-      1
+      2880,
+      12
     ]
   },
-  ".opt_state/[0]/.mu/['params']/['decoder']/['dense_layers']/['pre_self_attention_layer_norm']/['scale']": {
+  ".opt_state/[0]/.mu/['params']/['decoder']/['layers']/['layers_0']/['pre_self_attention_layer_norm']/['scale']": {
     "mesh": {
       "axis_names": [
         "diloco",
@@ -1754,7 +3117,7 @@
       ],
       "shape": {
         "diloco": 1,
-        "data": 4,
+        "data": 1,
         "stage": 1,
         "fsdp": 8,
         "fsdp_transpose": 1,
@@ -1764,7 +3127,7 @@
         "tensor": 1,
         "tensor_transpose": 1,
         "tensor_sequence": 1,
-        "expert": 1,
+        "expert": 2,
         "autoregressive": 1
       }
     },
@@ -1773,14 +3136,14 @@
         "tensor",
         "tensor_transpose"
       ],
-      null
+      "stage"
     ],
     "shape": [
-      2048,
-      1
+      2880,
+      12
     ]
   },
-  ".opt_state/[0]/.mu/['params']/['decoder']/['dense_layers']/['self_attention']/['kv_norm']/['scale']": {
+  ".opt_state/[0]/.mu/['params']/['decoder']/['layers']/['layers_1']/['GptOssAttention']/['key']/['bias']": {
     "mesh": {
       "axis_names": [
         "diloco",
@@ -1799,7 +3162,7 @@
       ],
       "shape": {
         "diloco": 1,
-        "data": 4,
+        "data": 1,
         "stage": 1,
         "fsdp": 8,
         "fsdp_transpose": 1,
@@ -1809,23 +3172,27 @@
         "tensor": 1,
         "tensor_transpose": 1,
         "tensor_sequence": 1,
-        "expert": 1,
+        "expert": 2,
         "autoregressive": 1
       }
     },
     "partition_spec": [
       [
         "tensor",
-        "tensor_transpose"
+        "tensor_transpose",
+        "tensor_sequence",
+        "autoregressive"
       ],
+      "stage",
       null
     ],
     "shape": [
-      512,
-      1
+      8,
+      12,
+      64
     ]
   },
-  ".opt_state/[0]/.mu/['params']/['decoder']/['dense_layers']/['self_attention']/['out']/['kernel']": {
+  ".opt_state/[0]/.mu/['params']/['decoder']/['layers']/['layers_1']/['GptOssAttention']/['key']/['kernel']": {
     "mesh": {
       "axis_names": [
         "diloco",
@@ -1844,7 +3211,7 @@
       ],
       "shape": {
         "diloco": 1,
-        "data": 4,
+        "data": 1,
         "stage": 1,
         "fsdp": 8,
         "fsdp_transpose": 1,
@@ -1854,7 +3221,113 @@
         "tensor": 1,
         "tensor_transpose": 1,
         "tensor_sequence": 1,
-        "expert": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      [
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "expert"
+      ],
+      "stage",
+      [
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "autoregressive"
+      ],
+      null
+    ],
+    "shape": [
+      2880,
+      12,
+      8,
+      64
+    ]
+  },
+  ".opt_state/[0]/.mu/['params']/['decoder']/['layers']/['layers_1']/['GptOssAttention']/['out']/['bias']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      [
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "tensor_transpose",
+        "context",
+        "expert"
+      ],
+      "stage"
+    ],
+    "shape": [
+      2880,
+      12
+    ]
+  },
+  ".opt_state/[0]/.mu/['params']/['decoder']/['layers']/['layers_1']/['GptOssAttention']/['out']/['kernel']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
         "autoregressive": 1
       }
     },
@@ -1865,7 +3338,7 @@
         "tensor_sequence",
         "autoregressive"
       ],
-      null,
+      "stage",
       null,
       [
         "fsdp",
@@ -1876,13 +3349,13 @@
       ]
     ],
     "shape": [
-      16,
-      1,
-      128,
-      2048
+      64,
+      12,
+      64,
+      2880
     ]
   },
-  ".opt_state/[0]/.mu/['params']/['decoder']/['dense_layers']/['self_attention']/['query']/['kernel']": {
+  ".opt_state/[0]/.mu/['params']/['decoder']/['layers']/['layers_1']/['GptOssAttention']/['query']/['bias']": {
     "mesh": {
       "axis_names": [
         "diloco",
@@ -1901,7 +3374,7 @@
       ],
       "shape": {
         "diloco": 1,
-        "data": 4,
+        "data": 1,
         "stage": 1,
         "fsdp": 8,
         "fsdp_transpose": 1,
@@ -1911,35 +3384,27 @@
         "tensor": 1,
         "tensor_transpose": 1,
         "tensor_sequence": 1,
-        "expert": 1,
+        "expert": 2,
         "autoregressive": 1
       }
     },
     "partition_spec": [
-      [
-        "fsdp",
-        "fsdp_transpose",
-        "sequence",
-        "context",
-        "expert"
-      ],
-      null,
       [
         "tensor",
         "tensor_transpose",
         "tensor_sequence",
         "autoregressive"
       ],
+      "stage",
       null
     ],
     "shape": [
-      2048,
-      1,
-      16,
-      192
+      64,
+      12,
+      64
     ]
   },
-  ".opt_state/[0]/.mu/['params']/['decoder']/['dense_layers']/['self_attention']/['wkv_a']/['kernel']": {
+  ".opt_state/[0]/.mu/['params']/['decoder']/['layers']/['layers_1']/['GptOssAttention']/['query']/['kernel']": {
     "mesh": {
       "axis_names": [
         "diloco",
@@ -1958,7 +3423,7 @@
       ],
       "shape": {
         "diloco": 1,
-        "data": 4,
+        "data": 1,
         "stage": 1,
         "fsdp": 8,
         "fsdp_transpose": 1,
@@ -1968,7 +3433,7 @@
         "tensor": 1,
         "tensor_transpose": 1,
         "tensor_sequence": 1,
-        "expert": 1,
+        "expert": 2,
         "autoregressive": 1
       }
     },
@@ -1977,20 +3442,26 @@
         "fsdp",
         "fsdp_transpose",
         "sequence",
-        "tensor_transpose",
         "context",
         "expert"
       ],
-      null,
+      "stage",
+      [
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "autoregressive"
+      ],
       null
     ],
     "shape": [
-      2048,
-      1,
-      576
+      2880,
+      12,
+      64,
+      64
     ]
   },
-  ".opt_state/[0]/.mu/['params']/['decoder']/['dense_layers']/['self_attention']/['wkv_b']/['kernel']": {
+  ".opt_state/[0]/.mu/['params']/['decoder']/['layers']/['layers_1']/['GptOssAttention']/['sinks']": {
     "mesh": {
       "axis_names": [
         "diloco",
@@ -2009,7 +3480,7 @@
       ],
       "shape": {
         "diloco": 1,
-        "data": 4,
+        "data": 1,
         "stage": 1,
         "fsdp": 8,
         "fsdp_transpose": 1,
@@ -2019,7 +3490,98 @@
         "tensor": 1,
         "tensor_transpose": 1,
         "tensor_sequence": 1,
-        "expert": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      null,
+      "stage"
+    ],
+    "shape": [
+      64,
+      12
+    ]
+  },
+  ".opt_state/[0]/.mu/['params']/['decoder']/['layers']/['layers_1']/['GptOssAttention']/['value']/['bias']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      [
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "autoregressive"
+      ],
+      "stage",
+      null
+    ],
+    "shape": [
+      8,
+      12,
+      64
+    ]
+  },
+  ".opt_state/[0]/.mu/['params']/['decoder']/['layers']/['layers_1']/['GptOssAttention']/['value']/['kernel']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
         "autoregressive": 1
       }
     },
@@ -2031,7 +3593,7 @@
         "context",
         "expert"
       ],
-      null,
+      "stage",
       [
         "tensor",
         "tensor_transpose",
@@ -2041,10 +3603,504 @@
       null
     ],
     "shape": [
-      512,
-      1,
-      16,
-      256
+      2880,
+      12,
+      8,
+      64
+    ]
+  },
+  ".opt_state/[0]/.mu/['params']/['decoder']/['layers']/['layers_1']/['GptOssMlp']/['gate']/['bias']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      null,
+      "stage"
+    ],
+    "shape": [
+      32,
+      12
+    ]
+  },
+  ".opt_state/[0]/.mu/['params']/['decoder']/['layers']/['layers_1']/['GptOssMlp']/['gate']/['kernel']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      [
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "tensor_transpose",
+        "context",
+        "expert"
+      ],
+      "stage",
+      null
+    ],
+    "shape": [
+      2880,
+      12,
+      32
+    ]
+  },
+  ".opt_state/[0]/.mu/['params']/['decoder']/['layers']/['layers_1']/['GptOssMlp']/['wi_0']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      "expert",
+      "stage",
+      [
+        "fsdp",
+        "sequence",
+        "tensor_transpose",
+        "context"
+      ],
+      [
+        "fsdp_transpose",
+        "tensor",
+        "tensor_sequence",
+        "autoregressive"
+      ]
+    ],
+    "shape": [
+      32,
+      12,
+      2880,
+      2880
+    ]
+  },
+  ".opt_state/[0]/.mu/['params']/['decoder']/['layers']/['layers_1']/['GptOssMlp']/['wi_0_bias']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      "expert",
+      "stage",
+      [
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence"
+      ]
+    ],
+    "shape": [
+      32,
+      12,
+      2880
+    ]
+  },
+  ".opt_state/[0]/.mu/['params']/['decoder']/['layers']/['layers_1']/['GptOssMlp']/['wi_1']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      "expert",
+      "stage",
+      [
+        "fsdp",
+        "sequence",
+        "tensor_transpose",
+        "context"
+      ],
+      [
+        "fsdp_transpose",
+        "tensor",
+        "tensor_sequence",
+        "autoregressive"
+      ]
+    ],
+    "shape": [
+      32,
+      12,
+      2880,
+      2880
+    ]
+  },
+  ".opt_state/[0]/.mu/['params']/['decoder']/['layers']/['layers_1']/['GptOssMlp']/['wi_1_bias']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      "expert",
+      "stage",
+      [
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence"
+      ]
+    ],
+    "shape": [
+      32,
+      12,
+      2880
+    ]
+  },
+  ".opt_state/[0]/.mu/['params']/['decoder']/['layers']/['layers_1']/['GptOssMlp']/['wo']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      "expert",
+      "stage",
+      [
+        "fsdp_transpose",
+        "tensor",
+        "tensor_sequence",
+        "autoregressive"
+      ],
+      [
+        "fsdp",
+        "sequence",
+        "tensor_transpose",
+        "context"
+      ]
+    ],
+    "shape": [
+      32,
+      12,
+      2880,
+      2880
+    ]
+  },
+  ".opt_state/[0]/.mu/['params']/['decoder']/['layers']/['layers_1']/['GptOssMlp']/['wo_bias']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      "expert",
+      "stage",
+      [
+        "tensor",
+        "tensor_transpose"
+      ]
+    ],
+    "shape": [
+      32,
+      12,
+      2880
+    ]
+  },
+  ".opt_state/[0]/.mu/['params']/['decoder']/['layers']/['layers_1']/['post_self_attention_layer_norm']/['scale']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      [
+        "tensor",
+        "tensor_transpose"
+      ],
+      "stage"
+    ],
+    "shape": [
+      2880,
+      12
+    ]
+  },
+  ".opt_state/[0]/.mu/['params']/['decoder']/['layers']/['layers_1']/['pre_self_attention_layer_norm']/['scale']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      [
+        "tensor",
+        "tensor_transpose"
+      ],
+      "stage"
+    ],
+    "shape": [
+      2880,
+      12
     ]
   },
   ".opt_state/[0]/.mu/['params']/['decoder']/['logits_dense']/['kernel']": {
@@ -2066,7 +4122,7 @@
       ],
       "shape": {
         "diloco": 1,
-        "data": 4,
+        "data": 1,
         "stage": 1,
         "fsdp": 8,
         "fsdp_transpose": 1,
@@ -2076,7 +4132,7 @@
         "tensor": 1,
         "tensor_transpose": 1,
         "tensor_sequence": 1,
-        "expert": 1,
+        "expert": 2,
         "autoregressive": 1
       }
     },
@@ -2096,748 +4152,8 @@
       ]
     ],
     "shape": [
-      2048,
-      102400
-    ]
-  },
-  ".opt_state/[0]/.mu/['params']/['decoder']/['moe_layers']/['DeepSeekMoeBlock_0']/['MoeBlock_0']/['gate']/['kernel']": {
-    "mesh": {
-      "axis_names": [
-        "diloco",
-        "data",
-        "stage",
-        "fsdp",
-        "fsdp_transpose",
-        "sequence",
-        "context",
-        "context_autoregressive",
-        "tensor",
-        "tensor_transpose",
-        "tensor_sequence",
-        "expert",
-        "autoregressive"
-      ],
-      "shape": {
-        "diloco": 1,
-        "data": 4,
-        "stage": 1,
-        "fsdp": 8,
-        "fsdp_transpose": 1,
-        "sequence": 1,
-        "context": 1,
-        "context_autoregressive": 1,
-        "tensor": 1,
-        "tensor_transpose": 1,
-        "tensor_sequence": 1,
-        "expert": 1,
-        "autoregressive": 1
-      }
-    },
-    "partition_spec": [
-      [
-        "fsdp",
-        "fsdp_transpose",
-        "sequence",
-        "tensor_transpose",
-        "context"
-      ],
-      null,
-      null
-    ],
-    "shape": [
-      2048,
-      26,
-      64
-    ]
-  },
-  ".opt_state/[0]/.mu/['params']/['decoder']/['moe_layers']/['DeepSeekMoeBlock_0']/['MoeBlock_0']/['wi_0']": {
-    "mesh": {
-      "axis_names": [
-        "diloco",
-        "data",
-        "stage",
-        "fsdp",
-        "fsdp_transpose",
-        "sequence",
-        "context",
-        "context_autoregressive",
-        "tensor",
-        "tensor_transpose",
-        "tensor_sequence",
-        "expert",
-        "autoregressive"
-      ],
-      "shape": {
-        "diloco": 1,
-        "data": 4,
-        "stage": 1,
-        "fsdp": 8,
-        "fsdp_transpose": 1,
-        "sequence": 1,
-        "context": 1,
-        "context_autoregressive": 1,
-        "tensor": 1,
-        "tensor_transpose": 1,
-        "tensor_sequence": 1,
-        "expert": 1,
-        "autoregressive": 1
-      }
-    },
-    "partition_spec": [
-      "expert",
-      null,
-      [
-        "fsdp",
-        "sequence",
-        "tensor_transpose",
-        "context"
-      ],
-      [
-        "fsdp_transpose",
-        "tensor",
-        "tensor_sequence",
-        "autoregressive"
-      ]
-    ],
-    "shape": [
-      64,
-      26,
-      2048,
-      1408
-    ]
-  },
-  ".opt_state/[0]/.mu/['params']/['decoder']/['moe_layers']/['DeepSeekMoeBlock_0']/['MoeBlock_0']/['wi_1']": {
-    "mesh": {
-      "axis_names": [
-        "diloco",
-        "data",
-        "stage",
-        "fsdp",
-        "fsdp_transpose",
-        "sequence",
-        "context",
-        "context_autoregressive",
-        "tensor",
-        "tensor_transpose",
-        "tensor_sequence",
-        "expert",
-        "autoregressive"
-      ],
-      "shape": {
-        "diloco": 1,
-        "data": 4,
-        "stage": 1,
-        "fsdp": 8,
-        "fsdp_transpose": 1,
-        "sequence": 1,
-        "context": 1,
-        "context_autoregressive": 1,
-        "tensor": 1,
-        "tensor_transpose": 1,
-        "tensor_sequence": 1,
-        "expert": 1,
-        "autoregressive": 1
-      }
-    },
-    "partition_spec": [
-      "expert",
-      null,
-      [
-        "fsdp",
-        "sequence",
-        "tensor_transpose",
-        "context"
-      ],
-      [
-        "fsdp_transpose",
-        "tensor",
-        "tensor_sequence",
-        "autoregressive"
-      ]
-    ],
-    "shape": [
-      64,
-      26,
-      2048,
-      1408
-    ]
-  },
-  ".opt_state/[0]/.mu/['params']/['decoder']/['moe_layers']/['DeepSeekMoeBlock_0']/['MoeBlock_0']/['wo']": {
-    "mesh": {
-      "axis_names": [
-        "diloco",
-        "data",
-        "stage",
-        "fsdp",
-        "fsdp_transpose",
-        "sequence",
-        "context",
-        "context_autoregressive",
-        "tensor",
-        "tensor_transpose",
-        "tensor_sequence",
-        "expert",
-        "autoregressive"
-      ],
-      "shape": {
-        "diloco": 1,
-        "data": 4,
-        "stage": 1,
-        "fsdp": 8,
-        "fsdp_transpose": 1,
-        "sequence": 1,
-        "context": 1,
-        "context_autoregressive": 1,
-        "tensor": 1,
-        "tensor_transpose": 1,
-        "tensor_sequence": 1,
-        "expert": 1,
-        "autoregressive": 1
-      }
-    },
-    "partition_spec": [
-      "expert",
-      null,
-      [
-        "fsdp_transpose",
-        "tensor",
-        "tensor_sequence",
-        "autoregressive"
-      ],
-      [
-        "fsdp",
-        "sequence",
-        "tensor_transpose",
-        "context"
-      ]
-    ],
-    "shape": [
-      64,
-      26,
-      1408,
-      2048
-    ]
-  },
-  ".opt_state/[0]/.mu/['params']/['decoder']/['moe_layers']/['DeepSeekMoeBlock_0']/['shared_experts']/['wi_0']/['kernel']": {
-    "mesh": {
-      "axis_names": [
-        "diloco",
-        "data",
-        "stage",
-        "fsdp",
-        "fsdp_transpose",
-        "sequence",
-        "context",
-        "context_autoregressive",
-        "tensor",
-        "tensor_transpose",
-        "tensor_sequence",
-        "expert",
-        "autoregressive"
-      ],
-      "shape": {
-        "diloco": 1,
-        "data": 4,
-        "stage": 1,
-        "fsdp": 8,
-        "fsdp_transpose": 1,
-        "sequence": 1,
-        "context": 1,
-        "context_autoregressive": 1,
-        "tensor": 1,
-        "tensor_transpose": 1,
-        "tensor_sequence": 1,
-        "expert": 1,
-        "autoregressive": 1
-      }
-    },
-    "partition_spec": [
-      [
-        "fsdp",
-        "sequence",
-        "tensor_transpose",
-        "context",
-        "expert"
-      ],
-      null,
-      [
-        "fsdp_transpose",
-        "tensor",
-        "tensor_sequence",
-        "autoregressive"
-      ]
-    ],
-    "shape": [
-      2048,
-      26,
-      2816
-    ]
-  },
-  ".opt_state/[0]/.mu/['params']/['decoder']/['moe_layers']/['DeepSeekMoeBlock_0']/['shared_experts']/['wi_1']/['kernel']": {
-    "mesh": {
-      "axis_names": [
-        "diloco",
-        "data",
-        "stage",
-        "fsdp",
-        "fsdp_transpose",
-        "sequence",
-        "context",
-        "context_autoregressive",
-        "tensor",
-        "tensor_transpose",
-        "tensor_sequence",
-        "expert",
-        "autoregressive"
-      ],
-      "shape": {
-        "diloco": 1,
-        "data": 4,
-        "stage": 1,
-        "fsdp": 8,
-        "fsdp_transpose": 1,
-        "sequence": 1,
-        "context": 1,
-        "context_autoregressive": 1,
-        "tensor": 1,
-        "tensor_transpose": 1,
-        "tensor_sequence": 1,
-        "expert": 1,
-        "autoregressive": 1
-      }
-    },
-    "partition_spec": [
-      [
-        "fsdp",
-        "sequence",
-        "tensor_transpose",
-        "context",
-        "expert"
-      ],
-      null,
-      [
-        "fsdp_transpose",
-        "tensor",
-        "tensor_sequence",
-        "autoregressive"
-      ]
-    ],
-    "shape": [
-      2048,
-      26,
-      2816
-    ]
-  },
-  ".opt_state/[0]/.mu/['params']/['decoder']/['moe_layers']/['DeepSeekMoeBlock_0']/['shared_experts']/['wo']/['kernel']": {
-    "mesh": {
-      "axis_names": [
-        "diloco",
-        "data",
-        "stage",
-        "fsdp",
-        "fsdp_transpose",
-        "sequence",
-        "context",
-        "context_autoregressive",
-        "tensor",
-        "tensor_transpose",
-        "tensor_sequence",
-        "expert",
-        "autoregressive"
-      ],
-      "shape": {
-        "diloco": 1,
-        "data": 4,
-        "stage": 1,
-        "fsdp": 8,
-        "fsdp_transpose": 1,
-        "sequence": 1,
-        "context": 1,
-        "context_autoregressive": 1,
-        "tensor": 1,
-        "tensor_transpose": 1,
-        "tensor_sequence": 1,
-        "expert": 1,
-        "autoregressive": 1
-      }
-    },
-    "partition_spec": [
-      [
-        "fsdp_transpose",
-        "tensor",
-        "tensor_sequence",
-        "autoregressive"
-      ],
-      null,
-      [
-        "fsdp",
-        "sequence",
-        "tensor_transpose",
-        "context",
-        "expert"
-      ]
-    ],
-    "shape": [
-      2816,
-      26,
-      2048
-    ]
-  },
-  ".opt_state/[0]/.mu/['params']/['decoder']/['moe_layers']/['post_self_attention_layer_norm']/['scale']": {
-    "mesh": {
-      "axis_names": [
-        "diloco",
-        "data",
-        "stage",
-        "fsdp",
-        "fsdp_transpose",
-        "sequence",
-        "context",
-        "context_autoregressive",
-        "tensor",
-        "tensor_transpose",
-        "tensor_sequence",
-        "expert",
-        "autoregressive"
-      ],
-      "shape": {
-        "diloco": 1,
-        "data": 4,
-        "stage": 1,
-        "fsdp": 8,
-        "fsdp_transpose": 1,
-        "sequence": 1,
-        "context": 1,
-        "context_autoregressive": 1,
-        "tensor": 1,
-        "tensor_transpose": 1,
-        "tensor_sequence": 1,
-        "expert": 1,
-        "autoregressive": 1
-      }
-    },
-    "partition_spec": [
-      [
-        "tensor",
-        "tensor_transpose"
-      ],
-      null
-    ],
-    "shape": [
-      2048,
-      26
-    ]
-  },
-  ".opt_state/[0]/.mu/['params']/['decoder']/['moe_layers']/['pre_self_attention_layer_norm']/['scale']": {
-    "mesh": {
-      "axis_names": [
-        "diloco",
-        "data",
-        "stage",
-        "fsdp",
-        "fsdp_transpose",
-        "sequence",
-        "context",
-        "context_autoregressive",
-        "tensor",
-        "tensor_transpose",
-        "tensor_sequence",
-        "expert",
-        "autoregressive"
-      ],
-      "shape": {
-        "diloco": 1,
-        "data": 4,
-        "stage": 1,
-        "fsdp": 8,
-        "fsdp_transpose": 1,
-        "sequence": 1,
-        "context": 1,
-        "context_autoregressive": 1,
-        "tensor": 1,
-        "tensor_transpose": 1,
-        "tensor_sequence": 1,
-        "expert": 1,
-        "autoregressive": 1
-      }
-    },
-    "partition_spec": [
-      [
-        "tensor",
-        "tensor_transpose"
-      ],
-      null
-    ],
-    "shape": [
-      2048,
-      26
-    ]
-  },
-  ".opt_state/[0]/.mu/['params']/['decoder']/['moe_layers']/['self_attention']/['kv_norm']/['scale']": {
-    "mesh": {
-      "axis_names": [
-        "diloco",
-        "data",
-        "stage",
-        "fsdp",
-        "fsdp_transpose",
-        "sequence",
-        "context",
-        "context_autoregressive",
-        "tensor",
-        "tensor_transpose",
-        "tensor_sequence",
-        "expert",
-        "autoregressive"
-      ],
-      "shape": {
-        "diloco": 1,
-        "data": 4,
-        "stage": 1,
-        "fsdp": 8,
-        "fsdp_transpose": 1,
-        "sequence": 1,
-        "context": 1,
-        "context_autoregressive": 1,
-        "tensor": 1,
-        "tensor_transpose": 1,
-        "tensor_sequence": 1,
-        "expert": 1,
-        "autoregressive": 1
-      }
-    },
-    "partition_spec": [
-      [
-        "tensor",
-        "tensor_transpose"
-      ],
-      null
-    ],
-    "shape": [
-      512,
-      26
-    ]
-  },
-  ".opt_state/[0]/.mu/['params']/['decoder']/['moe_layers']/['self_attention']/['out']/['kernel']": {
-    "mesh": {
-      "axis_names": [
-        "diloco",
-        "data",
-        "stage",
-        "fsdp",
-        "fsdp_transpose",
-        "sequence",
-        "context",
-        "context_autoregressive",
-        "tensor",
-        "tensor_transpose",
-        "tensor_sequence",
-        "expert",
-        "autoregressive"
-      ],
-      "shape": {
-        "diloco": 1,
-        "data": 4,
-        "stage": 1,
-        "fsdp": 8,
-        "fsdp_transpose": 1,
-        "sequence": 1,
-        "context": 1,
-        "context_autoregressive": 1,
-        "tensor": 1,
-        "tensor_transpose": 1,
-        "tensor_sequence": 1,
-        "expert": 1,
-        "autoregressive": 1
-      }
-    },
-    "partition_spec": [
-      [
-        "tensor",
-        "tensor_transpose",
-        "tensor_sequence",
-        "autoregressive"
-      ],
-      null,
-      null,
-      [
-        "fsdp",
-        "fsdp_transpose",
-        "sequence",
-        "context",
-        "expert"
-      ]
-    ],
-    "shape": [
-      16,
-      26,
-      128,
-      2048
-    ]
-  },
-  ".opt_state/[0]/.mu/['params']/['decoder']/['moe_layers']/['self_attention']/['query']/['kernel']": {
-    "mesh": {
-      "axis_names": [
-        "diloco",
-        "data",
-        "stage",
-        "fsdp",
-        "fsdp_transpose",
-        "sequence",
-        "context",
-        "context_autoregressive",
-        "tensor",
-        "tensor_transpose",
-        "tensor_sequence",
-        "expert",
-        "autoregressive"
-      ],
-      "shape": {
-        "diloco": 1,
-        "data": 4,
-        "stage": 1,
-        "fsdp": 8,
-        "fsdp_transpose": 1,
-        "sequence": 1,
-        "context": 1,
-        "context_autoregressive": 1,
-        "tensor": 1,
-        "tensor_transpose": 1,
-        "tensor_sequence": 1,
-        "expert": 1,
-        "autoregressive": 1
-      }
-    },
-    "partition_spec": [
-      [
-        "fsdp",
-        "fsdp_transpose",
-        "sequence",
-        "context",
-        "expert"
-      ],
-      null,
-      [
-        "tensor",
-        "tensor_transpose",
-        "tensor_sequence",
-        "autoregressive"
-      ],
-      null
-    ],
-    "shape": [
-      2048,
-      26,
-      16,
-      192
-    ]
-  },
-  ".opt_state/[0]/.mu/['params']/['decoder']/['moe_layers']/['self_attention']/['wkv_a']/['kernel']": {
-    "mesh": {
-      "axis_names": [
-        "diloco",
-        "data",
-        "stage",
-        "fsdp",
-        "fsdp_transpose",
-        "sequence",
-        "context",
-        "context_autoregressive",
-        "tensor",
-        "tensor_transpose",
-        "tensor_sequence",
-        "expert",
-        "autoregressive"
-      ],
-      "shape": {
-        "diloco": 1,
-        "data": 4,
-        "stage": 1,
-        "fsdp": 8,
-        "fsdp_transpose": 1,
-        "sequence": 1,
-        "context": 1,
-        "context_autoregressive": 1,
-        "tensor": 1,
-        "tensor_transpose": 1,
-        "tensor_sequence": 1,
-        "expert": 1,
-        "autoregressive": 1
-      }
-    },
-    "partition_spec": [
-      [
-        "fsdp",
-        "fsdp_transpose",
-        "sequence",
-        "tensor_transpose",
-        "context",
-        "expert"
-      ],
-      null,
-      null
-    ],
-    "shape": [
-      2048,
-      26,
-      576
-    ]
-  },
-  ".opt_state/[0]/.mu/['params']/['decoder']/['moe_layers']/['self_attention']/['wkv_b']/['kernel']": {
-    "mesh": {
-      "axis_names": [
-        "diloco",
-        "data",
-        "stage",
-        "fsdp",
-        "fsdp_transpose",
-        "sequence",
-        "context",
-        "context_autoregressive",
-        "tensor",
-        "tensor_transpose",
-        "tensor_sequence",
-        "expert",
-        "autoregressive"
-      ],
-      "shape": {
-        "diloco": 1,
-        "data": 4,
-        "stage": 1,
-        "fsdp": 8,
-        "fsdp_transpose": 1,
-        "sequence": 1,
-        "context": 1,
-        "context_autoregressive": 1,
-        "tensor": 1,
-        "tensor_transpose": 1,
-        "tensor_sequence": 1,
-        "expert": 1,
-        "autoregressive": 1
-      }
-    },
-    "partition_spec": [
-      [
-        "fsdp",
-        "fsdp_transpose",
-        "sequence",
-        "context",
-        "expert"
-      ],
-      null,
-      [
-        "tensor",
-        "tensor_transpose",
-        "tensor_sequence",
-        "autoregressive"
-      ],
-      null
-    ],
-    "shape": [
-      512,
-      26,
-      16,
-      256
+      2880,
+      201088
     ]
   },
   ".opt_state/[0]/.mu/['params']/['token_embedder']/['embedding']": {
@@ -2859,7 +4175,7 @@
       ],
       "shape": {
         "diloco": 1,
-        "data": 4,
+        "data": 1,
         "stage": 1,
         "fsdp": 8,
         "fsdp_transpose": 1,
@@ -2869,7 +4185,7 @@
         "tensor": 1,
         "tensor_transpose": 1,
         "tensor_sequence": 1,
-        "expert": 1,
+        "expert": 2,
         "autoregressive": 1
       }
     },
@@ -2889,8 +4205,8 @@
       ]
     ],
     "shape": [
-      102400,
-      2048
+      201088,
+      2880
     ]
   },
   ".opt_state/[0]/.nu/['params']/['decoder']/['decoder_norm']/['scale']": {
@@ -2912,7 +4228,7 @@
       ],
       "shape": {
         "diloco": 1,
-        "data": 4,
+        "data": 1,
         "stage": 1,
         "fsdp": 8,
         "fsdp_transpose": 1,
@@ -2922,7 +4238,7 @@
         "tensor": 1,
         "tensor_transpose": 1,
         "tensor_sequence": 1,
-        "expert": 1,
+        "expert": 2,
         "autoregressive": 1
       }
     },
@@ -2933,10 +4249,10 @@
       ]
     ],
     "shape": [
-      2048
+      2880
     ]
   },
-  ".opt_state/[0]/.nu/['params']/['decoder']/['dense_layers']/['mlp']/['wi_0']/['kernel']": {
+  ".opt_state/[0]/.nu/['params']/['decoder']/['layers']/['layers_0']/['GptOssAttention']/['key']/['bias']": {
     "mesh": {
       "axis_names": [
         "diloco",
@@ -2955,7 +4271,7 @@
       ],
       "shape": {
         "diloco": 1,
-        "data": 4,
+        "data": 1,
         "stage": 1,
         "fsdp": 8,
         "fsdp_transpose": 1,
@@ -2965,19 +4281,578 @@
         "tensor": 1,
         "tensor_transpose": 1,
         "tensor_sequence": 1,
-        "expert": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      [
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "autoregressive"
+      ],
+      "stage",
+      null
+    ],
+    "shape": [
+      8,
+      12,
+      64
+    ]
+  },
+  ".opt_state/[0]/.nu/['params']/['decoder']/['layers']/['layers_0']/['GptOssAttention']/['key']/['kernel']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
         "autoregressive": 1
       }
     },
     "partition_spec": [
       [
         "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "expert"
+      ],
+      "stage",
+      [
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "autoregressive"
+      ],
+      null
+    ],
+    "shape": [
+      2880,
+      12,
+      8,
+      64
+    ]
+  },
+  ".opt_state/[0]/.nu/['params']/['decoder']/['layers']/['layers_0']/['GptOssAttention']/['out']/['bias']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      [
+        "fsdp",
+        "fsdp_transpose",
         "sequence",
         "tensor_transpose",
         "context",
         "expert"
       ],
+      "stage"
+    ],
+    "shape": [
+      2880,
+      12
+    ]
+  },
+  ".opt_state/[0]/.nu/['params']/['decoder']/['layers']/['layers_0']/['GptOssAttention']/['out']/['kernel']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      [
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "autoregressive"
+      ],
+      "stage",
       null,
+      [
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "expert"
+      ]
+    ],
+    "shape": [
+      64,
+      12,
+      64,
+      2880
+    ]
+  },
+  ".opt_state/[0]/.nu/['params']/['decoder']/['layers']/['layers_0']/['GptOssAttention']/['query']/['bias']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      [
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "autoregressive"
+      ],
+      "stage",
+      null
+    ],
+    "shape": [
+      64,
+      12,
+      64
+    ]
+  },
+  ".opt_state/[0]/.nu/['params']/['decoder']/['layers']/['layers_0']/['GptOssAttention']/['query']/['kernel']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      [
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "expert"
+      ],
+      "stage",
+      [
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "autoregressive"
+      ],
+      null
+    ],
+    "shape": [
+      2880,
+      12,
+      64,
+      64
+    ]
+  },
+  ".opt_state/[0]/.nu/['params']/['decoder']/['layers']/['layers_0']/['GptOssAttention']/['sinks']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      null,
+      "stage"
+    ],
+    "shape": [
+      64,
+      12
+    ]
+  },
+  ".opt_state/[0]/.nu/['params']/['decoder']/['layers']/['layers_0']/['GptOssAttention']/['value']/['bias']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      [
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "autoregressive"
+      ],
+      "stage",
+      null
+    ],
+    "shape": [
+      8,
+      12,
+      64
+    ]
+  },
+  ".opt_state/[0]/.nu/['params']/['decoder']/['layers']/['layers_0']/['GptOssAttention']/['value']/['kernel']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      [
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "expert"
+      ],
+      "stage",
+      [
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "autoregressive"
+      ],
+      null
+    ],
+    "shape": [
+      2880,
+      12,
+      8,
+      64
+    ]
+  },
+  ".opt_state/[0]/.nu/['params']/['decoder']/['layers']/['layers_0']/['GptOssMlp']/['gate']/['bias']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      null,
+      "stage"
+    ],
+    "shape": [
+      32,
+      12
+    ]
+  },
+  ".opt_state/[0]/.nu/['params']/['decoder']/['layers']/['layers_0']/['GptOssMlp']/['gate']/['kernel']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      [
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "tensor_transpose",
+        "context",
+        "expert"
+      ],
+      "stage",
+      null
+    ],
+    "shape": [
+      2880,
+      12,
+      32
+    ]
+  },
+  ".opt_state/[0]/.nu/['params']/['decoder']/['layers']/['layers_0']/['GptOssMlp']/['wi_0']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      "expert",
+      "stage",
+      [
+        "fsdp",
+        "sequence",
+        "tensor_transpose",
+        "context"
+      ],
       [
         "fsdp_transpose",
         "tensor",
@@ -2986,12 +4861,13 @@
       ]
     ],
     "shape": [
-      2048,
-      1,
-      10944
+      32,
+      12,
+      2880,
+      2880
     ]
   },
-  ".opt_state/[0]/.nu/['params']/['decoder']/['dense_layers']/['mlp']/['wi_1']/['kernel']": {
+  ".opt_state/[0]/.nu/['params']/['decoder']/['layers']/['layers_0']/['GptOssMlp']/['wi_0_bias']": {
     "mesh": {
       "axis_names": [
         "diloco",
@@ -3010,7 +4886,7 @@
       ],
       "shape": {
         "diloco": 1,
-        "data": 4,
+        "data": 1,
         "stage": 1,
         "fsdp": 8,
         "fsdp_transpose": 1,
@@ -3020,19 +4896,67 @@
         "tensor": 1,
         "tensor_transpose": 1,
         "tensor_sequence": 1,
-        "expert": 1,
+        "expert": 2,
         "autoregressive": 1
       }
     },
     "partition_spec": [
+      "expert",
+      "stage",
+      [
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence"
+      ]
+    ],
+    "shape": [
+      32,
+      12,
+      2880
+    ]
+  },
+  ".opt_state/[0]/.nu/['params']/['decoder']/['layers']/['layers_0']/['GptOssMlp']/['wi_1']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      "expert",
+      "stage",
       [
         "fsdp",
         "sequence",
         "tensor_transpose",
-        "context",
-        "expert"
+        "context"
       ],
-      null,
       [
         "fsdp_transpose",
         "tensor",
@@ -3041,12 +4965,13 @@
       ]
     ],
     "shape": [
-      2048,
-      1,
-      10944
+      32,
+      12,
+      2880,
+      2880
     ]
   },
-  ".opt_state/[0]/.nu/['params']/['decoder']/['dense_layers']/['mlp']/['wo']/['kernel']": {
+  ".opt_state/[0]/.nu/['params']/['decoder']/['layers']/['layers_0']/['GptOssMlp']/['wi_1_bias']": {
     "mesh": {
       "axis_names": [
         "diloco",
@@ -3065,7 +4990,7 @@
       ],
       "shape": {
         "diloco": 1,
-        "data": 4,
+        "data": 1,
         "stage": 1,
         "fsdp": 8,
         "fsdp_transpose": 1,
@@ -3075,33 +5000,26 @@
         "tensor": 1,
         "tensor_transpose": 1,
         "tensor_sequence": 1,
-        "expert": 1,
+        "expert": 2,
         "autoregressive": 1
       }
     },
     "partition_spec": [
+      "expert",
+      "stage",
       [
-        "fsdp_transpose",
         "tensor",
-        "tensor_sequence",
-        "autoregressive"
-      ],
-      null,
-      [
-        "fsdp",
-        "sequence",
         "tensor_transpose",
-        "context",
-        "expert"
+        "tensor_sequence"
       ]
     ],
     "shape": [
-      10944,
-      1,
-      2048
+      32,
+      12,
+      2880
     ]
   },
-  ".opt_state/[0]/.nu/['params']/['decoder']/['dense_layers']/['post_self_attention_layer_norm']/['scale']": {
+  ".opt_state/[0]/.nu/['params']/['decoder']/['layers']/['layers_0']/['GptOssMlp']/['wo']": {
     "mesh": {
       "axis_names": [
         "diloco",
@@ -3120,7 +5038,7 @@
       ],
       "shape": {
         "diloco": 1,
-        "data": 4,
+        "data": 1,
         "stage": 1,
         "fsdp": 8,
         "fsdp_transpose": 1,
@@ -3130,7 +5048,110 @@
         "tensor": 1,
         "tensor_transpose": 1,
         "tensor_sequence": 1,
-        "expert": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      "expert",
+      "stage",
+      [
+        "fsdp_transpose",
+        "tensor",
+        "tensor_sequence",
+        "autoregressive"
+      ],
+      [
+        "fsdp",
+        "sequence",
+        "tensor_transpose",
+        "context"
+      ]
+    ],
+    "shape": [
+      32,
+      12,
+      2880,
+      2880
+    ]
+  },
+  ".opt_state/[0]/.nu/['params']/['decoder']/['layers']/['layers_0']/['GptOssMlp']/['wo_bias']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      "expert",
+      "stage",
+      [
+        "tensor",
+        "tensor_transpose"
+      ]
+    ],
+    "shape": [
+      32,
+      12,
+      2880
+    ]
+  },
+  ".opt_state/[0]/.nu/['params']/['decoder']/['layers']/['layers_0']/['post_self_attention_layer_norm']/['scale']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
         "autoregressive": 1
       }
     },
@@ -3139,14 +5160,14 @@
         "tensor",
         "tensor_transpose"
       ],
-      null
+      "stage"
     ],
     "shape": [
-      2048,
-      1
+      2880,
+      12
     ]
   },
-  ".opt_state/[0]/.nu/['params']/['decoder']/['dense_layers']/['pre_self_attention_layer_norm']/['scale']": {
+  ".opt_state/[0]/.nu/['params']/['decoder']/['layers']/['layers_0']/['pre_self_attention_layer_norm']/['scale']": {
     "mesh": {
       "axis_names": [
         "diloco",
@@ -3165,7 +5186,7 @@
       ],
       "shape": {
         "diloco": 1,
-        "data": 4,
+        "data": 1,
         "stage": 1,
         "fsdp": 8,
         "fsdp_transpose": 1,
@@ -3175,7 +5196,7 @@
         "tensor": 1,
         "tensor_transpose": 1,
         "tensor_sequence": 1,
-        "expert": 1,
+        "expert": 2,
         "autoregressive": 1
       }
     },
@@ -3184,14 +5205,14 @@
         "tensor",
         "tensor_transpose"
       ],
-      null
+      "stage"
     ],
     "shape": [
-      2048,
-      1
+      2880,
+      12
     ]
   },
-  ".opt_state/[0]/.nu/['params']/['decoder']/['dense_layers']/['self_attention']/['kv_norm']/['scale']": {
+  ".opt_state/[0]/.nu/['params']/['decoder']/['layers']/['layers_1']/['GptOssAttention']/['key']/['bias']": {
     "mesh": {
       "axis_names": [
         "diloco",
@@ -3210,7 +5231,7 @@
       ],
       "shape": {
         "diloco": 1,
-        "data": 4,
+        "data": 1,
         "stage": 1,
         "fsdp": 8,
         "fsdp_transpose": 1,
@@ -3220,23 +5241,27 @@
         "tensor": 1,
         "tensor_transpose": 1,
         "tensor_sequence": 1,
-        "expert": 1,
+        "expert": 2,
         "autoregressive": 1
       }
     },
     "partition_spec": [
       [
         "tensor",
-        "tensor_transpose"
+        "tensor_transpose",
+        "tensor_sequence",
+        "autoregressive"
       ],
+      "stage",
       null
     ],
     "shape": [
-      512,
-      1
+      8,
+      12,
+      64
     ]
   },
-  ".opt_state/[0]/.nu/['params']/['decoder']/['dense_layers']/['self_attention']/['out']/['kernel']": {
+  ".opt_state/[0]/.nu/['params']/['decoder']/['layers']/['layers_1']/['GptOssAttention']/['key']/['kernel']": {
     "mesh": {
       "axis_names": [
         "diloco",
@@ -3255,7 +5280,7 @@
       ],
       "shape": {
         "diloco": 1,
-        "data": 4,
+        "data": 1,
         "stage": 1,
         "fsdp": 8,
         "fsdp_transpose": 1,
@@ -3265,7 +5290,113 @@
         "tensor": 1,
         "tensor_transpose": 1,
         "tensor_sequence": 1,
-        "expert": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      [
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "expert"
+      ],
+      "stage",
+      [
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "autoregressive"
+      ],
+      null
+    ],
+    "shape": [
+      2880,
+      12,
+      8,
+      64
+    ]
+  },
+  ".opt_state/[0]/.nu/['params']/['decoder']/['layers']/['layers_1']/['GptOssAttention']/['out']/['bias']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      [
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "tensor_transpose",
+        "context",
+        "expert"
+      ],
+      "stage"
+    ],
+    "shape": [
+      2880,
+      12
+    ]
+  },
+  ".opt_state/[0]/.nu/['params']/['decoder']/['layers']/['layers_1']/['GptOssAttention']/['out']/['kernel']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
         "autoregressive": 1
       }
     },
@@ -3276,7 +5407,7 @@
         "tensor_sequence",
         "autoregressive"
       ],
-      null,
+      "stage",
       null,
       [
         "fsdp",
@@ -3287,13 +5418,13 @@
       ]
     ],
     "shape": [
-      16,
-      1,
-      128,
-      2048
+      64,
+      12,
+      64,
+      2880
     ]
   },
-  ".opt_state/[0]/.nu/['params']/['decoder']/['dense_layers']/['self_attention']/['query']/['kernel']": {
+  ".opt_state/[0]/.nu/['params']/['decoder']/['layers']/['layers_1']/['GptOssAttention']/['query']/['bias']": {
     "mesh": {
       "axis_names": [
         "diloco",
@@ -3312,7 +5443,7 @@
       ],
       "shape": {
         "diloco": 1,
-        "data": 4,
+        "data": 1,
         "stage": 1,
         "fsdp": 8,
         "fsdp_transpose": 1,
@@ -3322,35 +5453,27 @@
         "tensor": 1,
         "tensor_transpose": 1,
         "tensor_sequence": 1,
-        "expert": 1,
+        "expert": 2,
         "autoregressive": 1
       }
     },
     "partition_spec": [
-      [
-        "fsdp",
-        "fsdp_transpose",
-        "sequence",
-        "context",
-        "expert"
-      ],
-      null,
       [
         "tensor",
         "tensor_transpose",
         "tensor_sequence",
         "autoregressive"
       ],
+      "stage",
       null
     ],
     "shape": [
-      2048,
-      1,
-      16,
-      192
+      64,
+      12,
+      64
     ]
   },
-  ".opt_state/[0]/.nu/['params']/['decoder']/['dense_layers']/['self_attention']/['wkv_a']/['kernel']": {
+  ".opt_state/[0]/.nu/['params']/['decoder']/['layers']/['layers_1']/['GptOssAttention']/['query']/['kernel']": {
     "mesh": {
       "axis_names": [
         "diloco",
@@ -3369,7 +5492,7 @@
       ],
       "shape": {
         "diloco": 1,
-        "data": 4,
+        "data": 1,
         "stage": 1,
         "fsdp": 8,
         "fsdp_transpose": 1,
@@ -3379,7 +5502,7 @@
         "tensor": 1,
         "tensor_transpose": 1,
         "tensor_sequence": 1,
-        "expert": 1,
+        "expert": 2,
         "autoregressive": 1
       }
     },
@@ -3388,20 +5511,26 @@
         "fsdp",
         "fsdp_transpose",
         "sequence",
-        "tensor_transpose",
         "context",
         "expert"
       ],
-      null,
+      "stage",
+      [
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "autoregressive"
+      ],
       null
     ],
     "shape": [
-      2048,
-      1,
-      576
+      2880,
+      12,
+      64,
+      64
     ]
   },
-  ".opt_state/[0]/.nu/['params']/['decoder']/['dense_layers']/['self_attention']/['wkv_b']/['kernel']": {
+  ".opt_state/[0]/.nu/['params']/['decoder']/['layers']/['layers_1']/['GptOssAttention']/['sinks']": {
     "mesh": {
       "axis_names": [
         "diloco",
@@ -3420,7 +5549,7 @@
       ],
       "shape": {
         "diloco": 1,
-        "data": 4,
+        "data": 1,
         "stage": 1,
         "fsdp": 8,
         "fsdp_transpose": 1,
@@ -3430,7 +5559,98 @@
         "tensor": 1,
         "tensor_transpose": 1,
         "tensor_sequence": 1,
-        "expert": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      null,
+      "stage"
+    ],
+    "shape": [
+      64,
+      12
+    ]
+  },
+  ".opt_state/[0]/.nu/['params']/['decoder']/['layers']/['layers_1']/['GptOssAttention']/['value']/['bias']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      [
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "autoregressive"
+      ],
+      "stage",
+      null
+    ],
+    "shape": [
+      8,
+      12,
+      64
+    ]
+  },
+  ".opt_state/[0]/.nu/['params']/['decoder']/['layers']/['layers_1']/['GptOssAttention']/['value']/['kernel']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
         "autoregressive": 1
       }
     },
@@ -3442,7 +5662,7 @@
         "context",
         "expert"
       ],
-      null,
+      "stage",
       [
         "tensor",
         "tensor_transpose",
@@ -3452,10 +5672,504 @@
       null
     ],
     "shape": [
-      512,
-      1,
-      16,
-      256
+      2880,
+      12,
+      8,
+      64
+    ]
+  },
+  ".opt_state/[0]/.nu/['params']/['decoder']/['layers']/['layers_1']/['GptOssMlp']/['gate']/['bias']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      null,
+      "stage"
+    ],
+    "shape": [
+      32,
+      12
+    ]
+  },
+  ".opt_state/[0]/.nu/['params']/['decoder']/['layers']/['layers_1']/['GptOssMlp']/['gate']/['kernel']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      [
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "tensor_transpose",
+        "context",
+        "expert"
+      ],
+      "stage",
+      null
+    ],
+    "shape": [
+      2880,
+      12,
+      32
+    ]
+  },
+  ".opt_state/[0]/.nu/['params']/['decoder']/['layers']/['layers_1']/['GptOssMlp']/['wi_0']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      "expert",
+      "stage",
+      [
+        "fsdp",
+        "sequence",
+        "tensor_transpose",
+        "context"
+      ],
+      [
+        "fsdp_transpose",
+        "tensor",
+        "tensor_sequence",
+        "autoregressive"
+      ]
+    ],
+    "shape": [
+      32,
+      12,
+      2880,
+      2880
+    ]
+  },
+  ".opt_state/[0]/.nu/['params']/['decoder']/['layers']/['layers_1']/['GptOssMlp']/['wi_0_bias']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      "expert",
+      "stage",
+      [
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence"
+      ]
+    ],
+    "shape": [
+      32,
+      12,
+      2880
+    ]
+  },
+  ".opt_state/[0]/.nu/['params']/['decoder']/['layers']/['layers_1']/['GptOssMlp']/['wi_1']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      "expert",
+      "stage",
+      [
+        "fsdp",
+        "sequence",
+        "tensor_transpose",
+        "context"
+      ],
+      [
+        "fsdp_transpose",
+        "tensor",
+        "tensor_sequence",
+        "autoregressive"
+      ]
+    ],
+    "shape": [
+      32,
+      12,
+      2880,
+      2880
+    ]
+  },
+  ".opt_state/[0]/.nu/['params']/['decoder']/['layers']/['layers_1']/['GptOssMlp']/['wi_1_bias']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      "expert",
+      "stage",
+      [
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence"
+      ]
+    ],
+    "shape": [
+      32,
+      12,
+      2880
+    ]
+  },
+  ".opt_state/[0]/.nu/['params']/['decoder']/['layers']/['layers_1']/['GptOssMlp']/['wo']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      "expert",
+      "stage",
+      [
+        "fsdp_transpose",
+        "tensor",
+        "tensor_sequence",
+        "autoregressive"
+      ],
+      [
+        "fsdp",
+        "sequence",
+        "tensor_transpose",
+        "context"
+      ]
+    ],
+    "shape": [
+      32,
+      12,
+      2880,
+      2880
+    ]
+  },
+  ".opt_state/[0]/.nu/['params']/['decoder']/['layers']/['layers_1']/['GptOssMlp']/['wo_bias']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      "expert",
+      "stage",
+      [
+        "tensor",
+        "tensor_transpose"
+      ]
+    ],
+    "shape": [
+      32,
+      12,
+      2880
+    ]
+  },
+  ".opt_state/[0]/.nu/['params']/['decoder']/['layers']/['layers_1']/['post_self_attention_layer_norm']/['scale']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      [
+        "tensor",
+        "tensor_transpose"
+      ],
+      "stage"
+    ],
+    "shape": [
+      2880,
+      12
+    ]
+  },
+  ".opt_state/[0]/.nu/['params']/['decoder']/['layers']/['layers_1']/['pre_self_attention_layer_norm']/['scale']": {
+    "mesh": {
+      "axis_names": [
+        "diloco",
+        "data",
+        "stage",
+        "fsdp",
+        "fsdp_transpose",
+        "sequence",
+        "context",
+        "context_autoregressive",
+        "tensor",
+        "tensor_transpose",
+        "tensor_sequence",
+        "expert",
+        "autoregressive"
+      ],
+      "shape": {
+        "diloco": 1,
+        "data": 1,
+        "stage": 1,
+        "fsdp": 8,
+        "fsdp_transpose": 1,
+        "sequence": 1,
+        "context": 1,
+        "context_autoregressive": 1,
+        "tensor": 1,
+        "tensor_transpose": 1,
+        "tensor_sequence": 1,
+        "expert": 2,
+        "autoregressive": 1
+      }
+    },
+    "partition_spec": [
+      [
+        "tensor",
+        "tensor_transpose"
+      ],
+      "stage"
+    ],
+    "shape": [
+      2880,
+      12
     ]
   },
   ".opt_state/[0]/.nu/['params']/['decoder']/['logits_dense']/['kernel']": {
@@ -3477,7 +6191,7 @@
       ],
       "shape": {
         "diloco": 1,
-        "data": 4,
+        "data": 1,
         "stage": 1,
         "fsdp": 8,
         "fsdp_transpose": 1,
@@ -3487,7 +6201,7 @@
         "tensor": 1,
         "tensor_transpose": 1,
         "tensor_sequence": 1,
-        "expert": 1,
+        "expert": 2,
         "autoregressive": 1
       }
     },
@@ -3507,748 +6221,8 @@
       ]
     ],
     "shape": [
-      2048,
-      102400
-    ]
-  },
-  ".opt_state/[0]/.nu/['params']/['decoder']/['moe_layers']/['DeepSeekMoeBlock_0']/['MoeBlock_0']/['gate']/['kernel']": {
-    "mesh": {
-      "axis_names": [
-        "diloco",
-        "data",
-        "stage",
-        "fsdp",
-        "fsdp_transpose",
-        "sequence",
-        "context",
-        "context_autoregressive",
-        "tensor",
-        "tensor_transpose",
-        "tensor_sequence",
-        "expert",
-        "autoregressive"
-      ],
-      "shape": {
-        "diloco": 1,
-        "data": 4,
-        "stage": 1,
-        "fsdp": 8,
-        "fsdp_transpose": 1,
-        "sequence": 1,
-        "context": 1,
-        "context_autoregressive": 1,
-        "tensor": 1,
-        "tensor_transpose": 1,
-        "tensor_sequence": 1,
-        "expert": 1,
-        "autoregressive": 1
-      }
-    },
-    "partition_spec": [
-      [
-        "fsdp",
-        "fsdp_transpose",
-        "sequence",
-        "tensor_transpose",
-        "context"
-      ],
-      null,
-      null
-    ],
-    "shape": [
-      2048,
-      26,
-      64
-    ]
-  },
-  ".opt_state/[0]/.nu/['params']/['decoder']/['moe_layers']/['DeepSeekMoeBlock_0']/['MoeBlock_0']/['wi_0']": {
-    "mesh": {
-      "axis_names": [
-        "diloco",
-        "data",
-        "stage",
-        "fsdp",
-        "fsdp_transpose",
-        "sequence",
-        "context",
-        "context_autoregressive",
-        "tensor",
-        "tensor_transpose",
-        "tensor_sequence",
-        "expert",
-        "autoregressive"
-      ],
-      "shape": {
-        "diloco": 1,
-        "data": 4,
-        "stage": 1,
-        "fsdp": 8,
-        "fsdp_transpose": 1,
-        "sequence": 1,
-        "context": 1,
-        "context_autoregressive": 1,
-        "tensor": 1,
-        "tensor_transpose": 1,
-        "tensor_sequence": 1,
-        "expert": 1,
-        "autoregressive": 1
-      }
-    },
-    "partition_spec": [
-      "expert",
-      null,
-      [
-        "fsdp",
-        "sequence",
-        "tensor_transpose",
-        "context"
-      ],
-      [
-        "fsdp_transpose",
-        "tensor",
-        "tensor_sequence",
-        "autoregressive"
-      ]
-    ],
-    "shape": [
-      64,
-      26,
-      2048,
-      1408
-    ]
-  },
-  ".opt_state/[0]/.nu/['params']/['decoder']/['moe_layers']/['DeepSeekMoeBlock_0']/['MoeBlock_0']/['wi_1']": {
-    "mesh": {
-      "axis_names": [
-        "diloco",
-        "data",
-        "stage",
-        "fsdp",
-        "fsdp_transpose",
-        "sequence",
-        "context",
-        "context_autoregressive",
-        "tensor",
-        "tensor_transpose",
-        "tensor_sequence",
-        "expert",
-        "autoregressive"
-      ],
-      "shape": {
-        "diloco": 1,
-        "data": 4,
-        "stage": 1,
-        "fsdp": 8,
-        "fsdp_transpose": 1,
-        "sequence": 1,
-        "context": 1,
-        "context_autoregressive": 1,
-        "tensor": 1,
-        "tensor_transpose": 1,
-        "tensor_sequence": 1,
-        "expert": 1,
-        "autoregressive": 1
-      }
-    },
-    "partition_spec": [
-      "expert",
-      null,
-      [
-        "fsdp",
-        "sequence",
-        "tensor_transpose",
-        "context"
-      ],
-      [
-        "fsdp_transpose",
-        "tensor",
-        "tensor_sequence",
-        "autoregressive"
-      ]
-    ],
-    "shape": [
-      64,
-      26,
-      2048,
-      1408
-    ]
-  },
-  ".opt_state/[0]/.nu/['params']/['decoder']/['moe_layers']/['DeepSeekMoeBlock_0']/['MoeBlock_0']/['wo']": {
-    "mesh": {
-      "axis_names": [
-        "diloco",
-        "data",
-        "stage",
-        "fsdp",
-        "fsdp_transpose",
-        "sequence",
-        "context",
-        "context_autoregressive",
-        "tensor",
-        "tensor_transpose",
-        "tensor_sequence",
-        "expert",
-        "autoregressive"
-      ],
-      "shape": {
-        "diloco": 1,
-        "data": 4,
-        "stage": 1,
-        "fsdp": 8,
-        "fsdp_transpose": 1,
-        "sequence": 1,
-        "context": 1,
-        "context_autoregressive": 1,
-        "tensor": 1,
-        "tensor_transpose": 1,
-        "tensor_sequence": 1,
-        "expert": 1,
-        "autoregressive": 1
-      }
-    },
-    "partition_spec": [
-      "expert",
-      null,
-      [
-        "fsdp_transpose",
-        "tensor",
-        "tensor_sequence",
-        "autoregressive"
-      ],
-      [
-        "fsdp",
-        "sequence",
-        "tensor_transpose",
-        "context"
-      ]
-    ],
-    "shape": [
-      64,
-      26,
-      1408,
-      2048
-    ]
-  },
-  ".opt_state/[0]/.nu/['params']/['decoder']/['moe_layers']/['DeepSeekMoeBlock_0']/['shared_experts']/['wi_0']/['kernel']": {
-    "mesh": {
-      "axis_names": [
-        "diloco",
-        "data",
-        "stage",
-        "fsdp",
-        "fsdp_transpose",
-        "sequence",
-        "context",
-        "context_autoregressive",
-        "tensor",
-        "tensor_transpose",
-        "tensor_sequence",
-        "expert",
-        "autoregressive"
-      ],
-      "shape": {
-        "diloco": 1,
-        "data": 4,
-        "stage": 1,
-        "fsdp": 8,
-        "fsdp_transpose": 1,
-        "sequence": 1,
-        "context": 1,
-        "context_autoregressive": 1,
-        "tensor": 1,
-        "tensor_transpose": 1,
-        "tensor_sequence": 1,
-        "expert": 1,
-        "autoregressive": 1
-      }
-    },
-    "partition_spec": [
-      [
-        "fsdp",
-        "sequence",
-        "tensor_transpose",
-        "context",
-        "expert"
-      ],
-      null,
-      [
-        "fsdp_transpose",
-        "tensor",
-        "tensor_sequence",
-        "autoregressive"
-      ]
-    ],
-    "shape": [
-      2048,
-      26,
-      2816
-    ]
-  },
-  ".opt_state/[0]/.nu/['params']/['decoder']/['moe_layers']/['DeepSeekMoeBlock_0']/['shared_experts']/['wi_1']/['kernel']": {
-    "mesh": {
-      "axis_names": [
-        "diloco",
-        "data",
-        "stage",
-        "fsdp",
-        "fsdp_transpose",
-        "sequence",
-        "context",
-        "context_autoregressive",
-        "tensor",
-        "tensor_transpose",
-        "tensor_sequence",
-        "expert",
-        "autoregressive"
-      ],
-      "shape": {
-        "diloco": 1,
-        "data": 4,
-        "stage": 1,
-        "fsdp": 8,
-        "fsdp_transpose": 1,
-        "sequence": 1,
-        "context": 1,
-        "context_autoregressive": 1,
-        "tensor": 1,
-        "tensor_transpose": 1,
-        "tensor_sequence": 1,
-        "expert": 1,
-        "autoregressive": 1
-      }
-    },
-    "partition_spec": [
-      [
-        "fsdp",
-        "sequence",
-        "tensor_transpose",
-        "context",
-        "expert"
-      ],
-      null,
-      [
-        "fsdp_transpose",
-        "tensor",
-        "tensor_sequence",
-        "autoregressive"
-      ]
-    ],
-    "shape": [
-      2048,
-      26,
-      2816
-    ]
-  },
-  ".opt_state/[0]/.nu/['params']/['decoder']/['moe_layers']/['DeepSeekMoeBlock_0']/['shared_experts']/['wo']/['kernel']": {
-    "mesh": {
-      "axis_names": [
-        "diloco",
-        "data",
-        "stage",
-        "fsdp",
-        "fsdp_transpose",
-        "sequence",
-        "context",
-        "context_autoregressive",
-        "tensor",
-        "tensor_transpose",
-        "tensor_sequence",
-        "expert",
-        "autoregressive"
-      ],
-      "shape": {
-        "diloco": 1,
-        "data": 4,
-        "stage": 1,
-        "fsdp": 8,
-        "fsdp_transpose": 1,
-        "sequence": 1,
-        "context": 1,
-        "context_autoregressive": 1,
-        "tensor": 1,
-        "tensor_transpose": 1,
-        "tensor_sequence": 1,
-        "expert": 1,
-        "autoregressive": 1
-      }
-    },
-    "partition_spec": [
-      [
-        "fsdp_transpose",
-        "tensor",
-        "tensor_sequence",
-        "autoregressive"
-      ],
-      null,
-      [
-        "fsdp",
-        "sequence",
-        "tensor_transpose",
-        "context",
-        "expert"
-      ]
-    ],
-    "shape": [
-      2816,
-      26,
-      2048
-    ]
-  },
-  ".opt_state/[0]/.nu/['params']/['decoder']/['moe_layers']/['post_self_attention_layer_norm']/['scale']": {
-    "mesh": {
-      "axis_names": [
-        "diloco",
-        "data",
-        "stage",
-        "fsdp",
-        "fsdp_transpose",
-        "sequence",
-        "context",
-        "context_autoregressive",
-        "tensor",
-        "tensor_transpose",
-        "tensor_sequence",
-        "expert",
-        "autoregressive"
-      ],
-      "shape": {
-        "diloco": 1,
-        "data": 4,
-        "stage": 1,
-        "fsdp": 8,
-        "fsdp_transpose": 1,
-        "sequence": 1,
-        "context": 1,
-        "context_autoregressive": 1,
-        "tensor": 1,
-        "tensor_transpose": 1,
-        "tensor_sequence": 1,
-        "expert": 1,
-        "autoregressive": 1
-      }
-    },
-    "partition_spec": [
-      [
-        "tensor",
-        "tensor_transpose"
-      ],
-      null
-    ],
-    "shape": [
-      2048,
-      26
-    ]
-  },
-  ".opt_state/[0]/.nu/['params']/['decoder']/['moe_layers']/['pre_self_attention_layer_norm']/['scale']": {
-    "mesh": {
-      "axis_names": [
-        "diloco",
-        "data",
-        "stage",
-        "fsdp",
-        "fsdp_transpose",
-        "sequence",
-        "context",
-        "context_autoregressive",
-        "tensor",
-        "tensor_transpose",
-        "tensor_sequence",
-        "expert",
-        "autoregressive"
-      ],
-      "shape": {
-        "diloco": 1,
-        "data": 4,
-        "stage": 1,
-        "fsdp": 8,
-        "fsdp_transpose": 1,
-        "sequence": 1,
-        "context": 1,
-        "context_autoregressive": 1,
-        "tensor": 1,
-        "tensor_transpose": 1,
-        "tensor_sequence": 1,
-        "expert": 1,
-        "autoregressive": 1
-      }
-    },
-    "partition_spec": [
-      [
-        "tensor",
-        "tensor_transpose"
-      ],
-      null
-    ],
-    "shape": [
-      2048,
-      26
-    ]
-  },
-  ".opt_state/[0]/.nu/['params']/['decoder']/['moe_layers']/['self_attention']/['kv_norm']/['scale']": {
-    "mesh": {
-      "axis_names": [
-        "diloco",
-        "data",
-        "stage",
-        "fsdp",
-        "fsdp_transpose",
-        "sequence",
-        "context",
-        "context_autoregressive",
-        "tensor",
-        "tensor_transpose",
-        "tensor_sequence",
-        "expert",
-        "autoregressive"
-      ],
-      "shape": {
-        "diloco": 1,
-        "data": 4,
-        "stage": 1,
-        "fsdp": 8,
-        "fsdp_transpose": 1,
-        "sequence": 1,
-        "context": 1,
-        "context_autoregressive": 1,
-        "tensor": 1,
-        "tensor_transpose": 1,
-        "tensor_sequence": 1,
-        "expert": 1,
-        "autoregressive": 1
-      }
-    },
-    "partition_spec": [
-      [
-        "tensor",
-        "tensor_transpose"
-      ],
-      null
-    ],
-    "shape": [
-      512,
-      26
-    ]
-  },
-  ".opt_state/[0]/.nu/['params']/['decoder']/['moe_layers']/['self_attention']/['out']/['kernel']": {
-    "mesh": {
-      "axis_names": [
-        "diloco",
-        "data",
-        "stage",
-        "fsdp",
-        "fsdp_transpose",
-        "sequence",
-        "context",
-        "context_autoregressive",
-        "tensor",
-        "tensor_transpose",
-        "tensor_sequence",
-        "expert",
-        "autoregressive"
-      ],
-      "shape": {
-        "diloco": 1,
-        "data": 4,
-        "stage": 1,
-        "fsdp": 8,
-        "fsdp_transpose": 1,
-        "sequence": 1,
-        "context": 1,
-        "context_autoregressive": 1,
-        "tensor": 1,
-        "tensor_transpose": 1,
-        "tensor_sequence": 1,
-        "expert": 1,
-        "autoregressive": 1
-      }
-    },
-    "partition_spec": [
-      [
-        "tensor",
-        "tensor_transpose",
-        "tensor_sequence",
-        "autoregressive"
-      ],
-      null,
-      null,
-      [
-        "fsdp",
-        "fsdp_transpose",
-        "sequence",
-        "context",
-        "expert"
-      ]
-    ],
-    "shape": [
-      16,
-      26,
-      128,
-      2048
-    ]
-  },
-  ".opt_state/[0]/.nu/['params']/['decoder']/['moe_layers']/['self_attention']/['query']/['kernel']": {
-    "mesh": {
-      "axis_names": [
-        "diloco",
-        "data",
-        "stage",
-        "fsdp",
-        "fsdp_transpose",
-        "sequence",
-        "context",
-        "context_autoregressive",
-        "tensor",
-        "tensor_transpose",
-        "tensor_sequence",
-        "expert",
-        "autoregressive"
-      ],
-      "shape": {
-        "diloco": 1,
-        "data": 4,
-        "stage": 1,
-        "fsdp": 8,
-        "fsdp_transpose": 1,
-        "sequence": 1,
-        "context": 1,
-        "context_autoregressive": 1,
-        "tensor": 1,
-        "tensor_transpose": 1,
-        "tensor_sequence": 1,
-        "expert": 1,
-        "autoregressive": 1
-      }
-    },
-    "partition_spec": [
-      [
-        "fsdp",
-        "fsdp_transpose",
-        "sequence",
-        "context",
-        "expert"
-      ],
-      null,
-      [
-        "tensor",
-        "tensor_transpose",
-        "tensor_sequence",
-        "autoregressive"
-      ],
-      null
-    ],
-    "shape": [
-      2048,
-      26,
-      16,
-      192
-    ]
-  },
-  ".opt_state/[0]/.nu/['params']/['decoder']/['moe_layers']/['self_attention']/['wkv_a']/['kernel']": {
-    "mesh": {
-      "axis_names": [
-        "diloco",
-        "data",
-        "stage",
-        "fsdp",
-        "fsdp_transpose",
-        "sequence",
-        "context",
-        "context_autoregressive",
-        "tensor",
-        "tensor_transpose",
-        "tensor_sequence",
-        "expert",
-        "autoregressive"
-      ],
-      "shape": {
-        "diloco": 1,
-        "data": 4,
-        "stage": 1,
-        "fsdp": 8,
-        "fsdp_transpose": 1,
-        "sequence": 1,
-        "context": 1,
-        "context_autoregressive": 1,
-        "tensor": 1,
-        "tensor_transpose": 1,
-        "tensor_sequence": 1,
-        "expert": 1,
-        "autoregressive": 1
-      }
-    },
-    "partition_spec": [
-      [
-        "fsdp",
-        "fsdp_transpose",
-        "sequence",
-        "tensor_transpose",
-        "context",
-        "expert"
-      ],
-      null,
-      null
-    ],
-    "shape": [
-      2048,
-      26,
-      576
-    ]
-  },
-  ".opt_state/[0]/.nu/['params']/['decoder']/['moe_layers']/['self_attention']/['wkv_b']/['kernel']": {
-    "mesh": {
-      "axis_names": [
-        "diloco",
-        "data",
-        "stage",
-        "fsdp",
-        "fsdp_transpose",
-        "sequence",
-        "context",
-        "context_autoregressive",
-        "tensor",
-        "tensor_transpose",
-        "tensor_sequence",
-        "expert",
-        "autoregressive"
-      ],
-      "shape": {
-        "diloco": 1,
-        "data": 4,
-        "stage": 1,
-        "fsdp": 8,
-        "fsdp_transpose": 1,
-        "sequence": 1,
-        "context": 1,
-        "context_autoregressive": 1,
-        "tensor": 1,
-        "tensor_transpose": 1,
-        "tensor_sequence": 1,
-        "expert": 1,
-        "autoregressive": 1
-      }
-    },
-    "partition_spec": [
-      [
-        "fsdp",
-        "fsdp_transpose",
-        "sequence",
-        "context",
-        "expert"
-      ],
-      null,
-      [
-        "tensor",
-        "tensor_transpose",
-        "tensor_sequence",
-        "autoregressive"
-      ],
-      null
-    ],
-    "shape": [
-      512,
-      26,
-      16,
-      256
+      2880,
+      201088
     ]
   },
   ".opt_state/[0]/.nu/['params']/['token_embedder']/['embedding']": {
@@ -4270,7 +6244,7 @@
       ],
       "shape": {
         "diloco": 1,
-        "data": 4,
+        "data": 1,
         "stage": 1,
         "fsdp": 8,
         "fsdp_transpose": 1,
@@ -4280,7 +6254,7 @@
         "tensor": 1,
         "tensor_transpose": 1,
         "tensor_sequence": 1,
-        "expert": 1,
+        "expert": 2,
         "autoregressive": 1
       }
     },
@@ -4300,8 +6274,8 @@
       ]
     ],
     "shape": [
-      102400,
-      2048
+      201088,
+      2880
     ]
   },
   ".opt_state/[2]/.count": {
@@ -4323,7 +6297,7 @@
       ],
       "shape": {
         "diloco": 1,
-        "data": 4,
+        "data": 1,
         "stage": 1,
         "fsdp": 8,
         "fsdp_transpose": 1,
@@ -4333,7 +6307,7 @@
         "tensor": 1,
         "tensor_transpose": 1,
         "tensor_sequence": 1,
-        "expert": 1,
+        "expert": 2,
         "autoregressive": 1
       }
     },
