@@ -51,30 +51,39 @@ For instructions on installing MaxText with post-training dependencies on your V
 ## Setup environment variables
 
 Login to Hugging Face. Provide your access token when prompted:
+You can generate one at https://huggingface.co/settings/tokens.
 
 ```bash
 hf auth login
 ```
 
-Setup following environment variables before running GRPO/GSPO:
+Set up the following environment variables to configure your training run. Replace
+placeholders with your actual values.
 
 ```bash
 # -- Model configuration --
+# The MaxText model name. See `src/maxtext/configs/types.py` for `ModelName` for a
+# full list of supported models.
 export MODEL=<MaxText Model> # e.g. 'llama3.1-8b-Instruct'
 
 # -- MaxText configuration --
-export BASE_OUTPUT_DIRECTORY=<output directory to store run logs> # e.g., gs://my-bucket/my-output-directory
+# Use a GCS bucket you own to store logs and checkpoints.
+# You can list your buckets and their locations in the
+# [Cloud Console](https://console.cloud.google.com/storage/browser) or via
+# `gcloud storage buckets list --format="table(name, location)"`.
+export BASE_OUTPUT_DIRECTORY=<gcs bucket path> # e.g., gs://my-bucket/maxtext-runs
 
-export RUN_NAME=<name for this run> # e.g., $(date +%Y-%m-%d-%H-%M-%S)
+# An arbitrary string to identify this specific run.
+# We recommend to include the model, user, and timestamp.
+# Note: Kubernetes requires workload names to be valid DNS labels (lowercase, no underscores or periods).
+export RUN_NAME=<Name for this run>
 
-export CHIPS_PER_VM=<the number of chips per VM> # depends on hardware, for v5p this is 4, for v6e this is 8
+# Number of accelerator chips per VM.
+# - TPU v5e (single host): 8
+# - TPU v5p (single host): 4
+# - TPU v6e (single host): 8
+export CHIPS_PER_VM=<the number of chips per VM>
 ```
-
-For the value of `CHIPS_PER_VM` on different TPU hardware, refer the official document
-
-- [TPU v5e](https://docs.cloud.google.com/tpu/docs/v5e) (single host, chips_per_vm=8)
-- [TPU v5p](https://docs.cloud.google.com/tpu/docs/v5p) (single host, chips_per_vm=4)
-- [TPU v6e](https://docs.cloud.google.com/tpu/docs/v6e) (single host, chips_per_vm=8)
 
 ## Get your model checkpoint
 
