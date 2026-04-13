@@ -41,6 +41,22 @@ from maxtext.configs import pyconfig
 from tests.utils.test_helpers import get_test_config_path
 
 
+DEFAULT_DATA_SHARDING = [
+    "data",
+    "stage",
+    "fsdp",
+    "fsdp_transpose",
+    "sequence",
+    "context",
+    "context_autoregressive",
+    "tensor",
+    "tensor_transpose",
+    "tensor_sequence",
+    "expert",
+    "autoregressive",
+]
+
+
 # pylint: disable=protected-access
 class TrainDistillTest(unittest.TestCase):
 
@@ -999,6 +1015,7 @@ class TrainDistillTest(unittest.TestCase):
     mock_student_cfg.vocab_size = 32000
     mock_student_cfg.mesh_axes = ("data",)
     mock_student_cfg.dataset_type = "grain"
+    mock_student_cfg.data_sharding = DEFAULT_DATA_SHARDING
 
     # Add dummy numbers for optimizer math
     mock_student_cfg.learning_rate = 1e-4
@@ -1079,6 +1096,7 @@ class TrainDistillTest(unittest.TestCase):
     mock_student_cfg.vocab_size = 32000
     mock_student_cfg.mesh_axes = ("data",)
     mock_student_cfg.dataset_type = "grain"
+    mock_student_cfg.data_sharding = DEFAULT_DATA_SHARDING
 
     # Add dummy numbers for optimizer math
     mock_student_cfg.learning_rate = 1e-4
