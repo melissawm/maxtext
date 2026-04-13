@@ -53,6 +53,8 @@ This is the easiest way to get started with the latest stable version.
 ```bash
 # Install uv, a fast Python package installer
 pip install uv
+# Alternatively, if pip install fails:
+# curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # Create virtual environment
 export VENV_NAME=<your virtual env name> # e.g., docker_venv
