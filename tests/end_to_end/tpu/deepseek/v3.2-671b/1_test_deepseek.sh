@@ -35,22 +35,19 @@ if [ -z "${CKPT_DISK_LOCATION}" ]; then
   export BF16_LOCAL_PATH=/tmp/hf-bf16
 fi
 
-# on cpu
 # scanned
-echo $BASE_OUTPUT_PATH/0/items; \
 python3 -m maxtext.checkpoint_conversion.to_maxtext src/maxtext/configs/base.yml \
 model_name=deepseek3.2-671b scan_layers=true attention=dot_product \
-base_output_directory=$BASE_OUTPUT_PATH hf_access_token=$HF_TOKEN \
+base_output_directory=${BASE_OUTPUT_PATH}/scanned hf_access_token=$HF_TOKEN \
 hardware=cpu skip_jax_distributed_system=True \
 --hf_model_path=$BF16_LOCAL_PATH \
 --eager_load_method=safetensors \
 --save_dtype=bfloat16
 
 # unscanned
-echo $BASE_OUTPUT_PATH/0/items; \
 python3 -m maxtext.checkpoint_conversion.to_maxtext src/maxtext/configs/base.yml \
 model_name=deepseek3.2-671b scan_layers=false attention=dot_product \
-base_output_directory=$BASE_OUTPUT_PATH hf_access_token=$HF_TOKEN \
+base_output_directory=${BASE_OUTPUT_PATH}/unscanned hf_access_token=$HF_TOKEN \
 hardware=cpu skip_jax_distributed_system=True \
 --hf_model_path=$BF16_LOCAL_PATH \
 --eager_load_method=safetensors \
