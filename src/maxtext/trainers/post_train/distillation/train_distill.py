@@ -542,6 +542,7 @@ def build_training_components(
       checkpoint_root_directory=None,  # Tunix should NOT checkpoint our ModelBundle. MaxTextCheckpointManager handles this.
       checkpointing_options=checkpointing_options,
       gradient_accumulation_steps=student_config.gradient_accumulation_steps,
+      data_sharding_axis=tuple(student_config.data_sharding),
   )
 
   return strategy, optimizer, train_config
