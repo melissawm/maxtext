@@ -589,7 +589,7 @@ def scan_batch_split_layers(
           pairwise_swap_and_negate_mask=yarn_mask,
       )
       # Offload to host memory.
-      for residual_name in ("attn_out",):
+      for residual_name in ("mlpwi_0", "mlpwi_1"):
         r = res.pop(residual_name)
         r = jax.tree.map(lambda x: jax.device_put(x, jax.typeof(x).sharding.with_memory_kind("pinned_host")), r)
         res[residual_name] = r
@@ -686,7 +686,7 @@ def scan_batch_split_layers(
         ws_grad = reduce_scatter_ws_grad(ws_grad, mesh)
       all_layer_ws_grad = insert_layer_ws_grad(all_layer_ws_grad, ws_grad, layer_idx + 1, cfg.param_scan_axis)
       # Get residuals from host.
-      for residual_name in ("attn_out",):
+      for residual_name in ("mlpwi_0", "mlpwi_1"):
         r = res.pop(residual_name)
         r = jax.tree.map(lambda x: jax.device_put(x, jax.typeof(x).sharding.with_memory_kind("device")), r)
         res[residual_name] = r
