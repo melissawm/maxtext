@@ -143,6 +143,13 @@ def get_shaped_batch(config):
   shaped_batch["targets"] = jax.ShapeDtypeStruct(batch_shape, jnp.int32)
   shaped_batch["targets_position"] = jax.ShapeDtypeStruct(batch_shape, jnp.int32)
   shaped_batch["targets_segmentation"] = jax.ShapeDtypeStruct(batch_shape, jnp.int32)
+  if config.use_dpo:
+    shaped_batch["chosen"] = jax.ShapeDtypeStruct(batch_shape, jnp.int32)
+    shaped_batch["chosen_position"] = jax.ShapeDtypeStruct(batch_shape, jnp.int32)
+    shaped_batch["chosen_segmentation"] = jax.ShapeDtypeStruct(batch_shape, jnp.int32)
+    shaped_batch["rejected"] = jax.ShapeDtypeStruct(batch_shape, jnp.int32)
+    shaped_batch["rejected_position"] = jax.ShapeDtypeStruct(batch_shape, jnp.int32)
+    shaped_batch["rejected_segmentation"] = jax.ShapeDtypeStruct(batch_shape, jnp.int32)
   if config.use_multimodal:
     image_shape = mm_processor.get_dummy_image_shape_for_init(
         config.model_name, batch_size=config.micro_batch_size_to_train_on
@@ -1058,6 +1065,30 @@ def get_nested_value(dictionary, nested_key, default=None):
       return default
     current_level = current_level[key]
   return current_level
+
+
+def collect_intermediates_by_suffix(intermediate_outputs, *suffix_keys: str) -> list:
+  """Collects intermediate leaf values whose dict-key path ends with suffix_keys.
+
+  Works regardless of model architecture (scanned, scannable blocks, or standard),
+  since it matches only the tail of the path rather than the full path.
+
+  Args:
+    intermediate_outputs: The intermediates dict returned by model.apply().
+    *suffix_keys: One or more key names forming the expected path suffix,
+      e.g. ``("moe_lb_loss",)`` or ``("self_attention", "indexer_loss")``.
+
+  Returns:
+    A list of 1-D JAX arrays, one per matching leaf (already ravelled).
+  """
+  suffix = tuple(suffix_keys)
+  n = len(suffix)
+  values = []
+  for path, val in jax.tree_util.tree_leaves_with_path(intermediate_outputs):
+    path_keys = tuple(k.key for k in path if hasattr(k, "key"))
+    if len(path_keys) >= n and path_keys[-n:] == suffix:
+      values.append(jnp.ravel(val))
+  return values
 
 
 def get_intermediate_value(model, nested_key, default=None, clear=False):

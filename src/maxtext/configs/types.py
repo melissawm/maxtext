@@ -2530,6 +2530,12 @@ class MaxTextConfig(
         raise NotImplementedError(
             "Sparse indexer is only supported dot_product attention or flash attention with tokamax splash."
         )
+      if self.indexer_loss_scaling_factor > 0.0 and self.indexer_topk >= self.max_target_length:
+        raise ValueError(
+            f"`indexer_topk` ({self.indexer_topk}) must be < `max_target_length` ({self.max_target_length}) "
+            "when indexer loss is enabled (`indexer_loss_scaling_factor > 0.0`); otherwise the indexer "
+            "short-circuits to select all tokens and no indexer loss is produced."
+        )
     if self.attention_type == AttentionType.CHUNK.value and (
         not isinstance(self.chunk_attn_window_size, int) or self.chunk_attn_window_size <= 0
     ):
