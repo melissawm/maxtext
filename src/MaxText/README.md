@@ -27,9 +27,6 @@ Please migrate your existing commands to the new locations:
 * `MaxText.train` → `maxtext.trainers.pre_train.train`
 * `MaxText.train_compile` → `maxtext.trainers.pre_train.train_compile`
 * `MaxText.train_tokenizer` → `maxtext.trainers.tokenizer.train_tokenizer`
-
-The following shims are still temporarily available in their respective subdirectories but are deprecated and will be removed soon:
-
 * `MaxText.distillation.train_distill` → `maxtext.trainers.post_train.distillation.train_distill`
 * `MaxText.rl.evaluate_rl` → `maxtext.trainers.post_train.rl.evaluate_rl`
 * `MaxText.rl.train_rl` → `maxtext.trainers.post_train.rl.train_rl`
