@@ -230,9 +230,8 @@ def setup_train_loop(config, recorder, devices=None):
     data_iterator, eval_data_iterator = create_data_iterator(config, mesh)
     rampup_manager = create_rampup_manager(config, checkpoint_manager)
     data_loader = create_dataloader(config, mesh, data_iterator, recorder, rampup_manager)
-    context_parallel_size = mesh.shape.get("context", 1)
     # Check if context parallelism is being used with sequence packing
-    if context_parallel_size > 1 and config.packing and config.dataset_type != "synthetic":
+    if config.context_parallel_size > 1 and config.packing and config.dataset_type != "synthetic":
       raise ValueError(
           "Context parallelism cannot be used with sequence packing. "
           "Disable sequence packing (set packing=False). "
@@ -241,11 +240,13 @@ def setup_train_loop(config, recorder, devices=None):
 
     # Apply reordering wrapper to data iterators if context parallelism is enabled
     with jax.set_mesh(mesh):
-      if context_parallel_size > 1 and config.context_parallel_load_balance:
-        data_iterator = map(maxtext_utils.get_reorder_callable(context_parallel_size, config.shard_mode), data_iterator)
+      if config.context_parallel_size > 1 and config.context_parallel_load_balance:
+        data_iterator = map(
+            maxtext_utils.get_reorder_callable(config.context_parallel_size, config.shard_mode), data_iterator
+        )
         if eval_data_iterator:
           eval_data_iterator = map(
-              maxtext_utils.get_reorder_callable(context_parallel_size, config.shard_mode),
+              maxtext_utils.get_reorder_callable(config.context_parallel_size, config.shard_mode),
               eval_data_iterator,
           )
 

@@ -1,0 +1,59 @@
+mesh_axes: ['data', 'fsdp', 'expert']
+data_sharding: [['data', 'fsdp', 'expert']]
+context_sharding: 'expert'
+logical_axis_rules: [
+                      # ==========================================
+                      # Vocabulary Embedding
+                      # ==========================================
+                      # Vocab Activations
+                      ['activation_embed_and_logits_batch', ['data', 'fsdp']],
+                      ['activation_embed_and_logits_batch_sequence', ['data', 'fsdp', 'expert']],
+                      # Vocab Weights
+                      ['vocab', []],
+                      ['embed_vocab', ['fsdp', 'expert']],
+                      # ==========================================
+                      # Attention
+                      # ==========================================
+                      # Attention Activations
+                      ['activation_heads', []],
+                      ['activation_kv_heads', []],
+                      ['activation_attn_length', ['expert']],
+                      ['activation_q_length', ['expert']],
+                      ['activation_kv_length', []],
+                      ['activation_attn_embed', []],
+                      ['activation_kv', []],
+                      ['activation_kv_batch', ['data', 'fsdp']],
+                      ['activation_kv_head_dim', []],
+                      # Attention Weights
+                      ['heads', []],
+                      ['q_heads', []],
+                      ['kv_heads', []],
+                      ['qkv', []],
+                      ['kv', []],
+                      ['kv_head_dim', []],
+                      ['q_lora', ['fsdp', 'expert']],
+                      ["q_lora_up_proj", []],
+                      ['kv_lora', ['fsdp', 'expert']],
+                      ["kv_lora_up_proj", []],
+                      # ==========================================
+                      # Mixture of Experts (MoE)
+                      # ==========================================
+                      # MoE Activations
+                      ['activation_batch_moe', ['data', 'fsdp']],
+                      ['activation_exp', ['expert']],
+                      # MoE Weights
+                      ['exp', 'expert'],
+                      ['embed_moe', ['fsdp']],
+                      # ==========================================
+                      # Standard MLP / Dense Layers / Model Structure
+                      # ==========================================
+                      # Dense Activations
+                      ['activation_mlp', []],
+                      ['activation_batch', ['data', 'fsdp']],
+                      ['activation_length', ['expert']],
+                      ['activation_norm_length', ['expert']],
+                      ['activation_embed', []],
+                      # General Weights
+                      ['mlp', []],
+                      ['embed', ['fsdp', 'expert']],
+                  ]

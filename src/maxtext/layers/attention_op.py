@@ -1517,7 +1517,7 @@ class AttentionOp(nnx.Module):
 
     _, _, _, head_dim = query.shape  # pylint: disable=unused-variable
 
-    using_context_parallelism = self.mesh.shape["context"] > 1
+    using_context_parallelism = self.mesh.shape[self.config.context_sharding] > 1
 
     # Initialize default attention configuration
     sliding_window_size = None
@@ -1575,7 +1575,7 @@ class AttentionOp(nnx.Module):
         transpose_batch_sequence=False,
         window_size=sliding_window_size,
         context_parallel_causal_load_balanced=self.config.context_parallel_load_balance,
-        context_parallel_axis="context",
+        context_parallel_axis=self.config.context_sharding,
         context_parallel_strategy=self.config.context_parallel_strategy,
         max_segments_per_seq=max_segments_per_seq,
     )
