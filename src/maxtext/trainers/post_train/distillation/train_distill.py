@@ -151,8 +151,15 @@ def create_forward_fn(config: pyconfig.HyperParameters) -> Callable[..., distill
     if config.distill_beta > 0.0:
       out_projection_activations = maxtext_utils.get_intermediate_value(model, "out_projection_activations", clear=True)
 
+    moe_lb_loss = None
+    if config.num_experts > 1 and config.load_balance_loss_weight > 0.0:
+      intermediate_outputs = nnx.pop(model, nnx.Intermediate)
+      total_moe_lb_losses = maxtext_utils.collect_intermediates_by_suffix(intermediate_outputs, "moe_lb_loss")
+      if total_moe_lb_losses:
+        moe_lb_loss = jnp.mean(jnp.concatenate(total_moe_lb_losses))
+
     retval = distillation_utils.DistillationForwardOutput(
-        logits=logits, out_projection_activations=out_projection_activations
+        logits=logits, out_projection_activations=out_projection_activations, moe_lb_loss=moe_lb_loss
     )
     return retval
 
@@ -509,7 +516,7 @@ def build_training_components(
       max_steps=student_config.steps,
   )
 
-  # 4. Optimizer & Config
+  # Prepare optimizer
   optimizer = get_distillation_optimizer(student_config, student_config.steps)
 
   checkpointing_options = checkpoint.CheckpointManagerOptions(

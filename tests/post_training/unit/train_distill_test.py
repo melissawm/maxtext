@@ -439,6 +439,7 @@ class TrainDistillTest(unittest.TestCase):
         "distill/kl_div_T1",
         "distill/teacher_loss",
         "distill/out_proj_feature_loss",
+        "distill/moe_lb_loss",
         "distill/total_loss",
         "distill/temperature",
         "distill/alpha",

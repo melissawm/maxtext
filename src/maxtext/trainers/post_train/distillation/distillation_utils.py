@@ -52,6 +52,8 @@ class DistillationForwardOutput:
   logits: jax.Array
   #: out_projection_activations
   out_projection_activations: jax.Array | None = None
+  #: moe load balance loss
+  moe_lb_loss: jax.Array | None = None
 
 
 @flax.struct.dataclass(frozen=True)
@@ -520,6 +522,17 @@ class CombinedDistillationStrategy(DistillationStrategy):
 
     total_loss = base_logit_loss + feature_loss
 
+    moe_lb_loss = jnp.array(0.0)
+    if student_output.moe_lb_loss is not None:
+      # The moe_lb_loss collected from the model is already scaled by load_balance_loss_weight
+      # within the MoE layer itself (see load_balance_loss in moe.py).
+      moe_lb_loss = student_output.moe_lb_loss
+      total_loss += moe_lb_loss
+
+    teacher_moe_lb_loss = jnp.array(0.0)
+    if teacher_output.moe_lb_loss is not None:
+      teacher_moe_lb_loss = teacher_output.moe_lb_loss
+
     # Per-step next-token perplexity. Note: this is mean(exp(per-step CE)), not
     # exp(window-CE-mean) — close to true perplexity in steady state. For the exact
     # perplexity over a logging window compute exp(distill/hard_loss) on the TB side.
@@ -545,6 +558,8 @@ class CombinedDistillationStrategy(DistillationStrategy):
         "distill/kl_div_T1": (kl_t1_sum, valid_count),
         # Per-step quantities: (value, 1.0) so the aggregator yields a simple mean over steps.
         "distill/out_proj_feature_loss": (feature_loss, one),
+        "distill/moe_lb_loss": (moe_lb_loss, one),
+        "distill/teacher_moe_lb_loss": (teacher_moe_lb_loss, one),
         "distill/total_loss": (total_loss, one),
         "distill/temperature": (temperature, one),
         "distill/alpha": (alpha, one),
