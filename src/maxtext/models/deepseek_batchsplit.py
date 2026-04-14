@@ -821,11 +821,6 @@ def batch_split_schedule(
       dtype=cfg.dtype,
       activation_pspec=activation_pspec,
   )
-  # Prevent fusion with MoE ops, especially the RMS norm.
-  # Unfortunately, this seems to be needed to avoid slight numerical differences
-  # between the fwd pass and remat.
-  xs = jax.lax.optimization_barrier(xs)
-
   xs, moe_res = moe(
       xs,
       moe_ws,
@@ -876,10 +871,6 @@ def batch_split_schedule_bwd(
       dtype=cfg.dtype,
       activation_pspec=activation_pspec,
   )
-  # Prevent fusion with MoE ops, especially the RMS norm.
-  # Unfortunately, this seems to be needed to avoid slight numerical differences
-  # between the fwd pass and remat.
-  mla_out = jax.lax.optimization_barrier(mla_out)
   residuals["mla_out"] = mla_out
   attn_out_grad, moe_ws_grad = moe_bwd(
       residuals,
@@ -970,7 +961,10 @@ def mla_with_norms(
         mesh=mesh,
         activation_pspec=activation_pspec,
     )
-    return mla_out + x, mla_res
+    # Prevent fusion with MoE ops, especially the RMS norm.
+    # Unfortunately, this seems to be needed to avoid slight numerical differences
+    # between the fwd pass and remat.
+    return jax.lax.optimization_barrier(mla_out + x), mla_res
 
   return staggered_call(fn, list(zip(inputs, yarn_freqs)))
 
@@ -1032,7 +1026,10 @@ def mla_with_norms_remat(
         activation_pspec=activation_pspec,
     )
     out = x + mla_out
-    return out, (pre_attn_rms_norm_bwd, mla_bwds)
+    # Prevent fusion with MoE ops, especially the RMS norm.
+    # Unfortunately, this seems to be needed to avoid slight numerical differences
+    # between the fwd pass and remat.
+    return jax.lax.optimization_barrier(out), (pre_attn_rms_norm_bwd, mla_bwds)
 
   bwds = [None] * len(xs)
   for i, x in enumerate(zip(xs, yarn_freqs, residuals.pop("attn_out"), residuals.pop("lse"))):
