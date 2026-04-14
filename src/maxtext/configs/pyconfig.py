@@ -93,6 +93,15 @@ def yaml_key_to_env_key(s: str) -> str:
   return _MAX_PREFIX + s.upper()
 
 
+def validate_no_keys_overridden_twice(keys1: list[str], keys2: list[str]):
+  overridden_keys = [k for k in keys1 if k in keys2]
+  if overridden_keys:
+    raise ValueError(
+        f"Keys {overridden_keys} are overridden by both model config and CLI/kwargs."
+        "This is not allowed, unless setting `override_model_config=True`."
+    )
+
+
 def resolve_config_path(param: str) -> str:
   """Resolve config path to auto rewrite to use new src folder."""
   if os.path.isfile(param):
@@ -330,6 +339,8 @@ def initialize_pydantic(argv: list[str], **kwargs) -> MaxTextConfig:
         model_cfg = {k: v for k, v in model_loaded_cfg.items() if k not in overrides_cfg}
       else:
         model_cfg = model_loaded_cfg
+        # Validate that no keys are overridden by both model config and CLI/kwargs
+        validate_no_keys_overridden_twice(model_loaded_cfg.keys(), overrides_cfg.keys())
     else:
       logger.warning("Model config for '%s' not found at %s", model_name, model_config_path)
 
@@ -368,9 +379,16 @@ def initialize_pydantic(argv: list[str], **kwargs) -> MaxTextConfig:
   for k in tuple(raw_keys_dict.keys()):
     env_key = yaml_key_to_env_key(k)
     if env_key in os.environ:
+      # Validate that no keys are overridden by both CLI/kwargs and environment variable
       if k in cli_keys or k in kwargs_keys:
         raise ValueError(
             f"Key '{k}' is overridden by both CLI/kwargs and environment variable '{env_key}'. This is not allowed."
+        )
+      # Validate that no keys are overridden by both model config and environment variable
+      if not temp_cfg.get("override_model_config") and k in model_cfg.keys():
+        raise ValueError(
+            f"Key '{k}' is overridden by both model config and environment variable '{env_key}'."
+            "This is not allowed, unless setting `override_model_config=True`."
         )
 
       new_proposal = os.environ.get(env_key)
