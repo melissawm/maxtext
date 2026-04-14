@@ -43,7 +43,6 @@ from maxtext.models import deepseek_batchsplit_fp8
 from maxtext.utils import max_utils
 from maxtext.utils.sharding import create_sharding
 from maxtext.utils.sharding import maybe_shard_with_logical
-from maxtext.utils.sharding import remove_size_one_mesh_axis
 
 import transformers
 
@@ -492,14 +491,13 @@ class DeepSeekMoELayer(DeepSeekGenericLayer):
         return outputs, None
 
       # bf16 code path
-      activation_pspec = remove_size_one_mesh_axis(
-          jax.sharding.PartitionSpec(
-              ("data", "fsdp", "fsdp_transpose", "expert", "context"),
-              None,
-              None,
-          ),
-          self.mesh,
+      input_sharding = jax.typeof(inputs).sharding
+      activation_pspec = jax.sharding.PartitionSpec(
+          ("data", "fsdp", "expert"),
+          None,
+          None,
       )
+      inputs = jax.reshard(inputs, jax.sharding.NamedSharding(self.mesh, activation_pspec))
       yarn_freqs = deepseek_batchsplit.initialize_yarn_freqs(
           decoder_positions,
           embedding_dims=self.config.qk_rope_head_dim,
@@ -571,6 +569,7 @@ class DeepSeekMoELayer(DeepSeekGenericLayer):
           in_specs=([activation_pspec] * self.config.batch_split_factor,),
           out_specs=activation_pspec,
       )(outputs)
+      outputs = jax.reshard(outputs, input_sharding)
       return outputs, None
 
     x = self.with_logical_constraint(inputs)

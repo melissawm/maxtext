@@ -102,8 +102,8 @@ _sort_activations_custom.defvjp(_sort_activations_custom_fwd, _sort_activations_
 
 def get_batchsplit_init_kernel_axes():
   return (
-      ("embed_moe", "fsdp_transpose_only", "expert_only"),
-      ("embed_moe", "fsdp_transpose_and_expert", None),
+      ("embed_moe", None, "expert_only"),
+      ("embed_moe", "expert_only", None),
   )
 
 

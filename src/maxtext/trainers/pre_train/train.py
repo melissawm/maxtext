@@ -40,7 +40,6 @@ from flax import linen as nn
 from flax.linen import partitioning as nn_partitioning
 
 from maxtext.configs import pyconfig
-from maxtext.common.common_types import ShardMode
 from maxtext.utils.globals import EPS
 from maxtext.utils import elastic_utils
 # Placeholder: internal
@@ -647,9 +646,7 @@ def initialize(argv: Sequence[str]) -> tuple[pyconfig.HyperParameters, Any, Any]
   max_utils.print_system_information()
   train_utils.validate_train_config(config)
   jax.config.update("jax_use_shardy_partitioner", config.shardy)
-  # update explicit sharding-supported config
-  if config.shard_mode == ShardMode.EXPLICIT:
-    jax.config.update("jax_remove_size_one_mesh_axis_from_type", True)
+  jax.config.update("jax_remove_size_one_mesh_axis_from_type", config.remove_size_one_mesh_axis_from_type)
   os.environ["TFDS_DATA_DIR"] = config.dataset_path or ""
   vertex_tensorboard_manager = VertexTensorboardManager()
   if config.use_vertex_tensorboard or os.environ.get("UPLOAD_DATA_TO_TENSORBOARD"):

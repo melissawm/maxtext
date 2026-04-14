@@ -832,6 +832,9 @@ class HardwareAndMesh(BaseModel):
   shardy: bool = Field(True, description="Whether to use shardy XLA backend.")
   pure_nnx_decoder: bool = Field(False, description="Whether to enable pure NNX decoder.")
   pure_nnx: bool = Field(False, description="Whether to enable pure NNX mode.")
+  remove_size_one_mesh_axis_from_type: bool = Field(
+      True, description="Whether to remove size one mesh axis from type through jax.config."
+  )
 
 
 class LayoutAndSharding(BaseModel):

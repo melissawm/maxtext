@@ -34,7 +34,6 @@ from typing import Sequence
 import jax
 import jax.numpy as jnp
 from maxtext.kernels import attention, sort_activations
-from maxtext.utils import sharding
 
 from jax.experimental.pallas.ops.tpu.splash_attention import splash_attention_mask
 
@@ -135,6 +134,18 @@ def gather_weights(weights, mesh):
         (routed_wi_0, routed_wi_1, routed_wo),
         (shared_wi_0, shared_wi_1, shared_wo),
     ) = weights
+    wq_a = jax.lax.pcast(wq_a, axis_name="data", to="reduced")
+    wq_b = jax.lax.pcast(wq_b, axis_name="data", to="reduced")
+    wkv_a = jax.lax.pcast(wkv_a, axis_name="data", to="reduced")
+    wkv_b = jax.lax.pcast(wkv_b, axis_name="data", to="reduced")
+    out = jax.lax.pcast(out, axis_name="data", to="reduced")
+    gate = jax.lax.pcast(gate, axis_name="data", to="reduced")
+    routed_wi_0 = jax.lax.pcast(routed_wi_0, axis_name="data", to="reduced")
+    routed_wi_1 = jax.lax.pcast(routed_wi_1, axis_name="data", to="reduced")
+    routed_wo = jax.lax.pcast(routed_wo, axis_name="data", to="reduced")
+    shared_wi_0 = jax.lax.pcast(shared_wi_0, axis_name="data", to="reduced")
+    shared_wi_1 = jax.lax.pcast(shared_wi_1, axis_name="data", to="reduced")
+    shared_wo = jax.lax.pcast(shared_wo, axis_name="data", to="reduced")
     # Cast to reduced across expert axis for all weights that are replicated
     # across the expert axis. This transposes to an all-reduce across the expert
     # axis in the backward pass.
@@ -216,30 +227,30 @@ def gather_weights(weights, mesh):
               (
                   jax.sharding.PartitionSpec(None),
                   (
-                      jax.sharding.PartitionSpec(None, None, reduced={"fsdp", "expert"}),
-                      jax.sharding.PartitionSpec(None, None, None, reduced={"fsdp", "expert"}),
+                      jax.sharding.PartitionSpec(None, None, reduced={"data", "fsdp", "expert"}),
+                      jax.sharding.PartitionSpec(None, None, None, reduced={"data", "fsdp", "expert"}),
                       jax.sharding.PartitionSpec(None),
-                      jax.sharding.PartitionSpec(None, None, reduced={"fsdp", "expert"}),
-                      jax.sharding.PartitionSpec(None, None, None, reduced={"fsdp", "expert"}),
+                      jax.sharding.PartitionSpec(None, None, reduced={"data", "fsdp", "expert"}),
+                      jax.sharding.PartitionSpec(None, None, None, reduced={"data", "fsdp", "expert"}),
                       jax.sharding.PartitionSpec(None),
-                      jax.sharding.PartitionSpec(None, None, None, reduced={"fsdp", "expert"}),
+                      jax.sharding.PartitionSpec(None, None, None, reduced={"data", "fsdp", "expert"}),
                   ),
               ),
               (
                   jax.sharding.PartitionSpec(None),
                   (
-                      jax.sharding.PartitionSpec(None, None, reduced={"fsdp", "expert"}),
+                      jax.sharding.PartitionSpec(None, None, reduced={"data", "fsdp", "expert"}),
                       jax.sharding.PartitionSpec(None),
                   ),
                   (
-                      jax.sharding.PartitionSpec(None, None, "expert", reduced={"fsdp"}),
-                      jax.sharding.PartitionSpec(None, None, "expert", reduced={"fsdp"}),
-                      jax.sharding.PartitionSpec(None, "expert", None, reduced={"fsdp"}),
+                      jax.sharding.PartitionSpec(None, None, "expert", reduced={"data", "fsdp"}),
+                      jax.sharding.PartitionSpec(None, None, "expert", reduced={"data", "fsdp"}),
+                      jax.sharding.PartitionSpec(None, "expert", None, reduced={"data", "fsdp"}),
                   ),
                   (
-                      jax.sharding.PartitionSpec(None, None, reduced={"fsdp", "expert"}),
-                      jax.sharding.PartitionSpec(None, None, reduced={"fsdp", "expert"}),
-                      jax.sharding.PartitionSpec(None, None, reduced={"fsdp", "expert"}),
+                      jax.sharding.PartitionSpec(None, None, reduced={"data", "fsdp", "expert"}),
+                      jax.sharding.PartitionSpec(None, None, reduced={"data", "fsdp", "expert"}),
+                      jax.sharding.PartitionSpec(None, None, reduced={"data", "fsdp", "expert"}),
                   ),
               ),
           ),
@@ -308,30 +319,143 @@ def reduce_scatter_ws_grad(ws_grad, mesh):
               (
                   jax.sharding.PartitionSpec(None),
                   (
-                      jax.sharding.PartitionSpec(None, None, unreduced={"fsdp", "expert"}),
-                      jax.sharding.PartitionSpec(None, None, None, unreduced={"fsdp", "expert"}),
+                      jax.sharding.PartitionSpec(None, None, unreduced={"data", "fsdp", "expert"}),
+                      jax.sharding.PartitionSpec(None, None, None, unreduced={"data", "fsdp", "expert"}),
                       jax.sharding.PartitionSpec(None),
-                      jax.sharding.PartitionSpec(None, None, unreduced={"fsdp", "expert"}),
-                      jax.sharding.PartitionSpec(None, None, None, unreduced={"fsdp", "expert"}),
+                      jax.sharding.PartitionSpec(None, None, unreduced={"data", "fsdp", "expert"}),
+                      jax.sharding.PartitionSpec(None, None, None, unreduced={"data", "fsdp", "expert"}),
                       jax.sharding.PartitionSpec(None),
-                      jax.sharding.PartitionSpec(None, None, None, unreduced={"fsdp", "expert"}),
+                      jax.sharding.PartitionSpec(None, None, None, unreduced={"data", "fsdp", "expert"}),
                   ),
               ),
               (
                   jax.sharding.PartitionSpec(None),
                   (
-                      jax.sharding.PartitionSpec(None, None, unreduced={"fsdp", "expert"}),
+                      jax.sharding.PartitionSpec(None, None, unreduced={"data", "fsdp", "expert"}),
                       jax.sharding.PartitionSpec(None),
                   ),
                   (
-                      jax.sharding.PartitionSpec(None, None, "expert", unreduced={"fsdp"}),
-                      jax.sharding.PartitionSpec(None, None, "expert", unreduced={"fsdp"}),
-                      jax.sharding.PartitionSpec(None, "expert", None, unreduced={"fsdp"}),
+                      jax.sharding.PartitionSpec(None, None, "expert", unreduced={"data", "fsdp"}),
+                      jax.sharding.PartitionSpec(None, None, "expert", unreduced={"data", "fsdp"}),
+                      jax.sharding.PartitionSpec(None, "expert", None, unreduced={"data", "fsdp"}),
                   ),
                   (
-                      jax.sharding.PartitionSpec(None, None, unreduced={"fsdp", "expert"}),
-                      jax.sharding.PartitionSpec(None, None, unreduced={"fsdp", "expert"}),
-                      jax.sharding.PartitionSpec(None, None, unreduced={"fsdp", "expert"}),
+                      jax.sharding.PartitionSpec(None, None, unreduced={"data", "fsdp", "expert"}),
+                      jax.sharding.PartitionSpec(None, None, unreduced={"data", "fsdp", "expert"}),
+                      jax.sharding.PartitionSpec(None, None, unreduced={"data", "fsdp", "expert"}),
+                  ),
+              ),
+          ),
+      ),
+      out_specs=(
+          (
+              jax.sharding.PartitionSpec(None),
+              (
+                  jax.sharding.PartitionSpec("fsdp", None, unreduced={"data"}),
+                  jax.sharding.PartitionSpec("fsdp", None, None, unreduced={"data"}),
+                  jax.sharding.PartitionSpec(None),
+                  jax.sharding.PartitionSpec("fsdp", None, unreduced={"data"}),
+                  jax.sharding.PartitionSpec("fsdp", None, None, unreduced={"data"}),
+                  jax.sharding.PartitionSpec(None),
+                  jax.sharding.PartitionSpec(None, None, "fsdp", unreduced={"data"}),
+              ),
+          ),
+          (
+              jax.sharding.PartitionSpec(None),
+              (
+                  jax.sharding.PartitionSpec("fsdp", None, unreduced={"data"}),
+                  jax.sharding.PartitionSpec(None),
+              ),
+              (
+                  jax.sharding.PartitionSpec("fsdp", None, "expert", unreduced={"data"}),
+                  jax.sharding.PartitionSpec("fsdp", None, "expert", unreduced={"data"}),
+                  jax.sharding.PartitionSpec("fsdp", "expert", None, unreduced={"data"}),
+              ),
+              (
+                  jax.sharding.PartitionSpec("fsdp", None, unreduced={"data"}),
+                  jax.sharding.PartitionSpec("fsdp", None, unreduced={"data"}),
+                  jax.sharding.PartitionSpec(None, "fsdp", unreduced={"data"}),
+              ),
+          ),
+      ),
+      check_vma=True,
+  )(ws_grad)
+
+
+def all_reduce_ws_grad_dcn(ws_grad, mesh):
+  """all-reduces weight gradients across DCN axes."""
+
+  # Ensure grad RS/ARs aren't fused with ops that generated them.
+  ws_grad = jax.lax.optimization_barrier(ws_grad)
+
+  def fn(ws_grad):
+    (
+        pre_attn_norm,
+        (wq_a, wq_b, q_norm, wkv_a, wkv_b, kv_norm, out),
+    ), (
+        post_attn_norm,
+        (gate, bias),
+        (routed_wi_0, routed_wi_1, routed_wo),
+        (shared_wi_0, shared_wi_1, shared_wo),
+    ) = ws_grad
+    # All-reduce across data axis.
+    wq_a = jax.lax.psum(wq_a, axis_name="data")
+    wq_b = jax.lax.psum(wq_b, axis_name="data")
+    wkv_a = jax.lax.psum(wkv_a, axis_name="data")
+    wkv_b = jax.lax.psum(wkv_b, axis_name="data")
+    out = jax.lax.psum(out, axis_name="data")
+    gate = jax.lax.psum(gate, axis_name="data")
+    routed_wi_0 = jax.lax.psum(routed_wi_0, axis_name="data")
+    routed_wi_1 = jax.lax.psum(routed_wi_1, axis_name="data")
+    routed_wo = jax.lax.psum(routed_wo, axis_name="data")
+    shared_wi_0 = jax.lax.psum(shared_wi_0, axis_name="data")
+    shared_wi_1 = jax.lax.psum(shared_wi_1, axis_name="data")
+    shared_wo = jax.lax.psum(shared_wo, axis_name="data")
+    return (
+        (
+            pre_attn_norm,
+            (wq_a, wq_b, q_norm, wkv_a, wkv_b, kv_norm, out),
+        ),
+        (
+            post_attn_norm,
+            (gate, bias),
+            (routed_wi_0, routed_wi_1, routed_wo),
+            (shared_wi_0, shared_wi_1, shared_wo),
+        ),
+    )
+
+  return jax.shard_map(
+      fn,
+      mesh=mesh,
+      in_specs=(
+          (
+              (
+                  jax.sharding.PartitionSpec(None),
+                  (
+                      jax.sharding.PartitionSpec("fsdp", None, unreduced={"data"}),
+                      jax.sharding.PartitionSpec("fsdp", None, None, unreduced={"data"}),
+                      jax.sharding.PartitionSpec(None),
+                      jax.sharding.PartitionSpec("fsdp", None, unreduced={"data"}),
+                      jax.sharding.PartitionSpec("fsdp", None, None, unreduced={"data"}),
+                      jax.sharding.PartitionSpec(None),
+                      jax.sharding.PartitionSpec(None, None, "fsdp", unreduced={"data"}),
+                  ),
+              ),
+              (
+                  jax.sharding.PartitionSpec(None),
+                  (
+                      jax.sharding.PartitionSpec("fsdp", None, unreduced={"data"}),
+                      jax.sharding.PartitionSpec(None),
+                  ),
+                  (
+                      jax.sharding.PartitionSpec("fsdp", None, "expert", unreduced={"data"}),
+                      jax.sharding.PartitionSpec("fsdp", None, "expert", unreduced={"data"}),
+                      jax.sharding.PartitionSpec("fsdp", "expert", None, unreduced={"data"}),
+                  ),
+                  (
+                      jax.sharding.PartitionSpec("fsdp", None, unreduced={"data"}),
+                      jax.sharding.PartitionSpec("fsdp", None, unreduced={"data"}),
+                      jax.sharding.PartitionSpec(None, "fsdp", unreduced={"data"}),
                   ),
               ),
           ),
@@ -531,14 +655,15 @@ def scan_batch_split_layers(
 ):
   """Scans the layers with batch-split schedule."""
   all_weights = fetch_weights(params, cfg.dtype)
-  activation_pspec = sharding.remove_size_one_mesh_axis(
-      jax.sharding.PartitionSpec(
-          ("data", "fsdp", "fsdp_transpose", "expert", "context"),
-          None,
-          None,
-      ),
-      mesh,
+  activation_pspec = jax.sharding.PartitionSpec(
+      ("data", "fsdp", "expert"),
+      None,
+      None,
   )
+  # The data mesh axis can be size 1, but we still want to keep it in the
+  # partition spec because the code supports multi-slice runs and thus
+  # expects the data axis to be present.
+  inputs = jax.reshard(inputs, jax.sharding.NamedSharding(mesh, activation_pspec))
   yarn_freqs = initialize_yarn_freqs(
       positions=positions,
       embedding_dims=cfg.qk_rope_head_dim,
@@ -559,10 +684,10 @@ def scan_batch_split_layers(
     return process_all_layers_fwd(inputs, all_weights, yarn_freqs)[0]
 
   def process_all_layers_fwd(inputs, all_weights, yarn_freqs):
-    def process_layer_scannable(carry, layer_idx):
+    def process_layer_scannable(carry, layer_idx, group_id):
       inputs, ws = carry
       # Prefetch weights for next layer.
-      with scheduling_group(group_id=45):
+      with scheduling_group(group_id=group_id):
         next_ws = gather_weights(extract_layer_weights(all_weights, layer_idx + 1, cfg.param_scan_axis), mesh)
       # Combine for previous layer's second microbatch.
       moe_inputs, routed_expert_out, shared_expert_out, selected_experts = inputs[1]
@@ -595,10 +720,10 @@ def scan_batch_split_layers(
         res[residual_name] = r
       return (outputs, next_ws), (res, unroute_res)
 
-    # Prologue: do first layer and prefetch weights for second layer.
-    with scheduling_group(group_id=44):
+    # Prologue: do first two layers and prefetch weights for third layer.
+    with scheduling_group(group_id=40):
       first_ws = gather_weights(extract_layer_weights(all_weights, 0, cfg.param_scan_axis), mesh)
-    with scheduling_group(group_id=47):
+    with scheduling_group(group_id=41):
       second_ws = gather_weights(extract_layer_weights(all_weights, 1, cfg.param_scan_axis), mesh)
     second_inputs, first_res = batch_split_schedule(
         inputs,
@@ -610,13 +735,22 @@ def scan_batch_split_layers(
         activation_pspec=activation_pspec,
         pairwise_swap_and_negate_mask=yarn_mask,
     )
+    # Offload first layer residuals to host memory.
+    for residual_name in ("mlpwi_0", "mlpwi_1"):
+      r = first_res.pop(residual_name)
+      r = jax.tree.map(lambda x: jax.device_put(x, jax.typeof(x).sharding.with_memory_kind("pinned_host")), r)
+      first_res[residual_name] = r
+    third_carry, (second_res, second_unroute_res) = process_layer_scannable((second_inputs, second_ws), 1, group_id=42)
     # Scan middle layers.
-    (last_inputs, last_ws), (middle_res, middle_unroute_res) = jax.lax.scan(
-        process_layer_scannable,
-        (second_inputs, second_ws),
-        jnp.arange(1, num_layers - 1),
+    last_last_carry, (middle_res, middle_unroute_res) = jax.lax.scan(
+        functools.partial(process_layer_scannable, group_id=43),
+        third_carry,
+        jnp.arange(2, num_layers - 2),
     )
-    # Epilogue: do last layer without prefetching weights and finish second microbatch.
+    # Epilogue: do last two layers without prefetching weights and finish second microbatch.
+    (last_inputs, last_ws), (last_last_res, last_last_unroute_res) = process_layer_scannable(
+        last_last_carry, num_layers - 2, group_id=44
+    )
     moe_inputs, routed_expert_out, shared_expert_out, selected_experts = last_inputs[1]
     last_inputs[1], last_unroute_res = unroute_ubatch_shard_mapped(
         moe_inputs,
@@ -653,9 +787,13 @@ def scan_batch_split_layers(
     )
     return outputs, (
         first_res,
+        second_res,
         middle_res,
-        middle_unroute_res,
+        last_last_res,
         last_res,
+        second_unroute_res,
+        middle_unroute_res,
+        last_last_unroute_res,
         last_unroute_res,
         epilogue_unroute_res,
         last_ws,
@@ -666,9 +804,13 @@ def scan_batch_split_layers(
   def process_all_layers_bwd(res, g):
     (
         first_res,
+        second_res,
         middle_res,
-        middle_unroute_res,
+        last_last_res,
         last_res,
+        second_unroute_res,
+        middle_unroute_res,
+        last_last_unroute_res,
         last_unroute_res,
         epilogue_unroute_res,
         last_ws,
@@ -677,14 +819,15 @@ def scan_batch_split_layers(
     ) = res
     initial_ws_grad = jax.tree.map(jnp.zeros_like, all_weights)
 
-    def process_layer_bwd_scannable(carry, res_and_layer_idx):
-      g, ws, ws_grad, all_layer_ws_grad = carry
+    def process_layer_bwd_scannable(carry, res_and_layer_idx, group_id):
+      g, ws, next_next_ws_grad, next_ws_grad, all_layer_ws_grad = carry
       res, unroute_res, layer_idx = res_and_layer_idx
       # Prefetch weights and post-scatter weight grads.
-      with scheduling_group(group_id=50):
+      with scheduling_group(group_id=group_id):
         prev_ws = gather_weights(extract_layer_weights(all_weights, layer_idx - 1, cfg.param_scan_axis), mesh)
-        ws_grad = reduce_scatter_ws_grad(ws_grad, mesh)
-      all_layer_ws_grad = insert_layer_ws_grad(all_layer_ws_grad, ws_grad, layer_idx + 1, cfg.param_scan_axis)
+        next_ws_grad = reduce_scatter_ws_grad(next_ws_grad, mesh)
+      next_next_ws_grad = all_reduce_ws_grad_dcn(next_next_ws_grad, mesh)
+      all_layer_ws_grad = insert_layer_ws_grad(all_layer_ws_grad, next_next_ws_grad, layer_idx + 2, cfg.param_scan_axis)
       # Get residuals from host.
       for residual_name in ("mlpwi_0", "mlpwi_1"):
         r = res.pop(residual_name)
@@ -711,10 +854,10 @@ def scan_batch_split_layers(
           mesh=mesh,
           activation_pspec=activation_pspec,
       )
-      return (g, prev_ws, ws_grad, all_layer_ws_grad), None
+      return (g, prev_ws, next_ws_grad, ws_grad, all_layer_ws_grad), None
 
-    # Prologue: do last layer computation and prefetch weights.
-    with scheduling_group(group_id=46):
+    # Prologue: do computation for last two layers and prefetch weights.
+    with scheduling_group(group_id=50):
       prev_ws = gather_weights(extract_layer_weights(all_weights, num_layers - 2, cfg.param_scan_axis), mesh)
     g[1] = unroute_ubatch_remat_and_bwd_shard_mapped(
         epilogue_unroute_res["selected_experts"],
@@ -743,17 +886,55 @@ def scan_batch_split_layers(
         mesh=mesh,
         activation_pspec=activation_pspec,
     )
+    with scheduling_group(group_id=51):
+      prev_prev_ws = gather_weights(extract_layer_weights(all_weights, num_layers - 3, cfg.param_scan_axis), mesh)
+      ws_grad = reduce_scatter_ws_grad(ws_grad, mesh)
+    # Get residuals from host.
+    for residual_name in ("mlpwi_0", "mlpwi_1"):
+      r = last_last_res.pop(residual_name)
+      r = jax.tree.map(lambda x: jax.device_put(x, jax.typeof(x).sharding.with_memory_kind("device")), r)
+      last_last_res[residual_name] = r
+    g, prev_ws_grad = batch_split_schedule_bwd(
+        last_last_res,
+        g,
+        prev_ws,
+        yarn_freqs,
+        mesh=mesh,
+        cfg=cfg,
+        splash_kernel=splash_kernel,
+        activation_pspec=activation_pspec,
+        pairwise_swap_and_negate_mask=yarn_mask,
+    )
+    g[1] = unroute_ubatch_remat_and_bwd_shard_mapped(
+        last_last_unroute_res["selected_experts"],
+        g[1],
+        expert_axis_name="expert",
+        use_gather_mosaic_kernel=cfg.use_gather_mosaic_kernel,
+        mesh=mesh,
+        activation_pspec=activation_pspec,
+    )
     # Scan middle layers.
-    (g, first_ws, second_ws_grad, all_layer_ws_grad), _ = jax.lax.scan(
-        process_layer_bwd_scannable,
-        (g, prev_ws, ws_grad, initial_ws_grad),
-        (middle_res, middle_unroute_res, jnp.arange(1, num_layers - 1)),
+    (g, second_ws, fourth_ws_grad, third_ws_grad, all_layer_ws_grad), _ = jax.lax.scan(
+        functools.partial(process_layer_bwd_scannable, group_id=52),
+        (g, prev_prev_ws, ws_grad, prev_ws_grad, initial_ws_grad),
+        (middle_res, middle_unroute_res, jnp.arange(2, num_layers - 2)),
         reverse=True,
     )
-    # Epilogue: post-scatter second layer weight grads and do first layer.
-    with scheduling_group(group_id=51):
+    # Epilogue: do third and second layer computation and post-scatter weight grads.
+    (g, first_ws, third_ws_grad, second_ws_grad, all_layer_ws_grad), _ = process_layer_bwd_scannable(
+        (g, second_ws, fourth_ws_grad, third_ws_grad, all_layer_ws_grad),
+        (second_res, second_unroute_res, 1),
+        group_id=53,
+    )
+    with scheduling_group(group_id=54):
       second_ws_grad = reduce_scatter_ws_grad(second_ws_grad, mesh)
-    all_layer_ws_grad = insert_layer_ws_grad(all_layer_ws_grad, second_ws_grad, 1, cfg.param_scan_axis)
+    third_ws_grad = all_reduce_ws_grad_dcn(third_ws_grad, mesh)
+    all_layer_ws_grad = insert_layer_ws_grad(all_layer_ws_grad, third_ws_grad, 2, cfg.param_scan_axis)
+    # Get residuals from host.
+    for residual_name in ("mlpwi_0", "mlpwi_1"):
+      r = first_res.pop(residual_name)
+      r = jax.tree.map(lambda x: jax.device_put(x, jax.typeof(x).sharding.with_memory_kind("device")), r)
+      first_res[residual_name] = r
     g, ws_grad = batch_split_schedule_bwd(
         first_res,
         g,
@@ -765,8 +946,11 @@ def scan_batch_split_layers(
         activation_pspec=activation_pspec,
         pairwise_swap_and_negate_mask=yarn_mask,
     )
-    with scheduling_group(group_id=52):
+    second_ws_grad = all_reduce_ws_grad_dcn(second_ws_grad, mesh)
+    all_layer_ws_grad = insert_layer_ws_grad(all_layer_ws_grad, second_ws_grad, 1, cfg.param_scan_axis)
+    with scheduling_group(group_id=55):
       ws_grad = reduce_scatter_ws_grad(ws_grad, mesh)
+    ws_grad = all_reduce_ws_grad_dcn(ws_grad, mesh)
     all_layer_ws_grad = insert_layer_ws_grad(all_layer_ws_grad, ws_grad, 0, cfg.param_scan_axis)
     return g, all_layer_ws_grad, None
 
@@ -2090,18 +2274,18 @@ def moe(
           (
               jax.sharding.PartitionSpec(None),
               (
-                  jax.sharding.PartitionSpec(None, None, reduced={"fsdp", "expert"}),
+                  jax.sharding.PartitionSpec(None, None, reduced={"data", "fsdp", "expert"}),
                   jax.sharding.PartitionSpec(None),
               ),
               (
-                  jax.sharding.PartitionSpec(None, None, expert_axis_name, reduced={"fsdp"}),
-                  jax.sharding.PartitionSpec(None, None, expert_axis_name, reduced={"fsdp"}),
-                  jax.sharding.PartitionSpec(None, expert_axis_name, None, reduced={"fsdp"}),
+                  jax.sharding.PartitionSpec(None, None, expert_axis_name, reduced={"data", "fsdp"}),
+                  jax.sharding.PartitionSpec(None, None, expert_axis_name, reduced={"data", "fsdp"}),
+                  jax.sharding.PartitionSpec(None, expert_axis_name, None, reduced={"data", "fsdp"}),
               ),
               (
-                  jax.sharding.PartitionSpec(None, None, reduced={"fsdp", "expert"}),
-                  jax.sharding.PartitionSpec(None, None, reduced={"fsdp", "expert"}),
-                  jax.sharding.PartitionSpec(None, None, reduced={"fsdp", "expert"}),
+                  jax.sharding.PartitionSpec(None, None, reduced={"data", "fsdp", "expert"}),
+                  jax.sharding.PartitionSpec(None, None, reduced={"data", "fsdp", "expert"}),
+                  jax.sharding.PartitionSpec(None, None, reduced={"data", "fsdp", "expert"}),
               ),
           ),
       ),
@@ -2171,18 +2355,18 @@ def moe_bwd(
           (
               jax.sharding.PartitionSpec(None),
               (
-                  jax.sharding.PartitionSpec(None, None, reduced={"fsdp", "expert"}),
+                  jax.sharding.PartitionSpec(None, None, reduced={"data", "fsdp", "expert"}),
                   jax.sharding.PartitionSpec(None),
               ),
               (
-                  jax.sharding.PartitionSpec(None, None, expert_axis_name, reduced={"fsdp"}),
-                  jax.sharding.PartitionSpec(None, None, expert_axis_name, reduced={"fsdp"}),
-                  jax.sharding.PartitionSpec(None, expert_axis_name, None, reduced={"fsdp"}),
+                  jax.sharding.PartitionSpec(None, None, expert_axis_name, reduced={"data", "fsdp"}),
+                  jax.sharding.PartitionSpec(None, None, expert_axis_name, reduced={"data", "fsdp"}),
+                  jax.sharding.PartitionSpec(None, expert_axis_name, None, reduced={"data", "fsdp"}),
               ),
               (
-                  jax.sharding.PartitionSpec(None, None, reduced={"fsdp", "expert"}),
-                  jax.sharding.PartitionSpec(None, None, reduced={"fsdp", "expert"}),
-                  jax.sharding.PartitionSpec(None, None, reduced={"fsdp", "expert"}),
+                  jax.sharding.PartitionSpec(None, None, reduced={"data", "fsdp", "expert"}),
+                  jax.sharding.PartitionSpec(None, None, reduced={"data", "fsdp", "expert"}),
+                  jax.sharding.PartitionSpec(None, None, reduced={"data", "fsdp", "expert"}),
               ),
           ),
       ),
@@ -2191,18 +2375,18 @@ def moe_bwd(
           (
               jax.sharding.PartitionSpec(None),
               (
-                  jax.sharding.PartitionSpec(None, None, unreduced={"fsdp", "expert"}),
+                  jax.sharding.PartitionSpec(None, None, unreduced={"data", "fsdp", "expert"}),
                   jax.sharding.PartitionSpec(None),
               ),
               (
-                  jax.sharding.PartitionSpec(None, None, expert_axis_name, unreduced={"fsdp"}),
-                  jax.sharding.PartitionSpec(None, None, expert_axis_name, unreduced={"fsdp"}),
-                  jax.sharding.PartitionSpec(None, expert_axis_name, None, unreduced={"fsdp"}),
+                  jax.sharding.PartitionSpec(None, None, expert_axis_name, unreduced={"data", "fsdp"}),
+                  jax.sharding.PartitionSpec(None, None, expert_axis_name, unreduced={"data", "fsdp"}),
+                  jax.sharding.PartitionSpec(None, expert_axis_name, None, unreduced={"data", "fsdp"}),
               ),
               (
-                  jax.sharding.PartitionSpec(None, None, unreduced={"fsdp", "expert"}),
-                  jax.sharding.PartitionSpec(None, None, unreduced={"fsdp", "expert"}),
-                  jax.sharding.PartitionSpec(None, None, unreduced={"fsdp", "expert"}),
+                  jax.sharding.PartitionSpec(None, None, unreduced={"data", "fsdp", "expert"}),
+                  jax.sharding.PartitionSpec(None, None, unreduced={"data", "fsdp", "expert"}),
+                  jax.sharding.PartitionSpec(None, None, unreduced={"data", "fsdp", "expert"}),
               ),
           ),
       ),
