@@ -18,6 +18,7 @@ import functools
 
 import jax
 import jax.numpy as jnp
+from maxtext.kernels import gather_reduce_sc
 
 
 @functools.partial(jax.custom_vjp, nondiff_argnums=(2,))
@@ -102,6 +103,15 @@ def _unroute_impl(
   """Reverse the routing operation, restoring tokens to their original order."""
   assert tokens.shape[0] == selected_experts.shape[0] * selected_experts.shape[1] and selected_experts.ndim == 2
   inds = jnp.argsort(jnp.argsort(jnp.ravel(selected_experts)))
+  if use_gather_mosaic_kernel:
+    # The kernel currently only supports 8 experts per token.
+    assert selected_experts.shape[1] == 8
+    kernel = functools.partial(
+        gather_reduce_sc.sc_gather_reduce,
+        reduce_group_size=selected_experts.shape[1],
+        single_sc=True,
+    )
+    return kernel(tokens, inds)
   return jnp.sum(
       jnp.reshape(
           _sort_impl(tokens, inds, use_gather_mosaic_kernel),

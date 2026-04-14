@@ -1605,9 +1605,27 @@ def sc_gather_reduce(
     m.body.append(f)
     ir.SymbolTable(m.operation).insert(f)
 
+    # If we are in a shard map and the input has a manual axis type,
+    # preserve it.
+    if jax.typeof(op).manual_axis_type:
+      out_type = core.ShapedArray(
+          (idx.shape[0] // reduce_group_size, op.shape[1]),
+          jnp.bfloat16,
+          sharding=jax.sharding.NamedSharding(
+              jax.sharding.get_abstract_mesh(),
+              jax.sharding.PartitionSpec(),
+          ),
+          manual_axis_type=jax.typeof(op).manual_axis_type,
+      )
+    else:
+      out_type = core.ShapedArray(
+          (idx.shape[0] // reduce_group_size, op.shape[1]),
+          jnp.bfloat16,
+      )
+
     return mosaic.as_tpu_kernel(
         m,
-        out_type=core.ShapedArray((idx.shape[0] // reduce_group_size, op.shape[1]), jnp.bfloat16),
+        out_type=out_type,
     )(
         *(
             [
