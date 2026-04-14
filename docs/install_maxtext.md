@@ -33,8 +33,8 @@ This is the easiest way to get started with the latest stable version.
 1. **Create a virtual environment:**
 
    ```bash
-   uv venv --python 3.12 --seed <virtual env name>
-   source <virtual env name>/bin/activate
+   uv venv --python 3.12 --seed <VENV_NAME>
+   source <VENV_NAME>/bin/activate
    ```
 
 2. **Install MaxText and its dependencies.**
@@ -115,8 +115,8 @@ environment to avoid dependency conflicts.
 2. Create virtual environment:
 
    ```bash
-   uv venv --python 3.12 --seed <virtual env name>
-   source <virtual env name>/bin/activate
+   uv venv --python 3.12 --seed <VENV_NAME>
+   source <VENV_NAME>/bin/activate
    ```
 
 3. Install dependencies in editable mode. Choose a single installation option
