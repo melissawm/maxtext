@@ -231,9 +231,8 @@ jobs:
     steps:
       - name: Check test results
         run: |
-          # If doc-only, all tests should be skipped
-          if [ "${NEEDS_DOC_ONLY_CHECK_OUTPUTS_RUN_TESTS}" == "false" ]; then
-            echo "Documentation-only changes detected, tests were skipped"
+          if [ "${NEEDS_ANALYZE_CHANGES_OUTPUTS_RUN_TESTS}" == "false" ]; then
+            echo "Tests were skipped"
             exit 0
           fi
 
