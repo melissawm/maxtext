@@ -1820,6 +1820,7 @@ class VLLM(BaseModel):
       description="Overrides for HuggingFace model config for MaxText model.",
   )
   vllm_hf_config_path: str = Field("", description="Path to HuggingFace model config for MaxText model.")
+  use_standalone_converter: bool = Field(False, description="Use the standalone MaxText->torchax vLLM converter")
 
 
 class RL(BaseModel):
