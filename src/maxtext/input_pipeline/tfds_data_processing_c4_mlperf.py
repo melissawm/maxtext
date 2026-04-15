@@ -249,7 +249,7 @@ def preprocess_train_dataset(
     max_target_length: int,
     shuffle_buffer_size: int,
     data_shuffle_seed: int,
-    is_tokenized_dataset: bool = True,
+    is_tokenized_dataset: bool,
 ) -> tf.data.Dataset:
   """Preprocess the training dataset."""
   if sp_tokenizer.pad_id is not None:
@@ -325,17 +325,19 @@ def make_c4_mlperf_train_iterator(
     process_indices,
 ):
   """Make train iterator of customized C4 dataset for mlperf gpt3 training."""
-  train_split = "train2"
-  if config.dataset_name == "c4/en:3.0.5":
+  train_split = "train"
+  if config.dataset_name == "c4/en:3.0.1":
+    # gs://max-datasets-rogue/c4/en/3.0.1
+    is_tokenized_dataset = False
+  elif config.dataset_name == "c4/en:3.0.5":
+    # gs://mlperf-6-submission/tfds/c4/en/3.0.5
     is_tokenized_dataset = True
-    train_split = "train"
-  elif config.dataset_name == "c4/en:3.0.4":
+  elif config.dataset_name == "c4/en:3.0.7":
+    # gs://max-datasets-rogue/c4/en/3.0.7
     is_tokenized_dataset = False
-  elif config.dataset_name in ["c4/en:3.0.1", "c4/en:3.0.8", "c4/en:3.0.9"]:
-    is_tokenized_dataset = False
+    train_split = "train2"
   else:
-    raise ValueError(f"{config.dataset_name=} should be one of ('c4/en:3.0.1', 'c4/en:3.0.4', 'c4/en:3.0.5')")
-
+    raise ValueError(f"{config.dataset_name=} should be one of " "('c4/en:3.0.1', 'c4/en:3.0.5', 'c4/en:3.0.7')")
   train_ds = get_dataset(
       dataset_name=config.dataset_name,
       split=train_split,
@@ -372,17 +374,21 @@ def make_c4_mlperf_eval_iterator(
     process_indices,
 ):
   """Make eval iterator of customized C4 dataset for mlperf gpt3 training."""
-  eval_slit = "None"
+  eval_split = "None"
   if config.eval_dataset_name == "c4/en:3.0.5":
     is_tokenized_dataset = True
   elif config.eval_dataset_name == "c4/en:3.0.4":
     is_tokenized_dataset = False
-    eval_slit = "validation_24567exp"
+    eval_split = "validation_24567exp"
   elif config.eval_dataset_name in ["c4/en:3.0.1", "c4/en:3.0.8", "c4/en:3.0.9"]:
     is_tokenized_dataset = False
-    eval_slit = "validation"
+    eval_split = "validation"
   else:
-    raise ValueError(f"{config.eval_dataset_name=} should be one of ('c4/en:3.0.1', 'c4/en:3.0.4', 'c4/en:3.0.5')")
+    raise ValueError(
+        f"{config.eval_dataset_name=} should be one of "
+        "('c4/en:3.0.1', 'c4/en:3.0.4', 'c4/en:3.0.5', "
+        "'c4/en:3.0.8', 'c4/en:3.0.9')"
+    )
 
   if is_tokenized_dataset:
     eval_ds = get_dataset(
@@ -398,7 +404,7 @@ def make_c4_mlperf_eval_iterator(
   else:
     eval_ds = get_dataset(
         dataset_name=config.eval_dataset_name,
-        split=eval_slit,
+        split=eval_split,
         dataloading_host_index=process_indices.index(jax.process_index()),
         dataloading_host_count=len(process_indices),
         enable_data_shuffling=False,
