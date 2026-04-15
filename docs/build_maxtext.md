@@ -78,7 +78,25 @@ If you plan to contribute to MaxText or need the latest unreleased features, ins
 # Clone the repository
 git clone https://github.com/AI-Hypercomputer/maxtext.git
 cd maxtext
+```
 
+:::\{only} is_not_latest
+
+By default, cloning the repository provides the latest version (**HEAD**).
+If you wish to use the latest features, please follow the [latest guide](https://maxtext.readthedocs.io/en/latest/install_maxtext.html).
+If you want to ensure compatibility with the specific version of the documentation
+you are currently viewing, you must checkout the corresponding tag for that version
+before proceeding with the installation.
+
+```{eval-rst}
+.. parsed-literal::
+
+  git checkout |version|
+```
+
+:::
+
+```bash
 # Create virtual environment
 export VENV_NAME=<your virtual env name> # e.g., docker_venv
 uv venv --python 3.12 --seed ${VENV_NAME?}
