@@ -40,7 +40,7 @@ We can use this **command** for pretraining:
 ```bash
 # replace base_output_directory with your bucket
 python3 -m maxtext.trainers.pre_train.train \
-base_output_directory=gs://runner-maxtext-logs run_name=demo \
+base_output_directory=gs://<your-bucket> run_name=demo \
 model_name=deepseek2-16b per_device_batch_size=1 steps=10 max_target_length=2048 enable_checkpointing=false \
 dataset_type=hf hf_path=allenai/c4 hf_data_dir=en train_split=train \
 tokenizer_type=huggingface tokenizer_path=deepseek-ai/DeepSeek-V2-Lite
@@ -93,9 +93,9 @@ Grain is a library for reading data for training and evaluating JAX models. It i
 
 **Data preparation**: You need to download data to a Cloud Storage bucket, and read data via Cloud Storage Fuse with [setup_gcsfuse.sh](https://github.com/AI-Hypercomputer/maxtext/blob/main/src/dependencies/scripts/setup_gcsfuse.sh).
 
-- For example, we can mount the bucket `gs://maxtext-dataset` on the local path `/tmp/gcsfuse` before training
+- For example, we can mount the bucket `gs://<your-dataset>` on the local path `/tmp/gcsfuse` before training
   ```bash
-  bash setup_gcsfuse.sh DATASET_GCS_BUCKET=maxtext-dataset MOUNT_PATH=/tmp/gcsfuse
+  bash setup_gcsfuse.sh DATASET_GCS_BUCKET=gh://<your-dataset> MOUNT_PATH=/tmp/gcsfuse
   ```
 - After training, we unmount the local path
   ```bash
@@ -107,7 +107,7 @@ This **command** shows pretraining with Grain pipeline, along with evaluation:
 ```bash
 # replace DATASET_GCS_BUCKET and base_output_directory with your buckets
 python3 -m maxtext.trainers.pre_train.train \
-base_output_directory=gs://runner-maxtext-logs run_name=demo \
+base_output_directory=gs://<your-bucket> run_name=demo \
 model_name=deepseek2-16b per_device_batch_size=1 steps=10 max_target_length=2048 enable_checkpointing=false \
 dataset_type=grain grain_file_type=arrayrecord grain_train_files=/tmp/gcsfuse/array-record/c4/en/3.0.1/c4-train.array_record* grain_worker_count=2 \
 eval_interval=5 eval_steps=10 grain_eval_files=/tmp/gcsfuse/array-record/c4/en/3.0.1/c4-validation.array_record* \
@@ -144,7 +144,7 @@ This **command** shows pretraining with TFDS pipeline, along with evaluation:
 ```bash
 # replace base_output_directory and dataset_path with your buckets
 python3 -m maxtext.trainers.pre_train.train \
-base_output_directory=gs://runner-maxtext-logs run_name=demo \
+base_output_directory=gs://<your-bucket> run_name=demo \
 model_name=deepseek2-16b per_device_batch_size=1 steps=10 max_target_length=2048 enable_checkpointing=false \
 dataset_type=tfds dataset_path=gs://maxtext-dataset dataset_name='c4/en:3.0.1' train_split=train \
 eval_interval=5 eval_steps=10 eval_dataset_name='c4/en:3.0.1' eval_split=validation \

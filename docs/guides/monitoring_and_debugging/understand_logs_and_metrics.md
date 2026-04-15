@@ -20,11 +20,11 @@
 
 When you run a training job, MaxText produces detailed output logs. This guide shows you how to interpret these logs to understand your configuration and monitor performance.
 
-To start, run a simple pretraining job on a single-host TPU. For instance, we can run the following command on TPU v5p-8. The resulting log is used as an example throughout this guide.
+To start, run a simple pretraining job on a single-host TPU. For instance, we can run the following command on TPU v5p-8. The resulting log is used as an example throughout this guide. Replace `<your-bucket>` in the command below to point to the GCS bucket you want to use for your output.
 
 ```bash
 python3 -m maxtext.trainers.pre_train.train \
-base_output_directory=gs://runner-maxtext-logs run_name=demo \
+base_output_directory=gs://<your-bucket> run_name=demo \
 model_name=deepseek2-16b \
 per_device_batch_size=24 max_target_length=2048 steps=10 dataset_type=synthetic enable_checkpointing=false
 ```
@@ -80,23 +80,23 @@ Config param data_sharding: (('data', 'stage', 'fsdp', 'fsdp_transpose', 'sequen
 This also includes the **output paths** for your run artifacts.
 
 ```
-Config param base_output_directory: gs://runner-maxtext-logs
+Config param base_output_directory: gs://<your-bucket>
 Config param run_name: demo
-Config param metrics_dir: gs://runner-maxtext-logs/demo/metrics/
-Config param tensorboard_dir: gs://runner-maxtext-logs/demo/tensorboard/
-Config param checkpoint_dir: gs://runner-maxtext-logs/demo/checkpoints/
+Config param metrics_dir: gs://<your-bucket>/demo/metrics/
+Config param tensorboard_dir: gs://<your-bucket>/demo/tensorboard/
+Config param checkpoint_dir: gs://<your-bucket>/demo/checkpoints/
 ```
 
 ### Understanding output paths
 
-MaxText organizes all of your run's artifacts into a main output directory. The primary location for your run is constructed by combining the `base_output_directory` and the `run_name` you specify in your command. Based on the logs above, the base path for this specific run is `gs://runner-maxtext-logs/demo`.
+MaxText organizes all of your run's artifacts into a main output directory. The primary location for your run is constructed by combining the `base_output_directory` and the `run_name` you specify in your command. Based on the logs above, the base path for this specific run is `gs://<your-bucket>/demo`.
 
 Within this base path, MaxText creates several subdirectories for different types of artifacts. Many of these are optional and only created if you enable them with a specific flag.
 
 - **TensorBoard logs (`tensorboard/`)**
 
   - Flag: `enable_tensorboard=True` (default)
-  - Path: `gs://runner-maxtext-logs/demo/tensorboard/`
+  - Path: `gs://<your-bucket>/demo/tensorboard/`
 
 - **Profiler traces (`tensorboard/plugins/profile/`)**
 
@@ -106,17 +106,17 @@ Within this base path, MaxText creates several subdirectories for different type
 - **Metrics in plain text (`metrics/`)**
 
   - Flag: `gcs_metrics=True`
-  - Path: `gs://runner-maxtext-logs/demo/metrics/`
+  - Path: `gs://<your-bucket>/demo/metrics/`
 
 - **Configuration file (`config.yml`)**
 
   - Flag: `save_config_to_gcs=True`
-  - Path: `gs://runner-maxtext-logs/demo/config.yml`
+  - Path: `gs://<your-bucket>/demo/config.yml`
 
 - **Checkpoints (`checkpoints/`)**
 
   - Flag: `enable_checkpointing=True`
-  - Path: `gs://runner-maxtext-logs/demo/checkpoints/`
+  - Path: `gs://<your-bucket>/demo/checkpoints/`
 
 To generate all optional artifacts in one run, you can set the corresponding flags in the command line, like in the example below.
 
@@ -124,7 +124,7 @@ This command enables tensorboard, profiler, text metrics, config saving, and che
 
 ```bash
 python3 -m maxtext.trainers.pre_train.train \
-base_output_directory=gs://runner-maxtext-logs run_name=demo2 \
+base_output_directory=gs://<your-bucket> run_name=demo2 \
 model_name=deepseek2-16b \
 per_device_batch_size=24 max_target_length=2048 steps=10 dataset_type=synthetic \
 enable_tensorboard=True \
