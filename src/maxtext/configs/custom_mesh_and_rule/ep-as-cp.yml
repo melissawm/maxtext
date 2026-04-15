@@ -1,13 +1,29 @@
-mesh_axes: ['data', 'fsdp', 'expert']
-data_sharding: [['data', 'fsdp', 'expert']]
+# Copyright 2026 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# This rule uses data, stage, FSDP, and expert. Expert axis acts as context parallelism in  
+# components except core dMoE part (between EP all2all).
+mesh_axes: ['data', 'stage', 'fsdp', 'expert']
+data_sharding: [['data', 'stage', 'fsdp', 'expert']]
 context_sharding: 'expert'
 logical_axis_rules: [
                       # ==========================================
                       # Vocabulary Embedding
                       # ==========================================
                       # Vocab Activations
-                      ['activation_embed_and_logits_batch', ['data', 'fsdp']],
-                      ['activation_embed_and_logits_batch_sequence', ['data', 'fsdp', 'expert']],
+                      ['activation_embed_and_logits_batch', ['data', 'stage', 'fsdp']],
+                      ['activation_embed_and_logits_batch_sequence', ['data', 'stage', 'fsdp', 'expert']],
                       # Vocab Weights
                       ['vocab', []],
                       ['embed_vocab', ['fsdp', 'expert']],
@@ -31,9 +47,9 @@ logical_axis_rules: [
                       ['qkv', []],
                       ['kv', []],
                       ['kv_head_dim', []],
-                      ['q_lora', ['fsdp', 'expert']],
+                      ['q_lora', ['fsdp']],
                       ["q_lora_up_proj", []],
-                      ['kv_lora', ['fsdp', 'expert']],
+                      ['kv_lora', ['fsdp']],
                       ["kv_lora_up_proj", []],
                       # ==========================================
                       # Mixture of Experts (MoE)
@@ -53,7 +69,9 @@ logical_axis_rules: [
                       ['activation_length', ['expert']],
                       ['activation_norm_length', ['expert']],
                       ['activation_embed', []],
+                      ['activation_stage', 'stage'],
                       # General Weights
                       ['mlp', []],
+                      ['layers', 'stage'],
                       ['embed', ['fsdp', 'expert']],
                   ]

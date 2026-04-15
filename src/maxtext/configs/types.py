@@ -661,10 +661,6 @@ class MoEGeneral(BaseModel):
   )
   use_random_routing: bool = Field(False, description="Whether to use random routing for debugging.")
   interleave_moe_layer_step: int = Field(1, description="Frequency of MoE layers, e.g., 2 means every 2nd layer is MoE.")
-  expert_shard_attention_option: Literal["fsdp", "context"] = Field(
-      "fsdp",
-      description="How the expert axis is used to shard attention weights and activations.",
-  )
   moe_fsdp_use_two_stage_all_gather: bool = Field(
       False,
       description="Use two separate All-Gather calls for MoE weights sharded on both FSDP and FSDP-transpose.",
@@ -2605,6 +2601,8 @@ class MaxTextConfig(
         )
       if self.quantization:
         raise ValueError("Quantization is not supported with 'explicit' sharding.")
+    if self.context_sharding not in ("context", "expert"):
+      raise ValueError(f"Assigned context_sharding f{self.context_sharding} is not supported.")
     if (
         self.per_device_batch_size > 0
         and (self.per_device_batch_size * self.max_target_length) % self.num_vocab_tiling != 0

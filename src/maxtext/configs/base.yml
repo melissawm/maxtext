@@ -237,11 +237,6 @@ merge_gating_gmm: False
 
 norm_topk_prob: false # boolean to enable the top-k probability normalization. qwen3-specific normalization of router weights.
 
-# how the expert axis is used to shard attention weights and activations
-# "fsdp" (ep acts as fsdp parallelism)
-# "context" (ep acts as context parallelism, training only)
-expert_shard_attention_option: "fsdp"
-
 # when moe weight matrices are sharded on both fsdp and fsdp-transpose axes, use two separate all-gather calls
 moe_fsdp_use_two_stage_all_gather: false
 # Shard the expert dimension of the MLP weights on the FSDP axis.
@@ -521,6 +516,7 @@ logical_axis_rules: [
                       # ==========================================
                       # Dense Activations
                       ['activation_mlp', ['tensor', 'tensor_transpose', 'tensor_sequence']],
+                      # Note activation batch and length also get used in attention and vocab
                       ['activation_batch', ['data', 'fsdp', 'fsdp_transpose', 'expert']],
                       ['activation_length', ['sequence', 'context']],
                       ['activation_length', ['context']],
@@ -569,6 +565,8 @@ logical_axis_rules: [
 # Axes used for DCN must be earlier in this list than ICI, see (b/339009148) for details
 data_sharding: [['data', 'stage', 'fsdp', 'fsdp_transpose', 'sequence', 'context', 'context_autoregressive', 'tensor', 'tensor_transpose', 'tensor_sequence', 'expert', 'autoregressive']]
 input_data_sharding_logical_axes: ['activation_embed_and_logits_batch', 'activation_norm_length']
+# Determines which physical axis plays the role of context parallelism for input data processing and load balancing
+# only supports "context" or "expert" (when custom_mesh_and_rule=ep-as-cp)
 context_sharding: "context"
 
 # sharding tolerance: float between 0.0 and 1.0 representing the allowed percentage of non-sharded parameters.
