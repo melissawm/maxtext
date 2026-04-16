@@ -948,8 +948,6 @@ def compute(x, w0, w1, wo, group_sizes, weights, *, config, mesh):
       group_sizes,
       preferred_element_type,
       weight_gather_axes,
-      input_buffer_count,
-      combine_scopes,
   ):
     if config.use_qwix_quantization:
       output = megablox.gmm(
@@ -961,8 +959,6 @@ def compute(x, w0, w1, wo, group_sizes, weights, *, config, mesh):
           use_qwix_quantization=config.use_qwix_quantization,
           use_tokamax_backend=config.use_tokamax_gmm,
           weight_gather_axes=weight_gather_axes,
-          input_buffer_count=input_buffer_count,
-          combine_scopes=combine_scopes,
           qwix_rule=quantizations.get_fp8_full_qwix_rule(config),
       )
     else:
@@ -1002,19 +998,7 @@ def compute(x, w0, w1, wo, group_sizes, weights, *, config, mesh):
       config.wo_tile_drhs_embed_dim,
       config.wo_tile_drhs_mlp_dim,
   )
-  wi_input_buffer_count = (
-      config.wi_tile_fwd_buffer_count,
-      config.wi_tile_dlhs_buffer_count,
-      config.wi_tile_drhs_buffer_count,
-  )
-  wo_input_buffer_count = (
-      config.wo_tile_fwd_buffer_count,
-      config.wo_tile_dlhs_buffer_count,
-      config.wo_tile_drhs_buffer_count,
-  )
 
-  wi_combine_scopes = config.wi_combine_scopes
-  wo_combine_scopes = config.wo_combine_scopes
   if config.use_qwix_quantization:
     gating_pspec, linear_pspec = moe_lib.get_batchsplit_init_kernel_axes()
     w0_pspec = nn.logical_to_mesh_axes(gating_pspec)
@@ -1043,8 +1027,6 @@ def compute(x, w0, w1, wo, group_sizes, weights, *, config, mesh):
         w01,
         tiling=wi_tile_size,
         weight_gather_axes=wi_gather_axes,
-        input_buffer_count=wi_input_buffer_count,
-        combine_scopes=wi_combine_scopes,
     )
     layer_w0, layer_w1 = jnp.split(layer_w01, 2, axis=-1)
   else:
@@ -1053,16 +1035,12 @@ def compute(x, w0, w1, wo, group_sizes, weights, *, config, mesh):
         w0,
         tiling=wi_tile_size,
         weight_gather_axes=wi_gather_axes,
-        input_buffer_count=wi_input_buffer_count,
-        combine_scopes=wi_combine_scopes,
     )
     layer_w1 = gmm_fn(
         x,
         w1,
         tiling=wi_tile_size,
         weight_gather_axes=wi_gather_axes,
-        input_buffer_count=wi_input_buffer_count,
-        combine_scopes=wi_combine_scopes,
     )
   layer_w0 = jax.ad_checkpoint.checkpoint_name(layer_w0, "mlpwi_0")
   layer_w1 = jax.ad_checkpoint.checkpoint_name(layer_w1, "mlpwi_1")
@@ -1073,8 +1051,6 @@ def compute(x, w0, w1, wo, group_sizes, weights, *, config, mesh):
       wo,
       tiling=wo_tile_size,
       weight_gather_axes=wo_gather_axes,
-      input_buffer_count=wo_input_buffer_count,
-      combine_scopes=wo_combine_scopes,
   )
   return layer_wo
 

@@ -965,9 +965,7 @@ class RoutedMoE(nnx.Module):
         rhs_quantize_dtype = quant_dg.fwd.dg_quantizer.rhs.numerics.get_dtype()
       return lhs_quantize_dtype, rhs_quantize_dtype
 
-    def gmm(
-        inputs, kernel, tiling, group_sizes, expert_assignments, weight_gather_axes, input_buffer_count, combine_scopes
-    ):
+    def gmm(inputs, kernel, tiling, group_sizes, expert_assignments, weight_gather_axes):
       if inputs.shape[0] != expert_assignments.shape[0]:
         raise ValueError("The number of input tokens must match the number of expert assignments!")
 
@@ -993,8 +991,6 @@ class RoutedMoE(nnx.Module):
               use_qwix_quantization=self.config.use_qwix_quantization,
               use_tokamax_backend=self.config.use_tokamax_gmm,
               weight_gather_axes=weight_gather_axes,
-              input_buffer_count=input_buffer_count,
-              combine_scopes=combine_scopes,
           )
         else:  # tokamax (unquantized)
           output = tokamax.ragged_dot(
@@ -1250,26 +1246,12 @@ class RoutedMoE(nnx.Module):
           self.config.wo_tile_drhs_embed_dim,
           self.config.wo_tile_drhs_mlp_dim,
       )
-      wi_input_buffer_count = (
-          self.config.wi_tile_fwd_buffer_count,
-          self.config.wi_tile_dlhs_buffer_count,
-          self.config.wi_tile_drhs_buffer_count,
-      )
-      wo_input_buffer_count = (
-          self.config.wo_tile_fwd_buffer_count,
-          self.config.wo_tile_dlhs_buffer_count,
-          self.config.wo_tile_drhs_buffer_count,
-      )
 
-      wi_combine_scopes = self.config.wi_combine_scopes
-      wo_combine_scopes = self.config.wo_combine_scopes
       layer_w0 = gmm_fn(
           x,
           w0,
           tiling=wi_tile_size,
           weight_gather_axes=wi_gather_axes,
-          input_buffer_count=wi_input_buffer_count,
-          combine_scopes=wi_combine_scopes,
       )
       if self.get_tensor_transpose_parallelism_size() > 1:
         layer_w0 = jax.lax.psum(layer_w0, "tensor_transpose")
@@ -1282,8 +1264,6 @@ class RoutedMoE(nnx.Module):
           w1,
           tiling=wi_tile_size,
           weight_gather_axes=wi_gather_axes,
-          input_buffer_count=wi_input_buffer_count,
-          combine_scopes=wi_combine_scopes,
       )
       if self.get_tensor_transpose_parallelism_size() > 1:
         layer_w1 = jax.lax.psum(layer_w1, "tensor_transpose")
@@ -1297,8 +1277,6 @@ class RoutedMoE(nnx.Module):
           wo,
           tiling=wo_tile_size,
           weight_gather_axes=wo_gather_axes,
-          input_buffer_count=wo_input_buffer_count,
-          combine_scopes=wo_combine_scopes,
       )
       if self.get_tensor_parallelism_size() > 1:
         intermediate_output = jax.lax.psum_scatter(
