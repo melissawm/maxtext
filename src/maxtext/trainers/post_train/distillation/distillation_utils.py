@@ -185,6 +185,38 @@ class MaxTextToTunixIterator:
 # -----------------------------------------------------------------------------
 
 
+def compute_schedule(
+    step: jax.Array,
+    max_steps: int,
+    start_value: float,
+    end_value: float | None,
+    schedule_type: str,
+) -> jax.Array:
+  """Computes a scheduled value based on training progress.
+
+  Args:
+    step: Current training step as a JAX array.
+    max_steps: Total number of training steps.
+    start_value: Value at the beginning of training.
+    end_value: Value at the end of training. If None, returns start_value.
+    schedule_type: One of "constant", "linear", or "cosine".
+
+  Returns:
+    The scheduled value as a JAX scalar.
+  """
+  if end_value is None or schedule_type == "constant":
+    return jnp.array(start_value, dtype=jnp.float32)
+
+  progress = jnp.clip(step.astype(jnp.float32) / max_steps, 0.0, 1.0)
+
+  if schedule_type == "linear":
+    return start_value + (end_value - start_value) * progress
+  elif schedule_type == "cosine":
+    return end_value + (start_value - end_value) * 0.5 * (1.0 + jnp.cos(jnp.pi * progress))
+  else:
+    raise ValueError(f"Unsupported schedule_type: {schedule_type!r}. Must be 'constant', 'linear', or 'cosine'.")
+
+
 class DistillationStrategy(abc.ABC):
   """Abstract base class for MaxText Distillation Strategies."""
 
@@ -210,6 +242,7 @@ class DistillationStrategy(abc.ABC):
       student_output: "DistillationForwardOutput",
       teacher_output: "DistillationForwardOutput",
       labels: jax.Array,
+      step: jax.Array | None = None,
   ) -> tuple[jax.Array, dict[str, jax.Array]]:
     """Computes the distillation loss.
 
@@ -217,6 +250,7 @@ class DistillationStrategy(abc.ABC):
         student_output: The forward pass output of the student model.
         teacher_output: The forward pass output of the frozen teacher model.
         labels: The masked one-hot encoded ground truth labels.
+        step: Current training step for dynamic scheduling. If None, uses fixed values.
 
     Returns:
         A tuple containing the scalar loss and a dictionary of auxiliary metrics
@@ -265,8 +299,15 @@ class CombinedDistillationStrategy(DistillationStrategy):
       feature_loss_type: Literal["cosine", "l2"] = "cosine",
       cosine_distance_axis: int | tuple[int, ...] = -1,
       vocab_size: int = 0,
+      alpha_end: float | None = None,
+      alpha_schedule: Literal["constant", "linear", "cosine"] = "constant",
+      temperature_end: float | None = None,
+      temperature_schedule: Literal["constant", "linear", "cosine"] = "constant",
+      beta_end: float | None = None,
+      beta_schedule: Literal["constant", "linear", "cosine"] = "constant",
+      max_steps: int = 1,
   ):
-    """Initializes the Combined strategy using tunix logit.LogitStrategy.
+    """Initializes the Combined distillation strategy.
 
     Args:
         student_forward_fn: Function to compute student model outputs.
@@ -282,6 +323,13 @@ class CombinedDistillationStrategy(DistillationStrategy):
           teacher_map) and returns a scalar loss. Defaults to Cosine Distance.
         cosine_distance_axis: The axis to use for cosine distance computation if
           feature_loss_fn is not provided. Defaults to -1.
+        alpha_end: Target alpha value at end of training. None keeps alpha fixed.
+        alpha_schedule: Schedule type for alpha annealing.
+        temperature_end: Target temperature at end of training. None keeps temperature fixed.
+        temperature_schedule: Schedule type for temperature annealing.
+        beta_end: Target beta_feature value at end of training. None keeps beta fixed.
+        beta_schedule: Schedule type for beta annealing.
+        max_steps: Total training steps, used for schedule computation.
     """
 
     super().__init__(
@@ -296,6 +344,39 @@ class CombinedDistillationStrategy(DistillationStrategy):
     self.beta_feature = beta_feature
     self.layer_indices = jnp.array(layer_indices) if layer_indices is not None else None
 
+    # Schedule parameters
+    self.alpha_end = alpha_end
+    self.alpha_schedule = alpha_schedule
+    self.temperature_end = temperature_end
+    self.temperature_schedule = temperature_schedule
+    self.beta_end = beta_end
+    self.beta_schedule = beta_schedule
+    self.max_steps = max_steps
+
+    # Validate schedule parameter ranges
+    if alpha_end is not None and not 0.0 <= alpha_end <= 1.0:
+      raise ValueError(f"alpha_end must be in [0, 1], got {alpha_end}")
+    if temperature_end is not None and temperature_end <= 0.0:
+      raise ValueError(f"temperature_end must be > 0, got {temperature_end}")
+    if beta_end is not None and beta_end < 0.0:
+      raise ValueError(f"beta_end must be >= 0, got {beta_end}")
+    if beta_feature == 0.0 and beta_end is not None and beta_end > 0.0:
+      raise ValueError(
+          f"distill_beta=0.0 but distill_beta_end={beta_end}. Feature extraction is disabled when "
+          "distill_beta starts at 0.0 (the model does not sow intermediate activations). "
+          "Set distill_beta to a small positive value (e.g., 1e-6) to enable feature extraction."
+      )
+    for param_name, schedule, end_value in [
+        ("alpha", alpha_schedule, alpha_end),
+        ("temperature", temperature_schedule, temperature_end),
+        ("beta", beta_schedule, beta_end),
+    ]:
+      if schedule != "constant" and end_value is None:
+        raise ValueError(
+            f"{param_name}_schedule is '{schedule}' but {param_name}_end is None. "
+            f"Set {param_name}_end to a target value or use schedule='constant'."
+        )
+
     self.feature_loss_fn = feature_loss_fn
     if feature_loss_fn is None:
       if feature_loss_type == "cosine":
@@ -309,13 +390,39 @@ class CombinedDistillationStrategy(DistillationStrategy):
       else:
         raise ValueError(f"Unsupported feature_loss_type: {feature_loss_type!r}")
 
+  def _get_scheduled_weights(self, step: jax.Array | None) -> tuple[jax.Array, jax.Array, jax.Array]:
+    """Resolves the current alpha, temperature, and beta values from schedules.
+
+    Args:
+      step: Current training step. If None, returns the fixed initial values.
+
+    Returns:
+      A tuple of (alpha, temperature, beta_feature) as JAX scalars.
+    """
+    if step is None:
+      return (
+          jnp.array(self.alpha, dtype=jnp.float32),
+          jnp.array(self.temperature, dtype=jnp.float32),
+          jnp.array(self.beta_feature, dtype=jnp.float32),
+      )
+    alpha = compute_schedule(step, self.max_steps, self.alpha, self.alpha_end, self.alpha_schedule)
+    temperature = compute_schedule(
+        step, self.max_steps, self.temperature, self.temperature_end, self.temperature_schedule
+    )
+    beta_feature = compute_schedule(step, self.max_steps, self.beta_feature, self.beta_end, self.beta_schedule)
+    return alpha, temperature, beta_feature
+
   def compute_loss(
       self,
       student_output: DistillationForwardOutput,
       teacher_output: DistillationForwardOutput,
       labels: jax.Array,
+      step: jax.Array | None = None,
   ) -> tuple[jax.Array, dict[str, jax.Array]]:
     """Computes Loss and Auxiliary Metrics."""
+    # Resolve scheduled weights for this step
+    alpha, temperature, beta_feature = self._get_scheduled_weights(step)
+
     # Calculate Distillation Loss (KL Divergence)
     # Scale logits by temperature T for soft targets
     # We use explicit float32 casting for stability in loss calculation
@@ -332,8 +439,8 @@ class CombinedDistillationStrategy(DistillationStrategy):
           "Ensure the model architecture supports feature extraction (e.g., 'out_projection_activations' is sowed)."
       )
 
-    log_student_probs_temp = jax.nn.log_softmax(s_logits / self.temperature, axis=-1)
-    teacher_probs_temp = jax.nn.softmax(t_logits / self.temperature, axis=-1)
+    log_student_probs_temp = jax.nn.log_softmax(s_logits / temperature, axis=-1)
+    teacher_probs_temp = jax.nn.softmax(t_logits / temperature, axis=-1)
     # labels are supposed to have all sft masks applied by this moment
     labels_mask = jnp.any(labels != 0, axis=-1, keepdims=True)
     mean_mask = jnp.squeeze(labels_mask, axis=-1)
@@ -342,7 +449,7 @@ class CombinedDistillationStrategy(DistillationStrategy):
     kl_div = optax.kl_divergence(log_student_probs_temp, teacher_probs_temp, where=labels_mask)
 
     # Scale gradients by T^2 (Hinton et al.)
-    soft_loss = jnp.mean(kl_div, where=mean_mask) * (self.temperature**2)
+    soft_loss = jnp.mean(kl_div, where=mean_mask) * (temperature**2)
 
     # 1. Student Hard Loss (Existing)
     ce_loss_student = optax.softmax_cross_entropy(logits=s_logits, labels=labels, where=labels_mask)
@@ -353,7 +460,7 @@ class CombinedDistillationStrategy(DistillationStrategy):
     teacher_hard_loss = jnp.mean(ce_loss_teacher, where=mean_mask)
 
     # 3. Combine losses
-    base_logit_loss = (self.alpha * soft_loss) + ((1.0 - self.alpha) * hard_loss)
+    base_logit_loss = (alpha * soft_loss) + ((1.0 - alpha) * hard_loss)
 
     feature_loss = jnp.array(0.0)
     if self.beta_feature > 0.0:
@@ -369,11 +476,11 @@ class CombinedDistillationStrategy(DistillationStrategy):
       s_features_sliced = s_features_sliced.astype(jnp.float32)
       t_features_sliced = t_features_sliced.astype(jnp.float32)
 
-      feature_loss = self.beta_feature * self.feature_loss_fn(s_features_sliced, t_features_sliced)
+      feature_loss = beta_feature * self.feature_loss_fn(s_features_sliced, t_features_sliced)
 
     total_loss = base_logit_loss + feature_loss
 
-    # 4. Return Loss AND Metrics
+    # 4. Return Loss AND Metrics (log dynamic values for TensorBoard verification)
     metrics = {
         "distill/soft_loss": soft_loss,
         "distill/hard_loss": hard_loss,
@@ -381,9 +488,9 @@ class CombinedDistillationStrategy(DistillationStrategy):
         "distill/teacher_loss": teacher_hard_loss,
         "distill/out_proj_feature_loss": feature_loss,
         "distill/total_loss": total_loss,
-        "distill/temperature": self.temperature,
-        "distill/alpha": self.alpha,
-        "distill/beta_feature": self.beta_feature,
+        "distill/temperature": temperature,
+        "distill/alpha": alpha,
+        "distill/beta_feature": beta_feature,
     }
     return total_loss, metrics
 

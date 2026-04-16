@@ -1223,6 +1223,14 @@ distill_beta: 0.0
 # distill_feature_loss_type is the type of loss to use for feature distillation ("cosine" or "l2").
 distill_feature_loss_type: "cosine"
 distill_layer_indices: None
+# Dynamic loss weight scheduling: set *_end to a target value and *_schedule to "linear" or "cosine".
+# When *_end is None (default), the corresponding weight stays fixed throughout training.
+distill_alpha_end: None
+distill_alpha_schedule: "constant"
+distill_temperature_end: None
+distill_temperature_schedule: "constant"
+distill_beta_end: None
+distill_beta_schedule: "constant"
 
 ##### Elastic training parameters
 # Elastic training is Pathways-specific and does not work on McJAX.
