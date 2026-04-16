@@ -31,6 +31,18 @@
       }
     },
     {
+      "attention_op/arr: int8[1,4,4]": {
+        "logic_axes": "Unknown",
+        "PartitionSpec": "P(None, None)"
+      }
+    },
+    {
+      "attention_op/arr: int32[2048]": {
+        "logic_axes": "Unknown",
+        "PartitionSpec": "P(None,)"
+      }
+    },
+    {
       "attention_op/query: bfloat16[192,16,2048,128]": {
         "logic_axes": "Unknown",
         "PartitionSpec": "P('fsdp', None, None, None)"

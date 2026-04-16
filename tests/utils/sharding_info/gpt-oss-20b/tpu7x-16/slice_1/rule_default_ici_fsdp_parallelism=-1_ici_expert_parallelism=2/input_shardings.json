@@ -31,6 +31,24 @@
       }
     },
     {
+      "attention_op/arr: int8[1,4,2]": {
+        "logic_axes": "Unknown",
+        "PartitionSpec": "P(None, None)"
+      }
+    },
+    {
+      "attention_op/arr: bool[2,512,512]": {
+        "logic_axes": "Unknown",
+        "PartitionSpec": "P()"
+      }
+    },
+    {
+      "attention_op/arr: int8[1,2,4]": {
+        "logic_axes": "Unknown",
+        "PartitionSpec": "P(None, None)"
+      }
+    },
+    {
       "attention_op/query: bfloat16[192,64,2048,64]": {
         "logic_axes": "Unknown",
         "PartitionSpec": "P(('fsdp', 'expert'), None, None, None)"
@@ -64,6 +82,54 @@
       "moe/gate_logits: bfloat16[192,2048,32]": {
         "logic_axes": "('activation_batch', 'activation_norm_length', None)",
         "PartitionSpec": "P(('fsdp', 'expert'), None, None)"
+      }
+    },
+    {
+      "moe/w0_kernel: bfloat16[32,2880,2880]": {
+        "logic_axes": "Unknown",
+        "PartitionSpec": "P('expert', None, None)"
+      }
+    },
+    {
+      "moe/w1_kernel: bfloat16[32,2880,2880]": {
+        "logic_axes": "Unknown",
+        "PartitionSpec": "P('expert', None, None)"
+      }
+    },
+    {
+      "moe/wo_kernel: bfloat16[32,2880,2880]": {
+        "logic_axes": "Unknown",
+        "PartitionSpec": "P('expert', None, None)"
+      }
+    },
+    {
+      "moe/w0_bias: bfloat16[32,2880]": {
+        "logic_axes": "Unknown",
+        "PartitionSpec": "P('expert', None)"
+      }
+    },
+    {
+      "moe/w1_bias: bfloat16[32,2880]": {
+        "logic_axes": "Unknown",
+        "PartitionSpec": "P('expert', None)"
+      }
+    },
+    {
+      "moe/wo_bias: bfloat16[32,2880]": {
+        "logic_axes": "Unknown",
+        "PartitionSpec": "P('expert', None)"
+      }
+    },
+    {
+      "attention_op/arr: int8[1,4,4]": {
+        "logic_axes": "Unknown",
+        "PartitionSpec": "P(None, None)"
+      }
+    },
+    {
+      "attention_op/arr: int32[2048]": {
+        "logic_axes": "Unknown",
+        "PartitionSpec": "P(None,)"
       }
     }
   ]
