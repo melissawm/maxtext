@@ -661,10 +661,6 @@ class MoEGeneral(BaseModel):
   )
   use_random_routing: bool = Field(False, description="Whether to use random routing for debugging.")
   interleave_moe_layer_step: int = Field(1, description="Frequency of MoE layers, e.g., 2 means every 2nd layer is MoE.")
-  expert_shard_attention_option: Literal["fsdp", "context"] = Field(
-      "fsdp",
-      description="How the expert axis is used to shard attention weights and activations.",
-  )
   moe_fsdp_use_two_stage_all_gather: bool = Field(
       False,
       description="Use two separate All-Gather calls for MoE weights sharded on both FSDP and FSDP-transpose.",
@@ -832,6 +828,7 @@ class LayoutAndSharding(BaseModel):
 
   logical_axis_rules: Any = Field([], description="Rules for mapping logical axes to physical mesh axes.")
   data_sharding: Any = Field([], description="Sharding for input data.")
+  context_sharding: str = Field("context", description="Physical axis name for context parallelism.")
   input_data_sharding_logical_axes: list[str] = Field(
       ["activation_embed_and_logits_batch", "activation_norm_length"],
       description="Logical axes for sharding input data.",
@@ -2106,6 +2103,8 @@ class MaxTextConfig(
             self.logical_axis_rules = custom_mesh_config["logical_axis_rules"]
           if "data_sharding" in custom_mesh_config:
             self.data_sharding = custom_mesh_config["data_sharding"]
+          if "context_sharding" in custom_mesh_config:
+            self.context_sharding = custom_mesh_config["context_sharding"]
       else:
         raise NotImplementedError(f"Custom mesh config file not found at {custom_mesh_path}")
 
@@ -2388,10 +2387,9 @@ class MaxTextConfig(
       self.tensors_on_device = [t for t in tensors if getattr(self, t) == "device"]
       self.tensors_to_offload = [t for t in tensors if getattr(self, t) == "offload"]
 
-    cp_size = self.ici_context_parallelism * self.dcn_context_parallelism
-    if self.expert_shard_attention_option == "context":
-      cp_size *= self.ici_expert_parallelism * self.dcn_expert_parallelism
-    self.context_parallel_size = cp_size
+    self.context_parallel_size = getattr(self, f"ici_{self.context_sharding}_parallelism", 1) * getattr(
+        self, f"dcn_{self.context_sharding}_parallelism", 1
+    )
     if self.pipeline_parallel_layers == -1:
       if self.decoder_block == DecoderBlockType.DEEPSEEK:
         moe_layers = self.num_decoder_layers - self.first_num_dense_layers
@@ -2593,6 +2591,8 @@ class MaxTextConfig(
         )
       if self.quantization:
         raise ValueError("Quantization is not supported with 'explicit' sharding.")
+    if self.context_sharding not in ("context", "expert"):
+      raise ValueError(f"Assigned context_sharding f{self.context_sharding} is not supported.")
     if (
         self.per_device_batch_size > 0
         and (self.per_device_batch_size * self.max_target_length) % self.num_vocab_tiling != 0

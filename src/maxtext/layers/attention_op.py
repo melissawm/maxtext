@@ -55,7 +55,6 @@ from maxtext.common.common_types import (
     DEFAULT_MASK_VALUE,
     DType,
     D_KV,
-    EP_AS_FSDP,
     HEAD,
     KV_LENGTH,
     LENGTH,
@@ -1270,7 +1269,7 @@ class AttentionOp(nnx.Module):
 
       splash_kernel = wrap_splash_kernel(single_head_mask)
       segment_axis_names_splash_kernel = self._logical_to_mesh_axes((Q_LENGTH,))
-    elif self.config.use_jax_splash and self.config.expert_shard_attention_option == EP_AS_FSDP:
+    elif self.config.use_jax_splash:
       if self.config.use_max_logit_estimate > 0:
         sa_config = dataclasses.replace(sa_config, max_logit_const=self.config.use_max_logit_estimate)
       segment_axis_names_splash_kernel = nn.logical_to_mesh_axes((Q_LENGTH,))
@@ -1517,7 +1516,7 @@ class AttentionOp(nnx.Module):
 
     _, _, _, head_dim = query.shape  # pylint: disable=unused-variable
 
-    using_context_parallelism = self.mesh.shape["context"] > 1
+    using_context_parallelism = self.mesh.shape[self.config.context_sharding] > 1
 
     # Initialize default attention configuration
     sliding_window_size = None
@@ -1575,7 +1574,7 @@ class AttentionOp(nnx.Module):
         transpose_batch_sequence=False,
         window_size=sliding_window_size,
         context_parallel_causal_load_balanced=self.config.context_parallel_load_balance,
-        context_parallel_axis="context",
+        context_parallel_axis=self.config.context_sharding,
         context_parallel_strategy=self.config.context_parallel_strategy,
         max_segments_per_seq=max_segments_per_seq,
     )
