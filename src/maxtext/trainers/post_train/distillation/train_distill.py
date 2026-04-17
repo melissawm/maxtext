@@ -182,6 +182,7 @@ class ModelBundle(nnx.Module):
   def __init__(self, teacher_model: nnx.Module, student_model: nnx.Module):
     self.teacher_model = teacher_model
     self.student_model = student_model
+    self.training_step = nnx.Variable(jnp.zeros((), dtype=jnp.int32))
 
   def __call__(self, *args, **kwargs):
     raise NotImplementedError("Use `call_student` or `call_teacher` explicitly.")
@@ -269,6 +270,7 @@ class MaxTextDistillationTrainer(peft_trainer.PeftTrainer):
     """Overrides the main JIT block to natively handle ModelBundle module."""
 
     batch = self.gen_model_input_fn(inputs)
+    current_step = model.training_step.value
 
     def loss_wrapper(student, teacher, batch):
       if "teacher_output" in batch:
@@ -299,7 +301,7 @@ class MaxTextDistillationTrainer(peft_trainer.PeftTrainer):
       )
       # we should apply a mask for labels to disable segment-separator tokens
       labels = self.strategy.create_labels(batch["targets"], targets_segmentation=batch.get("targets_segmentation", None))
-      return self.strategy.compute_loss(student_output, teacher_output, labels)
+      return self.strategy.compute_loss(student_output, teacher_output, labels, step=current_step)
 
     # Because student is the 0th argument, argnums=0 guarantees
     # we only compute gradients for the student.
@@ -310,6 +312,9 @@ class MaxTextDistillationTrainer(peft_trainer.PeftTrainer):
     )
 
     out, grads = grad_fn(model.student_model, model.teacher_model, batch)
+
+    # Increment step counter after loss computation
+    model.training_step.value = current_step + 1
 
     tunix_expects_grad_norm = getattr(self, "_tunix_expects_grad_norm", True)
 
@@ -509,6 +514,13 @@ def build_training_components(
       layer_indices=student_config.distill_layer_indices,
       feature_loss_type=student_config.distill_feature_loss_type,
       vocab_size=student_config.vocab_size,
+      alpha_end=student_config.distill_alpha_end,
+      alpha_schedule=student_config.distill_alpha_schedule,
+      temperature_end=student_config.distill_temperature_end,
+      temperature_schedule=student_config.distill_temperature_schedule,
+      beta_end=student_config.distill_beta_end,
+      beta_schedule=student_config.distill_beta_schedule,
+      max_steps=student_config.steps,
   )
 
   # 4. Optimizer & Config
@@ -631,6 +643,10 @@ def train_distill(
     # 5. Input Pipeline Checkpointing & Restoration
     # Replace the default CheckpointManager with a Grain-aware one, which enables iterator checkpointing for grain datasets.
     raw_train_iter = trainer.setup_checkpoint_manager_and_restore(raw_train_iter, student_config)
+
+    # Sync the ModelBundle step counter with the restored training step so that
+    # loss weight schedules resume from the correct position after checkpoint restore.
+    model_bundle.training_step.set_value(jnp.array(trainer._train_steps, dtype=jnp.int32))  # pylint: disable=protected-access
 
     # 6. Configure Input Mapping
     def custom_gen_model_input_fn(batch):

@@ -765,7 +765,7 @@ class TrainDistillTest(unittest.TestCase):
     mock_student_forward = mock.Mock(side_effect=lambda model, **kwargs: model(dummy_batch["input_tokens"]))
     trainer.strategy.student_forward_fn = mock_student_forward
 
-    trainer.strategy.compute_loss.side_effect = lambda s_out, t_out, labels: (jnp.sum(s_out), {"aux": 1.0})
+    trainer.strategy.compute_loss.side_effect = lambda s_out, t_out, labels, step=None: (jnp.sum(s_out), {"aux": 1.0})
 
     # --- EXECUTE PASS 1 ---
     trainer._train_step(model_bundle, nnx_opt, dummy_batch)
@@ -891,7 +891,7 @@ class TrainDistillTest(unittest.TestCase):
 
     # 2. Setup strategy and trainer config
     strategy = mock.Mock()
-    strategy.compute_loss.side_effect = lambda s_out, t_out, labels: (jnp.sum(s_out.logits), {"aux": 1.0})
+    strategy.compute_loss.side_effect = lambda s_out, t_out, labels, step=None: (jnp.sum(s_out.logits), {"aux": 1.0})
     strategy.labels_fn.return_value = None
     strategy.student_forward_fn = lambda model, **kw: distillation_utils.DistillationForwardOutput(
         logits=model(kw["input_tokens"])
@@ -1037,6 +1037,14 @@ class TrainDistillTest(unittest.TestCase):
     mock_student_cfg.use_sft = False
     mock_student_cfg.enable_dropout = False
 
+    # Add scheduling attributes
+    mock_student_cfg.distill_alpha_end = None
+    mock_student_cfg.distill_alpha_schedule = "constant"
+    mock_student_cfg.distill_temperature_end = None
+    mock_student_cfg.distill_temperature_schedule = "constant"
+    mock_student_cfg.distill_beta_end = None
+    mock_student_cfg.distill_beta_schedule = "constant"
+
     # Add dummy variables for Checkpointer and Logger
     mock_student_cfg.max_num_checkpoints_to_keep = 1
     mock_student_cfg.async_checkpointing = False
@@ -1118,6 +1126,14 @@ class TrainDistillTest(unittest.TestCase):
     mock_student_cfg.use_sft = False
     mock_student_cfg.enable_dropout = False
 
+    # Add scheduling attributes
+    mock_student_cfg.distill_alpha_end = None
+    mock_student_cfg.distill_alpha_schedule = "constant"
+    mock_student_cfg.distill_temperature_end = None
+    mock_student_cfg.distill_temperature_schedule = "constant"
+    mock_student_cfg.distill_beta_end = None
+    mock_student_cfg.distill_beta_schedule = "constant"
+
     # Add dummy variables for Checkpointer and Logger
     mock_student_cfg.max_num_checkpoints_to_keep = 1
     mock_student_cfg.async_checkpointing = False
@@ -1181,7 +1197,7 @@ class TrainDistillTest(unittest.TestCase):
 
     # 3. Setup Strategy and TrainingConfig
     strategy = mock.Mock()
-    strategy.compute_loss.side_effect = lambda s_out, t_out, labels: (jnp.sum(s_out.logits), {"aux": 1.0})
+    strategy.compute_loss.side_effect = lambda s_out, t_out, labels, step=None: (jnp.sum(s_out.logits), {"aux": 1.0})
     strategy.create_labels.return_value = None
     strategy.student_forward_fn = lambda model, **kw: distillation_utils.DistillationForwardOutput(
         logits=model(kw["input_tokens"])
