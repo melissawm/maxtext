@@ -346,21 +346,13 @@ class TestCreateNnxModel(unittest.TestCase):
   @patch("maxtext.utils.model_creation_utils.ocp")
   def test_load_nnx_checkpoint(self, mock_ocp):
     """NNX-format checkpoint: restored values are wrapped under a 'value' key."""
-    _, abstract_model = model_creation_utils.create_nnx_abstract_model(self.config, self.mesh)
-    _, abstract_state = nnx.split(abstract_model)
-
-    # Build a fake restored dict with 'value' keys (NNX checkpoint structure).
-    # Use concrete zero arrays (not ShapeDtypeStruct) so device_put in
-    # _expand_checkpoint_to_model_shapes receives a valid JAX array.
-    fake_restored = jax.tree.map(
-        lambda v: {"value": jnp.zeros(v.value.shape, v.value.dtype)},
-        abstract_state,
-        is_leaf=lambda n: isinstance(n, nnx.Variable),
-    )
-
+    # Echo back the `item` argument passed by create_nnx_model to ckptr.restore.
+    # For NNX checkpoints, item IS already {leaf: {"value": array}, ...}, so
+    # returning it directly gives a correctly-structured restored dict that
+    # matches the model's own state — regardless of the exact leaf count.
     mock_ckptr = MagicMock()
     mock_ckptr.metadata.return_value = self._make_nnx_metadata_mock()
-    mock_ckptr.restore.return_value = fake_restored
+    mock_ckptr.restore.side_effect = lambda path, item=None, **kw: item
     mock_ocp.Checkpointer.return_value = mock_ckptr
     mock_ocp.PyTreeCheckpointHandler.return_value = MagicMock()
     mock_ocp.checkpoint_utils.construct_restore_args.return_value = {}
@@ -373,22 +365,13 @@ class TestCreateNnxModel(unittest.TestCase):
   @patch("maxtext.utils.model_creation_utils.ocp")
   def test_load_linen_checkpoint(self, mock_ocp):
     """Linen-format checkpoint: restored values are nested under 'params'/'params'."""
-    _, abstract_model = model_creation_utils.create_nnx_abstract_model(self.config, self.mesh)
-    _, abstract_state = nnx.split(abstract_model)
-
-    # Build fake plain-value dict (Linen structure).
-    # Use concrete zero arrays so device_put in _expand_checkpoint_to_model_shapes
-    # receives a valid JAX array (not a ShapeDtypeStruct).
-    fake_params = jax.tree.map(
-        lambda v: jnp.zeros(v.value.shape, v.value.dtype),
-        abstract_state,
-        is_leaf=lambda n: isinstance(n, nnx.Variable),
-    )
-    fake_restored = {"params": {"params": fake_params}}
-
+    # Echo back the `item` argument passed by create_nnx_model to ckptr.restore.
+    # For Linen checkpoints, item IS already {"params": {"params": arrays}}, so
+    # returning it directly gives a correctly-structured restored dict that
+    # matches the model's own state — regardless of the exact leaf count.
     mock_ckptr = MagicMock()
     mock_ckptr.metadata.return_value = self._make_linen_metadata_mock()
-    mock_ckptr.restore.return_value = fake_restored
+    mock_ckptr.restore.side_effect = lambda path, item=None, **kw: item
     mock_ocp.Checkpointer.return_value = mock_ckptr
     mock_ocp.PyTreeCheckpointHandler.return_value = MagicMock()
     mock_ocp.checkpoint_utils.construct_restore_args.return_value = {}
