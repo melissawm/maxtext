@@ -901,6 +901,42 @@ class RoutedMoE(nnx.Module):
     """Selects bias values for a variable number of bias tensors based on chosen experts."""
     return tuple(bias[experts_index] for bias in biases)
 
+  @staticmethod
+  def get_ragged_buffer_size(local_batch, ep_degree, global_experts, top_k, ragged_buffer_factor):
+    """Calculates the token batch size of the ragged buffer.
+    When explicitly setting ragged_buffer_factor>0, this is balanced_size * ragged_buffer_factor, which can drop tokens.
+    Otherwise this will be worst case size to ensure no dropping.
+
+    Inputs:
+      local_batch: local token batch (batch*seq blown up by top_k) shard on this device (e.g. inside shard_map)
+      ep_degree: degree of expert parallelism, generally equal to ici_expert_parallelism
+      global_experts: unsharded expert count, e.g. 256 for deepseek
+      top_k: aka num_experts_per_tok, 8 for deepseek.
+      ragged_buffer_factor: When set > 0, the buffer is balanced_size * ragged_buffer_factor.
+        The value 1.0 will be dropless only in the perfectly balanced case, else tokens will be dropped.
+    Outputs:
+      The ragged buffer's token batch size.
+    """
+    balanced_size = local_batch
+    if ragged_buffer_factor > 0.0:
+      # This will drop tokens if the true distribution exceeds this buffer.
+      return int(balanced_size * ragged_buffer_factor)
+    else:
+      # Worst case
+      # Either determined by degree of EP, or can be less when num_local_exp is smaller than top_k:
+      # Example: If we have 4 EP shards, top_k=8, and experts=256 (deepseek), then worst case is
+      # all tokens in our EP replica get routed to a single shard, e.g. rank 0 - thus is |EP|=4x larger than perfectly
+      # balanced. However if we use EP=128, then there are only 256/128 = 2 local experts, and thus at most in an EP
+      # replica group only the 2 experts of top_k=8 can be chosen, so at most 1/4 of all tokens goes to the most
+      # popular shard. Thus the imbalance factor goes like |EP|/(top_k/local_exp) = 128/4 = 32.
+      # In general for local_experts < top_k (e.g. |EP|>32), the balance will go as
+      # EP * local_experts / top_k = EP * (global_exp/EP) / top_k = global_exp / top_k.
+      # This is constant as a function of the model - e.g. for deepseek the imbalance is never worse than
+      # 256 exp / 8 top_k = 32. In practice the imbalance should be much less and potentially can use
+      # ragged_buffer_factor set to >1  e.g. 3.0, and likely have no dropping (not guaranteed)
+      worst_case_factor = min(ep_degree, global_experts / top_k)
+      return int(balanced_size * worst_case_factor)
+
   def sparse_matmul(
       self,
       inputs,
@@ -1165,16 +1201,13 @@ class RoutedMoE(nnx.Module):
                 num_expert_parallelism,
             )
 
-            # TODO(ranran): For better performance, we could update output buffer to a smaller
-            # size to replace self.get_expert_parallelism_size() for efficiency,
-            # Or we could apply capacity_factor for excessive experts.
-            # Note: Reducing buffer increase the risk of token dropping under unbalanced distribution.
-
-            # In the worst case, all of the global input data is assigned to each expert in the current shard.
-            # This would result in num_expert_shards * input_size * experts_per_shard assignments. However, if
-            # experts_per_shard > num_experts_per_tok we cannot assign more than num_experts_per_tok to all of the inputs.
-            max_local_experts_per_tok = min(local_expert_size, self.config.num_experts_per_tok)
-            buffer_size = int(num_expert_parallelism * batch_size * sequence_length * max_local_experts_per_tok)
+            buffer_size = self.get_ragged_buffer_size(
+                jnp.shape(x)[0],
+                num_expert_parallelism,
+                self.config.num_experts,
+                self.config.num_experts_per_tok,
+                self.config.ragged_buffer_factor,
+            )
             output_shape = jax.lax.empty((buffer_size, self.config.emb_dim), dtype=x.dtype)
 
             x = jax.lax.ragged_all_to_all(

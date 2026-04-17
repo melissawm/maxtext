@@ -1063,6 +1063,58 @@ class RoutedMoeTest(unittest.TestCase):
           jnp.array_equal(recv_sz, exp_recv_sz), f"Unsharded Batch: Receive sizes mismatch for shard {expert_shard_id}"
       )
 
+  def test_ragged_buffer_balanced(self):
+    ragged_buffer_factor = 1.0
+    local_batch = 32768
+    ep_degree = 4  # unused for ragged_factor>0
+    num_experts_per_tok = 8  # unused for ragged_factor>0
+    global_experts = 256  # unused for ragged_factor>0
+
+    expected_ragged_buffer = 32768
+    actual_ragged_buffer = moe.RoutedMoE.get_ragged_buffer_size(
+        local_batch, ep_degree, global_experts, num_experts_per_tok, ragged_buffer_factor
+    )
+    self.assertEqual(expected_ragged_buffer, actual_ragged_buffer)
+
+  def test_ragged_buffer_larger(self):
+    ragged_buffer_factor = 2.0
+    local_batch = 32768
+    ep_degree = 4  # unused for ragged_factor>0
+    num_experts_per_tok = 8  # unused for ragged_factor>0
+    global_experts = 256  # unused for ragged_factor>0
+
+    expected_ragged_buffer = 65536
+    actual_ragged_buffer = moe.RoutedMoE.get_ragged_buffer_size(
+        local_batch, ep_degree, global_experts, num_experts_per_tok, ragged_buffer_factor
+    )
+    self.assertEqual(expected_ragged_buffer, actual_ragged_buffer)
+
+  def test_small_ep_worst_case(self):
+    ragged_buffer_factor = -1.0  # Not using ragged_buffer_factor
+    local_batch = 32768
+    num_experts_per_tok = 8
+    global_experts = 256
+    ep_degree = 4
+
+    expected_ragged_buffer = 131072  # local_batch * ep_degree
+    actual_ragged_buffer = moe.RoutedMoE.get_ragged_buffer_size(
+        local_batch, ep_degree, global_experts, num_experts_per_tok, ragged_buffer_factor
+    )
+    self.assertEqual(expected_ragged_buffer, actual_ragged_buffer)
+
+  def test_large_ep_worst_case(self):
+    ragged_buffer_factor = -1.0  # Not using ragged_buffer_factor
+    local_batch = 32768
+    num_experts_per_tok = 8
+    global_experts = 256
+    ep_degree = 128
+
+    expected_ragged_buffer = 1048576  # (32768) * (global_exp / top_k)
+    actual_ragged_buffer = moe.RoutedMoE.get_ragged_buffer_size(
+        local_batch, ep_degree, global_experts, num_experts_per_tok, ragged_buffer_factor
+    )
+    self.assertEqual(expected_ragged_buffer, actual_ragged_buffer)
+
 
 if __name__ == "__main__":
   unittest.main()
