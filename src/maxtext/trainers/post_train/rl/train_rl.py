@@ -541,7 +541,7 @@ def create_rl_components(
           rollout_vllm_server_mode=trainer_config.rl.use_agentic_rollout,
           rollout_vllm_kwargs={
               "hf_overrides": trainer_config.vllm_hf_overrides,
-              "enable_expert_parallel": sampler_config.rollout_expert_parallelism > 1,
+              "enable_expert_parallel": sampler_config.enable_expert_parallel,
               "enable_prefix_caching": True,  # Enable prefix caching to speed up generation for long prompts
           },
           rollout_vllm_sampling_kwargs={
