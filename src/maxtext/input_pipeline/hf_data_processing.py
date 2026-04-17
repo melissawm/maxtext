@@ -217,6 +217,8 @@ def preprocessing_pipeline(
     max_segments_per_seq=None,
     num_epoch=1,
     chat_template: Optional[str] = None,
+    formatting_func_path: Optional[str] = None,
+    formatting_func_kwargs: Optional[dict] = None,
 ):
   """pipeline for preprocessing HF dataset"""
   import datasets  # pylint: disable=import-outside-toplevel
@@ -249,13 +251,19 @@ def preprocessing_pipeline(
   dataset = dataset.select_columns(data_column_names)
 
   if use_sft:
+    if not chat_template:
+      chat_template = instruction_data_processing.load_chat_template_from_file(chat_template_path)
+
     data_processing_utils.validate_and_configure_sft_columns(data_column_names, tokenizer, chat_template)
 
     # convert instruction dataset to conversational format
-    # currently only works for Q&A datasets
     dataset, data_column_names = instruction_data_processing.convert_to_conversational_format(
-        dataset=dataset, data_columns=data_column_names, chat_template_path=chat_template_path
+        dataset=dataset,
+        data_columns=data_column_names,
+        formatting_func_path=formatting_func_path,
+        formatting_func_kwargs=formatting_func_kwargs,
     )
+
     assert input_pipeline_utils.is_conversational(
         dataset.features, data_column_names
     ), "Dataset is not in conversational format."
@@ -427,6 +435,8 @@ def make_hf_train_iterator(
         max_segments_per_seq=config.max_segments_per_seq,
         num_epoch=config.num_epoch,
         chat_template=config.chat_template,
+        formatting_func_path=config.formatting_func_path,
+        formatting_func_kwargs=config.formatting_func_kwargs,
     )
   return train_iter
 
@@ -484,5 +494,7 @@ def make_hf_eval_iterator(
         chat_template_path=config.chat_template_path,
         max_segments_per_seq=config.max_segments_per_seq,
         chat_template=config.chat_template,
+        formatting_func_path=config.formatting_func_path,
+        formatting_func_kwargs=config.formatting_func_kwargs,
     )
   return eval_iter

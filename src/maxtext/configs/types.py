@@ -1133,6 +1133,14 @@ class FineTuning(BaseModel):
   sft_train_on_completion_only: bool = Field(
       False, description="If True, trains only on the completion part of the text."
   )
+  formatting_func_path: str = Field(
+      "",
+      description="Path to the custom data formatting function for SFT.",
+  )
+  formatting_func_kwargs: dict = Field(
+      default_factory=dict,
+      description="Keyword arguments to pass to the custom data formatting function for SFT.",
+  )
   use_grpo: None | bool = Field(None, description="If True, enables Group Relative Policy Optimization.")
 
 
