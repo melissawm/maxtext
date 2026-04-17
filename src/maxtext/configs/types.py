@@ -256,6 +256,7 @@ ModelName = Literal[
     "qwen3-480b-a35b",
     "qwen3-next-80b-a3b",
     "qwen3-omni-30b-a3b",
+    "qwen3-custom-30b-a3b",
     "gpt3-175b",
     "gpt3-22b",
     "gpt3-6b",
@@ -447,10 +448,15 @@ class ModelArchitecture(BaseModel):
   base_num_query_heads: int = Field(16, description="Base number of query heads.")
   base_num_kv_heads: int = Field(16, description="Base number of key/value heads.")
   base_mlp_dim: int = Field(7168, description="Base dimension of the MLP layer.")
+  dense_init_scale: float = Field(1.0, description="Initialization scale for dense layers")
   base_num_decoder_layers: int = Field(16, description="Base number of decoder layers.")
   head_dim: int = Field(
       128,
       description="Model query and key head dimension.",
+  )
+  attention_output_dim: int = Field(
+      -1,
+      description="Override output dimension for attention block if set to a positive value.",
   )
   global_head_dim: int = Field(
       0,
@@ -647,6 +653,11 @@ class MoEGeneral(BaseModel):
   num_experts_per_tok: PositiveInt = Field(1, description="The number of experts to route each token to.")
   capacity_factor: float = Field(-1.0, description="Expert capacity factor. If < 0, no token dropping.")
   ragged_buffer_factor: float = Field(-1.0, description="Ragged buffer factor. If < 0, ragged buffer is worst case size.")
+  moe_expert_input_dim: int = Field(
+      -1,
+      description="Dimension of tokens entering the MoE layer. If < 0, defaults to emb_dim.",
+  )
+  base_moe_mlp_dim: int = Field(-1, description="Intermediate dimension at MoE layer.")
   load_balance_loss_weight: NonNegativeFloat = Field(0.0, description="Weight for the load balancing auxiliary loss.")
   use_custom_sort_vjp: bool = Field(
       True,
@@ -737,7 +748,6 @@ class MoEKernels(BaseModel):
 class DeepSeekMoE(BaseModel):
   """Configuration specific to DeepSeek-style MoE layers."""
 
-  base_moe_mlp_dim: int = Field(7168, description="Intermediate dimension at MoE layer (DeepSeek style).")
   first_num_dense_layers: NonNegativeInt = Field(0, description="Number of initial dense layers in the model.")
   shared_experts: NonNegativeInt = Field(0, description="Number of shared experts.")
   routed_scaling_factor: float = Field(1.0, description="Scaling factor for routing scores.")
@@ -2557,6 +2567,8 @@ class MaxTextConfig(
             f"but got {self.engram_vocab_bases}."
         )
     if self.num_experts > 1:
+      if self.moe_mlp_dim <= 0:
+        raise ValueError("moe_mlp_dim must be positive for MoE models (num_experts > 1)")
       is_fully_moe = (
           self.interleave_moe_layer_step == 1
           and self.first_num_dense_layers == 0
@@ -2813,5 +2825,12 @@ class MaxTextConfig(
         self.constant_bound_config = [float(v.strip()) for v in constant_bound_config.split(",")]
       else:
         self.constant_bound_config = []
+
+    if self.decoder_block == DecoderBlockType.QWEN3_CUSTOM_MOE:
+      if self.moe_expert_input_dim != self.attention_output_dim:
+        raise ValueError(
+            f"For qwen3_custom_moe, moe_expert_input_dim ({self.moe_expert_input_dim}) "
+            f"must be equal to attention_output_dim ({self.attention_output_dim})"
+        )
 
     return self

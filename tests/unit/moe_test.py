@@ -218,6 +218,8 @@ class DeepSeekRoutingTest(unittest.TestCase):
         num_experts=16,
         num_experts_per_tok=4,
         sparse_matmul=True,
+        base_moe_mlp_dim=1024,
+        base_mlp_dim=1024,
         **extra_args,
     )
     self.rngs = nnx.Rngs(params=0)

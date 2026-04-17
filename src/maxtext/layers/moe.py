@@ -349,6 +349,10 @@ class RoutedMoE(nnx.Module):
     self.quant = quant
     self.rngs = rngs
 
+    self.moe_expert_input_dim = (
+        self.config.emb_dim if self.config.moe_expert_input_dim <= 0 else self.config.moe_expert_input_dim
+    )
+
     if self.config.shard_exp_on_fsdp:
       # special sharding for dsv3
       self.wi_kernel_axes = ("embed_moe", None, "mlp_moe")
@@ -374,7 +378,7 @@ class RoutedMoE(nnx.Module):
       self._expert_parallelism_name = "expert"
 
     self.gate = GateLogit(
-        in_features_shape=self.config.emb_dim,
+        in_features_shape=self.moe_expert_input_dim,
         out_features_shape=self.num_experts,
         mesh=self.mesh,
         model_name=self.config.model_name,
@@ -400,14 +404,14 @@ class RoutedMoE(nnx.Module):
       # During aqt convert state we delete kernel weight from params to save
       # memory. Instead they are retrieved from the tensors stored in the 'aqt'
       # collection.
-      self.wi_0 = jnp.zeros((num_experts, self.config.emb_dim, intermediate_dim))
-      self.wi_1 = jnp.zeros((num_experts, self.config.emb_dim, intermediate_dim))
-      self.wo = jnp.zeros((num_experts, intermediate_dim, self.config.emb_dim))
+      self.wi_0 = jnp.zeros((num_experts, self.moe_expert_input_dim, intermediate_dim))
+      self.wi_1 = jnp.zeros((num_experts, self.moe_expert_input_dim, intermediate_dim))
+      self.wo = jnp.zeros((num_experts, intermediate_dim, self.moe_expert_input_dim))
     else:
       self.wi_0 = nnx.Param(
           self.kernel_init(
               self.rngs.params(),
-              (num_experts, self.config.emb_dim, intermediate_dim),
+              (num_experts, self.moe_expert_input_dim, intermediate_dim),
               weight_dtype,
               kernel_in_axis,
               kernel_out_axis,
@@ -417,7 +421,7 @@ class RoutedMoE(nnx.Module):
       self.wi_1 = nnx.Param(
           self.kernel_init(
               self.rngs.params(),
-              (num_experts, self.config.emb_dim, intermediate_dim),
+              (num_experts, self.moe_expert_input_dim, intermediate_dim),
               weight_dtype,
               kernel_in_axis,
               kernel_out_axis,
@@ -427,7 +431,7 @@ class RoutedMoE(nnx.Module):
       self.wo = nnx.Param(
           self.kernel_init(
               self.rngs.params(),
-              (self.num_experts, self.intermediate_dim, self.config.emb_dim),
+              (self.num_experts, self.intermediate_dim, self.moe_expert_input_dim),
               self.weight_dtype,
               kernel_in_axis,
               kernel_out_axis,
@@ -439,7 +443,7 @@ class RoutedMoE(nnx.Module):
       wi_bias_axes = ("exp", "activation_mlp")
       wo_bias_axes = ("exp", "activation_embed")
       wi_bias_shape = (self.num_experts, self.intermediate_dim)
-      wo_bias_shape = (self.num_experts, self.config.emb_dim)
+      wo_bias_shape = (self.num_experts, self.moe_expert_input_dim)
       self.wi_0_bias = nnx.Param(
           default_bias_init(self.rngs.params(), wi_bias_shape, self.weight_dtype),
           sharding=wi_bias_axes,
@@ -1208,7 +1212,7 @@ class RoutedMoE(nnx.Module):
                 self.config.num_experts_per_tok,
                 self.config.ragged_buffer_factor,
             )
-            output_shape = jax.lax.empty((buffer_size, self.config.emb_dim), dtype=x.dtype)
+            output_shape = jax.lax.empty((buffer_size, self.moe_expert_input_dim), dtype=x.dtype)
 
             x = jax.lax.ragged_all_to_all(
                 x,
@@ -1345,7 +1349,9 @@ class RoutedMoE(nnx.Module):
         )
 
         # Sum up the partial outputs across the expert shards.
-        output = jnp.reshape(output, (-1, sequence_length, self.config.emb_dim // self.get_tensor_parallelism_size()))
+        output = jnp.reshape(
+            output, (-1, sequence_length, self.moe_expert_input_dim // self.get_tensor_parallelism_size())
+        )
         output = jax.lax.psum_scatter(output, self._expert_parallelism_name, scatter_dimension=0, tiled=True)
 
       else:
@@ -1356,7 +1362,7 @@ class RoutedMoE(nnx.Module):
           output_shape = jax.lax.empty(
               (
                   original_inputs_first_dim,
-                  self.config.emb_dim // self.get_tensor_parallelism_size(),
+                  self.moe_expert_input_dim // self.get_tensor_parallelism_size(),
               ),
               dtype=intermediate_output.dtype,
           )
@@ -2112,6 +2118,10 @@ class RoutedAndSharedMoE(nnx.Module):
     self.dtype = dtype
     self.quant = quant
     self.rngs = rngs
+    self.moe_expert_input_dim = (
+        self.config.emb_dim if self.config.moe_expert_input_dim <= 0 else self.config.moe_expert_input_dim
+    )
+
     # NOTE: the name MoeBlock_0 is to ensure reverse compatibility with
     # existing checkpoints for routed experts.
     self.MoeBlock_0 = RoutedMoE(
@@ -2119,7 +2129,7 @@ class RoutedAndSharedMoE(nnx.Module):
         num_experts=self.config.num_experts,
         num_experts_per_tok=self.config.num_experts_per_tok,
         mesh=self.mesh,
-        kernel_init=nd_dense_init(1.0, "fan_in", "truncated_normal"),
+        kernel_init=self.kernel_init,
         kernel_axes=("embed_moe", None),
         intermediate_dim=self.config.moe_mlp_dim,
         dtype=self.config.dtype,
@@ -2133,9 +2143,10 @@ class RoutedAndSharedMoE(nnx.Module):
     )
     self.shared_experts = linears.MlpBlock(
         mesh=self.mesh,
-        in_features=self.config.emb_dim,
+        in_features=self.moe_expert_input_dim,
         intermediate_dim=self.config.shared_experts * shared_expert_mlp_dim,
         activations=self.config.mlp_activations,
+        kernel_init=self.kernel_init,
         intermediate_dropout_rate=self.config.dropout_rate,
         dtype=self.config.dtype,
         weight_dtype=self.config.weight_dtype,

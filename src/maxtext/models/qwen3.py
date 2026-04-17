@@ -785,7 +785,7 @@ class Qwen3NextSparseMoeBlock(nnx.Module):
         num_experts=cfg.num_experts,
         num_experts_per_tok=cfg.num_experts_per_tok,
         mesh=self.mesh,
-        kernel_init=max_initializers.nd_dense_init(1.0, "fan_in", "truncated_normal"),
+        kernel_init=max_initializers.nd_dense_init(cfg.dense_init_scale, "fan_in", "truncated_normal"),
         kernel_axes=("embed", None),
         intermediate_dim=cfg.moe_mlp_dim,
         dtype=cfg.dtype,
@@ -815,7 +815,7 @@ class Qwen3NextSparseMoeBlock(nnx.Module):
         out_features_shape=1,
         use_bias=False,  # Qwen3-Next shared_expert_gate does not have a bias
         dtype=cfg.dtype,
-        kernel_init=max_initializers.nd_dense_init(1.0, "fan_in", "truncated_normal"),
+        kernel_init=max_initializers.nd_dense_init(cfg.dense_init_scale, "fan_in", "truncated_normal"),
         kernel_axes=("embed", None),
         matmul_precision=cfg.matmul_precision,
         rngs=rngs,
@@ -1261,7 +1261,7 @@ class Qwen3MoeDecoderLayer(AttentionWithNorm):
         num_experts=config.num_experts,
         num_experts_per_tok=config.num_experts_per_tok,
         mesh=mesh,
-        kernel_init=max_initializers.nd_dense_init(1.0, "fan_in", "truncated_normal"),
+        kernel_init=max_initializers.nd_dense_init(config.dense_init_scale, "fan_in", "truncated_normal"),
         kernel_axes=("embed", None),
         intermediate_dim=config.moe_mlp_dim,  # same as config.mlp_dim
         dtype=config.dtype,
@@ -1923,7 +1923,7 @@ class Qwen3OmniAudioEncoderLayer(nnx.Module):
         in_features=self.config.d_model_for_audio,
         intermediate_dim=self.config.encoder_ffn_dim_for_audio,
         activations=("gelu",),  # Single GELU activation
-        kernel_init=max_initializers.nd_dense_init(1.0, "fan_in", "truncated_normal"),
+        kernel_init=max_initializers.nd_dense_init(self.config.dense_init_scale, "fan_in", "truncated_normal"),
         intermediate_dropout_rate=0.0,  # No dropout to match AudioMLP
         dtype=self.config.dtype_mm,
         weight_dtype=self.config.weight_dtype,
@@ -2039,7 +2039,7 @@ class Qwen3OmniAudioEncoder(nnx.Module):
         use_bias=False,
         dtype=self.config.dtype_mm,
         weight_dtype=self.config.weight_dtype,
-        kernel_init=nd_dense_init(1.0, "fan_in", "normal"),
+        kernel_init=nd_dense_init(self.config.dense_init_scale, "fan_in", "normal"),
         matmul_precision=self.config.matmul_precision,
         rngs=self.rngs,
     )
@@ -2130,7 +2130,7 @@ class Qwen3OmniAudioProjector(nnx.Module):
         use_bias=True,
         dtype=config.dtype_mm,
         weight_dtype=config.weight_dtype,
-        kernel_init=nd_dense_init(1.0, "fan_in", "normal"),
+        kernel_init=nd_dense_init(config.dense_init_scale, "fan_in", "normal"),
         matmul_precision=config.matmul_precision,
         rngs=rngs,
     )
@@ -2141,7 +2141,7 @@ class Qwen3OmniAudioProjector(nnx.Module):
         use_bias=True,
         dtype=config.dtype_mm,
         weight_dtype=config.weight_dtype,
-        kernel_init=nd_dense_init(1.0, "fan_in", "normal"),
+        kernel_init=nd_dense_init(config.dense_init_scale, "fan_in", "normal"),
         matmul_precision=config.matmul_precision,
         rngs=rngs,
     )
