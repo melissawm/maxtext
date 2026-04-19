@@ -1027,6 +1027,7 @@ class TrainDistillTest(unittest.TestCase):
     mock_student_cfg.eval_interval = -1
     mock_student_cfg.gradient_accumulation_steps = 1
     mock_student_cfg.global_batch_size = 8
+    mock_student_cfg.data_sharding = ("fsdp",)
 
     # Add dummy numbers for strategy math/logic
     mock_student_cfg.distill_temperature = 1.0
@@ -1116,6 +1117,7 @@ class TrainDistillTest(unittest.TestCase):
     mock_student_cfg.eval_interval = -1
     mock_student_cfg.gradient_accumulation_steps = 1
     mock_student_cfg.global_batch_size = 8
+    mock_student_cfg.data_sharding = ("fsdp",)
 
     # Add dummy numbers for strategy math/logic
     mock_student_cfg.distill_temperature = 1.0
