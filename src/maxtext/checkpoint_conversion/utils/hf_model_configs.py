@@ -20,7 +20,7 @@ This config defines the architectural configurations of the Hugging Face version
 import transformers
 
 if transformers.__version__ >= "5.0.0":
-  from transformers.configuration_utils import PreTrainedConfig as PTConfig
+  from transformers.configuration_utils import PreTrainedConfig as PTConfig  # pytype: disable=import-error
 else:
   from transformers.configuration_utils import PretrainedConfig as PTConfig
 
@@ -151,8 +151,8 @@ try:
   gemma4_31b_config = transformers.Gemma4Config(**gemma4_31b_dict)
 except AttributeError:
   # Graceful fallback to raw dict-based PTConfig if Gemma 4 natively is missing
-  gemma4_26b_config = PTConfig(**gemma4_26b_dict)
-  gemma4_31b_config = PTConfig(**gemma4_31b_dict)
+  gemma4_26b_config = PTConfig(**gemma4_26b_dict)  # pytype: disable=wrong-arg-types
+  gemma4_31b_config = PTConfig(**gemma4_31b_dict)  # pytype: disable=wrong-arg-types
 
 
 gemma3_4b_config = transformers.Gemma3Config(
