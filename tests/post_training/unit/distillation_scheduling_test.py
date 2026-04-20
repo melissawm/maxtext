@@ -60,6 +60,13 @@ def _make_labels(vocab_size=4):
   return jax.nn.one_hot(jnp.array([[0, 1]]), vocab_size)
 
 
+def _mean(pair):
+  """Unpacks a (sum, count) metric tuple into a scalar mean value."""
+  s, c = pair
+  c_val = float(c)
+  return float(s) / c_val if c_val > 0 else float(s)
+
+
 # pylint: disable=protected-access
 class ComputeScheduleTest(unittest.TestCase):
   """Tests for the compute_schedule utility function."""
@@ -200,18 +207,18 @@ class StrategySchedulingTest(unittest.TestCase):
 
     # Step 0
     _, m0 = strategy.compute_loss(student, teacher, labels, step=jnp.array(0))
-    np.testing.assert_allclose(m0["distill/alpha"], 0.8, atol=1e-5)
-    np.testing.assert_allclose(m0["distill/temperature"], 2.0, atol=1e-5)
+    np.testing.assert_allclose(_mean(m0["distill/alpha"]), 0.8, atol=1e-5)
+    np.testing.assert_allclose(_mean(m0["distill/temperature"]), 2.0, atol=1e-5)
 
     # Step 50
     _, m50 = strategy.compute_loss(student, teacher, labels, step=jnp.array(50))
-    np.testing.assert_allclose(m50["distill/alpha"], 0.5, atol=1e-5)
-    np.testing.assert_allclose(m50["distill/temperature"], 1.5, atol=1e-5)
+    np.testing.assert_allclose(_mean(m50["distill/alpha"]), 0.5, atol=1e-5)
+    np.testing.assert_allclose(_mean(m50["distill/temperature"]), 1.5, atol=1e-5)
 
     # Step 100
     _, m100 = strategy.compute_loss(student, teacher, labels, step=jnp.array(100))
-    np.testing.assert_allclose(m100["distill/alpha"], 0.2, atol=1e-5)
-    np.testing.assert_allclose(m100["distill/temperature"], 1.0, atol=1e-5)
+    np.testing.assert_allclose(_mean(m100["distill/alpha"]), 0.2, atol=1e-5)
+    np.testing.assert_allclose(_mean(m100["distill/temperature"]), 1.0, atol=1e-5)
 
   def test_cosine_alpha_at_strategy_level(self):
     """Cosine alpha at 25% matches the expected cosine value (not linear)."""
@@ -231,7 +238,7 @@ class StrategySchedulingTest(unittest.TestCase):
     labels = _make_labels()
 
     _, metrics = strategy.compute_loss(student, teacher, labels, step=jnp.array(25))
-    np.testing.assert_allclose(metrics["distill/alpha"], 0.8535533, atol=1e-4)
+    np.testing.assert_allclose(_mean(metrics["distill/alpha"]), 0.8535533, atol=1e-4)
 
   def test_step_none_uses_fixed_values(self):
     """When step is None, fixed initial values are used even if schedules are configured."""
@@ -251,8 +258,8 @@ class StrategySchedulingTest(unittest.TestCase):
     labels = _make_labels()
 
     _, metrics = strategy.compute_loss(student, teacher, labels)
-    np.testing.assert_allclose(metrics["distill/alpha"], 0.8, atol=1e-5)
-    np.testing.assert_allclose(metrics["distill/temperature"], 2.0, atol=1e-5)
+    np.testing.assert_allclose(_mean(metrics["distill/alpha"]), 0.8, atol=1e-5)
+    np.testing.assert_allclose(_mean(metrics["distill/temperature"]), 2.0, atol=1e-5)
 
   def test_beta_schedule_with_feature_loss(self):
     """Beta scheduling with actual L2 feature loss: feature_loss scales proportionally."""
@@ -282,22 +289,22 @@ class StrategySchedulingTest(unittest.TestCase):
 
     # Step 0: beta=1.0
     _, m0 = strategy.compute_loss(student, teacher, labels, step=jnp.array(0))
-    self.assertGreater(float(m0["distill/out_proj_feature_loss"]), 0.0)
-    np.testing.assert_allclose(m0["distill/beta_feature"], 1.0, atol=1e-5)
+    self.assertGreater(_mean(m0["distill/out_proj_feature_loss"]), 0.0)
+    np.testing.assert_allclose(_mean(m0["distill/beta_feature"]), 1.0, atol=1e-5)
 
     # Step 50: beta=0.5, feature loss should be half
     _, m50 = strategy.compute_loss(student, teacher, labels, step=jnp.array(50))
-    np.testing.assert_allclose(m50["distill/beta_feature"], 0.5, atol=1e-5)
+    np.testing.assert_allclose(_mean(m50["distill/beta_feature"]), 0.5, atol=1e-5)
     np.testing.assert_allclose(
-        float(m50["distill/out_proj_feature_loss"]),
-        float(m0["distill/out_proj_feature_loss"]) * 0.5,
+        _mean(m50["distill/out_proj_feature_loss"]),
+        _mean(m0["distill/out_proj_feature_loss"]) * 0.5,
         atol=1e-5,
     )
 
     # Step 100: beta=0.0, feature loss should be zero
     _, m100 = strategy.compute_loss(student, teacher, labels, step=jnp.array(100))
-    np.testing.assert_allclose(m100["distill/beta_feature"], 0.0, atol=1e-5)
-    np.testing.assert_allclose(float(m100["distill/out_proj_feature_loss"]), 0.0, atol=1e-5)
+    np.testing.assert_allclose(_mean(m100["distill/beta_feature"]), 0.0, atol=1e-5)
+    np.testing.assert_allclose(_mean(m100["distill/out_proj_feature_loss"]), 0.0, atol=1e-5)
 
   def test_alpha_schedule_affects_total_loss(self):
     """Alpha=1.0 gives pure soft_loss; alpha=0.0 gives pure hard_loss; they differ."""
@@ -318,11 +325,11 @@ class StrategySchedulingTest(unittest.TestCase):
 
     # alpha=1.0 -> total = soft_loss
     loss_start, m_start = strategy.compute_loss(student, teacher, labels, step=jnp.array(0))
-    np.testing.assert_allclose(float(loss_start), float(m_start["distill/soft_loss"]), atol=1e-5)
+    np.testing.assert_allclose(float(loss_start), _mean(m_start["distill/soft_loss"]), atol=1e-5)
 
     # alpha=0.0 -> total = hard_loss
     loss_end, m_end = strategy.compute_loss(student, teacher, labels, step=jnp.array(100))
-    np.testing.assert_allclose(float(loss_end), float(m_end["distill/hard_loss"]), atol=1e-5)
+    np.testing.assert_allclose(float(loss_end), _mean(m_end["distill/hard_loss"]), atol=1e-5)
 
     # The two should differ
     self.assertNotAlmostEqual(float(loss_start), float(loss_end), places=2)
@@ -589,8 +596,8 @@ class TemperatureScheduleEffectTest(unittest.TestCase):
 
     # Different temperatures must produce different soft_loss values
     self.assertNotAlmostEqual(
-        float(m_high_temp["distill/soft_loss"]),
-        float(m_low_temp["distill/soft_loss"]),
+        _mean(m_high_temp["distill/soft_loss"]),
+        _mean(m_low_temp["distill/soft_loss"]),
         places=1,
         msg="Temperature schedule should change soft_loss, not just the metric value",
     )

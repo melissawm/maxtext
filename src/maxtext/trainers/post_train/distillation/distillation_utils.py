@@ -18,25 +18,25 @@ This module contains adapter classes that bridge MaxText's data loading and
 model structures with Tunix's training interfaces.
 """
 
-import pickle
-import tensorflow as tf
-from array_record.python import array_record_module
-
 import abc
-from typing import Any, Iterator, Optional, List, Callable, Literal
+import pickle
+from typing import Any, Callable, Iterator, List, Literal, Optional, Sequence
 
 import flax
 from flax import nnx
 import jax
 import jax.numpy as jnp
+import numpy as np
 import optax
+import tensorflow as tf
+from array_record.python import array_record_module
 from orbax import checkpoint
 
 from maxtext.utils import max_logging
 # Reuse MaxText's native checkpointing logic
 from maxtext.common.checkpointing import GrainCheckpointHandler, GrainCheckpointSave, GrainCheckpointRestore
-from tunix.sft import peft_trainer
 from tunix.sft import checkpoint_manager as tunix_checkpoint_manager
+from tunix.sft import peft_trainer
 
 
 # -----------------------------------------------------------------------------
@@ -184,6 +184,11 @@ class MaxTextToTunixIterator:
 # Distillation Strategy
 # -----------------------------------------------------------------------------
 
+# Clamp CE before exp() so a divergence spike doesn't poison PPL averages
+# with inf. 20 nats is well above plausible CE (Llama random-init ~11.76)
+# and far below fp32 exp overflow (~88).
+_PPL_CE_CAP = 20.0
+
 
 def compute_schedule(
     step: jax.Array,
@@ -215,6 +220,33 @@ def compute_schedule(
     return end_value + (start_value - end_value) * 0.5 * (1.0 + jnp.cos(jnp.pi * progress))
   else:
     raise ValueError(f"Unsupported schedule_type: {schedule_type!r}. Must be 'constant', 'linear', or 'cosine'.")
+
+
+def weighted_mean(sum_count_pairs: Sequence[tuple[Any, Any]] | np.ndarray) -> float:
+  """Aggregates `(sum, count)` pairs into a single token-weighted mean.
+
+  Used as the aggregation function for metrics emitted by `compute_loss` and
+  `compute_eval_loss`. Robust to per-host imbalance and to varying valid-token
+  counts across logging steps:
+    final_value = sum(sums) / sum(counts)
+
+  Accepts either a list of (sum, count) tuples or an ndarray of shape (N, 2).
+  Tunix's metrics writer can pass either form, so we normalize here.
+
+  Returns 0.0 for an empty input or when total count is non-positive.
+  """
+  arr = np.asarray(sum_count_pairs, dtype=np.float32)
+  if arr.size == 0:
+    return 0.0
+  # Normalize shape. Single pair -> (1, 2); list of pairs -> (N, 2).
+  if arr.ndim == 1:
+    arr = arr.reshape(1, -1)
+  if arr.ndim != 2 or arr.shape[1] != 2:
+    return 0.0
+  total = float(arr[:, 1].sum())
+  if total <= 0.0:
+    return 0.0
+  return float(arr[:, 0].sum() / total)
 
 
 class DistillationStrategy(abc.ABC):
@@ -312,15 +344,14 @@ class CombinedDistillationStrategy(DistillationStrategy):
     Args:
         student_forward_fn: Function to compute student model outputs.
         teacher_forward_fn: Function to compute teacher model outputs.
-        labels_fn: Function to compute labels from model inputs.
         temperature: Temperature for softening probabilities (> 0).
         alpha: Weight to balance distillation loss and task loss (0.0 to 1.0).
         beta_feature: Weight to balance feature loss (0.0 to 1.0). 0.0 disables feature loss.
         layer_indices: Layer indices to apply feature loss.
         feature_loss_type: The type of feature loss to use if `feature_loss_fn` is None.
           Can be "cosine" (default) or "l2".
-        feature_loss_fn: A function that takes two jax. Arrays (student_map,
-          teacher_map) and returns a scalar loss. Defaults to Cosine Distance.
+        feature_loss_fn: A function that takes two jax.Arrays (student_map,
+          teacher_map) and returns a scalar loss. Defaults to cosine distance.
         cosine_distance_axis: The axis to use for cosine distance computation if
           feature_loss_fn is not provided. Defaults to -1.
         alpha_end: Target alpha value at end of training. None keeps alpha fixed.
@@ -418,18 +449,19 @@ class CombinedDistillationStrategy(DistillationStrategy):
       teacher_output: DistillationForwardOutput,
       labels: jax.Array,
       step: jax.Array | None = None,
-  ) -> tuple[jax.Array, dict[str, jax.Array]]:
-    """Computes Loss and Auxiliary Metrics."""
+  ) -> tuple[jax.Array, dict[str, tuple[jax.Array, jax.Array]]]:
+    """Computes Loss and Auxiliary Metrics.
+
+    Metrics are emitted as (sum, count) pairs so that they can be aggregated
+    across hosts and across logging windows in a token-weighted (unbiased) way:
+    final_value = sum(sums) / sum(counts).
+    """
     # Resolve scheduled weights for this step
     alpha, temperature, beta_feature = self._get_scheduled_weights(step)
 
-    # Calculate Distillation Loss (KL Divergence)
-    # Scale logits by temperature T for soft targets
-    # We use explicit float32 casting for stability in loss calculation
     s_logits = student_output.logits.astype(jnp.float32)
     t_logits = teacher_output.logits.astype(jnp.float32)
 
-    # Shape: [num_layers, batch, seq, hidden_dim]
     s_features = student_output.out_projection_activations
     t_features = teacher_output.out_projection_activations
 
@@ -439,34 +471,42 @@ class CombinedDistillationStrategy(DistillationStrategy):
           "Ensure the model architecture supports feature extraction (e.g., 'out_projection_activations' is sowed)."
       )
 
-    log_student_probs_temp = jax.nn.log_softmax(s_logits / temperature, axis=-1)
-    teacher_probs_temp = jax.nn.softmax(t_logits / temperature, axis=-1)
-    # labels are supposed to have all sft masks applied by this moment
-    labels_mask = jnp.any(labels != 0, axis=-1, keepdims=True)
-    mean_mask = jnp.squeeze(labels_mask, axis=-1)
+    # Per-token validity mask, derived from the one-hot labels so we don't need
+    # a separate mask input. A padded (fully-zero) row yields `any != 0 == False`.
+    mask = jnp.any(labels != 0, axis=-1).astype(jnp.float32)  # [B, T]
+    valid_count = jnp.sum(mask)
+    safe_count = jnp.maximum(valid_count, 1.0)
 
-    # KL(Teacher || Student)
-    kl_div = optax.kl_divergence(log_student_probs_temp, teacher_probs_temp, where=labels_mask)
+    # --- Soft loss: KL on temperature-softened distributions ---
+    log_s_T = jax.nn.log_softmax(s_logits / temperature, axis=-1)
+    t_p_T = jax.nn.softmax(t_logits / temperature, axis=-1)
+    # KL(teacher || student) per position. optax.kl_divergence(log_pred, target) = KL(target || pred).
+    kl_softened_per_pos = optax.kl_divergence(log_s_T, t_p_T)  # [B, T]
+    kl_softened_sum = jnp.sum(kl_softened_per_pos * mask)
+    # Scale by T^2 (Hinton). Apply once at the loss; logged metric is the scaled sum too.
+    soft_loss_sum_scaled = kl_softened_sum * (temperature**2)
+    soft_loss_mean = soft_loss_sum_scaled / safe_count
 
-    # Scale gradients by T^2 (Hinton et al.)
-    soft_loss = jnp.mean(kl_div, where=mean_mask) * (temperature**2)
+    # --- Hard loss: student CE against ground-truth ---
+    ce_student_per_pos = optax.softmax_cross_entropy(logits=s_logits, labels=labels)
+    ce_student_sum = jnp.sum(ce_student_per_pos * mask)
+    hard_loss_mean = ce_student_sum / safe_count
 
-    # 1. Student Hard Loss (Existing)
-    ce_loss_student = optax.softmax_cross_entropy(logits=s_logits, labels=labels, where=labels_mask)
-    hard_loss = jnp.mean(ce_loss_student, where=mean_mask)
+    # --- Teacher CE (verification metric) ---
+    ce_teacher_per_pos = optax.softmax_cross_entropy(logits=t_logits, labels=labels)
+    ce_teacher_sum = jnp.sum(ce_teacher_per_pos * mask)
 
-    # 2. Teacher Hard Loss (For Verification)
-    ce_loss_teacher = optax.softmax_cross_entropy(logits=t_logits, labels=labels, where=labels_mask)
-    teacher_hard_loss = jnp.mean(ce_loss_teacher, where=mean_mask)
+    # --- Always-T=1 KL for cross-run / cross-anneal comparability ---
+    log_s_1 = jax.nn.log_softmax(s_logits, axis=-1)
+    t_p_1 = jax.nn.softmax(t_logits, axis=-1)
+    kl_t1_per_pos = optax.kl_divergence(log_s_1, t_p_1)
+    kl_t1_sum = jnp.sum(kl_t1_per_pos * mask)
 
-    # 3. Combine losses
-    base_logit_loss = (alpha * soft_loss) + ((1.0 - alpha) * hard_loss)
+    base_logit_loss = (alpha * soft_loss_mean) + ((1.0 - alpha) * hard_loss_mean)
 
-    feature_loss = jnp.array(0.0)
+    feature_loss = jnp.array(0.0, dtype=jnp.float32)
     if self.beta_feature > 0.0:
-
       if self.layer_indices is not None:
-        # jnp.take slices along axis=0 (the layer dimension)
         s_features_sliced = jnp.take(s_features, self.layer_indices, axis=0)
         t_features_sliced = jnp.take(t_features, self.layer_indices, axis=0)
       else:
@@ -480,17 +520,35 @@ class CombinedDistillationStrategy(DistillationStrategy):
 
     total_loss = base_logit_loss + feature_loss
 
-    # 4. Return Loss AND Metrics (log dynamic values for TensorBoard verification)
-    metrics = {
-        "distill/soft_loss": soft_loss,
-        "distill/hard_loss": hard_loss,
-        "distill/kl_div": jnp.mean(kl_div, where=mean_mask),
-        "distill/teacher_loss": teacher_hard_loss,
-        "distill/out_proj_feature_loss": feature_loss,
-        "distill/total_loss": total_loss,
-        "distill/temperature": temperature,
-        "distill/alpha": alpha,
-        "distill/beta_feature": beta_feature,
+    # Per-step next-token perplexity. Note: this is mean(exp(per-step CE)), not
+    # exp(window-CE-mean) — close to true perplexity in steady state. For the exact
+    # perplexity over a logging window compute exp(distill/hard_loss) on the TB side.
+    teacher_loss_mean = ce_teacher_sum / safe_count
+    student_perplexity_step = jnp.exp(jnp.minimum(hard_loss_mean, _PPL_CE_CAP))
+    teacher_perplexity_step = jnp.exp(jnp.minimum(teacher_loss_mean, _PPL_CE_CAP))
+
+    one = jnp.array(1.0, dtype=jnp.float32)
+    metrics: dict[str, tuple[jax.Array, jax.Array]] = {
+        # Token-weighted: emit (sum, valid_count) so multi-host averaging is unbiased.
+        "distill/soft_loss": (soft_loss_sum_scaled, valid_count),
+        "distill/hard_loss": (ce_student_sum, valid_count),
+        "distill/teacher_loss": (ce_teacher_sum, valid_count),
+        # Next-token prediction perplexity (per-step approximation of exp(hard_loss)).
+        # The headline `_train_perplexity` Tunix prints is exp(total_loss) which for
+        # distillation is exp(α·soft + (1-α)·hard + β·feature) and NOT next-token PPL.
+        "distill/student_perplexity": (student_perplexity_step, one),
+        "distill/teacher_perplexity": (teacher_perplexity_step, one),
+        # KL at the current (scheduled) temperature T, without the T^2 scaling
+        # that soft_loss applies. Pair with kl_div_T1 to compare T vs T=1.
+        "distill/kl_div_at_T": (kl_softened_sum, valid_count),
+        # KL at T=1: comparable across runs / annealing schedules.
+        "distill/kl_div_T1": (kl_t1_sum, valid_count),
+        # Per-step quantities: (value, 1.0) so the aggregator yields a simple mean over steps.
+        "distill/out_proj_feature_loss": (feature_loss, one),
+        "distill/total_loss": (total_loss, one),
+        "distill/temperature": (temperature, one),
+        "distill/alpha": (alpha, one),
+        "distill/beta_feature": (beta_feature, one),
     }
     return total_loss, metrics
 
@@ -498,19 +556,23 @@ class CombinedDistillationStrategy(DistillationStrategy):
       self,
       student_output: DistillationForwardOutput,
       labels: jax.Array,
-  ) -> tuple[jax.Array, dict[str, jax.Array]]:
-    """Computes Eval Loss and returns empty aux dict (required for consistency)."""
-    # Parent logic for task loss
-    # We re-implement simple CE here to ensure float32 casting
+  ) -> tuple[jax.Array, dict[str, tuple[jax.Array, jax.Array]]]:
+    """Computes Eval Loss. Returns (loss, metrics) with (sum, count) metric pairs."""
     s_logits = student_output.logits.astype(jnp.float32)
 
-    labels_mask = jnp.any(labels != 0, axis=-1, keepdims=True)
-    mean_mask = jnp.squeeze(labels_mask, axis=-1)
-    ce_loss = optax.softmax_cross_entropy(logits=s_logits, labels=labels, where=labels_mask)
-    task_loss = jnp.mean(ce_loss, where=mean_mask)
+    mask = jnp.any(labels != 0, axis=-1).astype(jnp.float32)
+    valid_count = jnp.sum(mask)
+    safe_count = jnp.maximum(valid_count, 1.0)
 
-    # Must return a tuple because _has_aux=True expects it
-    return task_loss, {}
+    ce_per_pos = optax.softmax_cross_entropy(logits=s_logits, labels=labels)
+    ce_sum = jnp.sum(ce_per_pos * mask)
+    task_loss = ce_sum / safe_count
+
+    metrics = {
+        "eval/hard_loss": (ce_sum, valid_count),
+        "eval/student_perplexity": (jnp.exp(jnp.minimum(task_loss, _PPL_CE_CAP)), jnp.array(1.0, dtype=jnp.float32)),
+    }
+    return task_loss, metrics
 
   def create_labels(self, targets, targets_segmentation=None, **kwargs):
     """Converts integer targets to masked one-hot vectors for hard label loss."""
@@ -574,11 +636,13 @@ class MaxTextCheckpointManager(tunix_checkpoint_manager.CheckpointManager):
     if not force and not self._checkpoint_manager.should_save(step):
       return False
 
-    # Standard Tunix Logic for Model/Optimizer
+    # Standard Tunix Logic for Model/Optimizer.
+    # Accept either a ModelBundle (common path) or a plain nnx module.
+    target_model = getattr(model, "student_model", model)
     if save_only_lora_params:
-      params = nnx.state(model.student_model, nnx.LoRAParam)
+      params = nnx.state(target_model, nnx.LoRAParam)
     else:
-      params = nnx.state(model.student_model)
+      params = nnx.state(target_model)
 
     # Define standard SaveArgs once to reuse
     default_save_args = checkpoint.SaveArgs()
@@ -625,71 +689,27 @@ class MaxTextCheckpointManager(tunix_checkpoint_manager.CheckpointManager):
       optimizer: Any = None,
       restore_only_lora_params: bool = False,
   ) -> tuple[int, dict[str, Any]]:
-    """Restores model and optimizer state if a checkpoint exists, using correct sharding specs.
+    """Restores model + optimizer by delegating to upstream Tunix.
 
-    This method checks for the latest available checkpoint. If found, it restores the
-    model parameters and optionally the optimizer state in-place. It automatically
-    maps the parameter's `sharding` attributes to Orbax restore arguments to ensure
-    the tensors are placed on the correct device meshes.
-
-    Args:
-      model: The model to restore. If a `ModelBundle` is provided, it automatically
-        extracts and restores only the `student_model`.
-      optimizer: The optimizer state to restore. If None, optimizer restoration is skipped.
-      restore_only_lora_params: If True, restricts restoration to parameters marked
-        as `nnx.LoRAParam`.
+    Unwraps `ModelBundle` if present (we only restore `student_model`).
 
     Returns:
-      A tuple containing the restored step number (0 if no checkpoint was found)
-      and a dictionary of custom metadata.
+      (restored step, custom_metadata dict). Step is 0 if no checkpoint exists.
     """
     if self._checkpoint_manager is None:
       return 0, {}
 
-    step = self._checkpoint_manager.latest_step()
-    if step is None:
-      return 0, {}
-
-    max_logging.log(f"Restoring from checkpoint step {step}...")
-
-    # Extract student model safely
     target_model = getattr(model, "student_model", model)
 
-    if restore_only_lora_params:
-      params = nnx.state(target_model, nnx.LoRAParam)
-    else:
-      params = nnx.state(target_model)
-
-    def map_to_pspec(data):
-      if hasattr(data, "sharding"):
-        return checkpoint.type_handlers.ArrayRestoreArgs(sharding=data.sharding)
-      return None
-
-    restore_args = jax.tree.map(map_to_pspec, params)
-
-    cp_restore_args = {
-        "model_params": checkpoint.args.PyTreeRestore(
-            item=params,
-            restore_args=restore_args,
-        )
-    }
-
-    if optimizer is not None:
-      optimizer_state = nnx.state(optimizer, nnx.optimizer.OptState)
-      opt_restore_args = jax.tree.map(map_to_pspec, optimizer_state)
-      cp_restore_args["optimizer_state"] = checkpoint.args.PyTreeRestore(
-          item=optimizer_state,
-          restore_args=opt_restore_args,
-      )
-
-    restored = self._checkpoint_manager.restore(
-        step,
-        args=checkpoint.args.Composite(**cp_restore_args),
+    step, _ = super().maybe_restore(
+        model=target_model,
+        optimizer=optimizer,
+        restore_only_lora_params=restore_only_lora_params,
     )
+    if step == 0:
+      return 0, {}
 
-    nnx.update(target_model, restored.model_params)
-    if optimizer is not None:
-      nnx.update(optimizer, restored.optimizer_state)
+    max_logging.log(f"Restored from checkpoint step {step}.")
 
     metadata = self._checkpoint_manager.metadata(step)
     if metadata and hasattr(metadata, "custom_metadata") and metadata.custom_metadata is not None:

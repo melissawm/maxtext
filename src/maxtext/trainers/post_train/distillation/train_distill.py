@@ -41,7 +41,6 @@ from flax import nnx
 from flax.linen import partitioning as nn_partitioning
 import jax
 import jax.numpy as jnp
-import numpy as np
 import optax
 from orbax import checkpoint
 
@@ -247,24 +246,7 @@ class MaxTextDistillationTrainer(peft_trainer.PeftTrainer):
       # Fallback if source code is unavailable
       pass
 
-  def _shard_optimizer(self, mesh: jax.sharding.Mesh) -> None:
-    """Overrides base _shard_optimizer to safely shard restored scalars.
-
-    This is necessary because the optimizer state restored from checkpoints may contain unsharded
-    scalars (e.g., Adam moments).
-    """
-    if mesh.empty:
-      return
-    optimizer_state = nnx.state(self.optimizer, nnx.optimizer.OptState)
-    optimizer_pspecs = nnx.get_partition_spec(optimizer_state)
-
-    def _safe_shard(x, pspec):
-      if isinstance(pspec, jax.sharding.PartitionSpec):
-        return jax.device_put(x, jax.sharding.NamedSharding(mesh, pspec))
-      return x
-
-    optimizer_sharded_state = jax.tree.map(_safe_shard, optimizer_state, optimizer_pspecs)
-    nnx.update(self.optimizer, optimizer_sharded_state)
+  # Inherits _shard_optimizer from PeftTrainer.
 
   def _train_step(self, model, optimizer, inputs):
     """Overrides the main JIT block to natively handle ModelBundle module."""
@@ -368,18 +350,20 @@ class MaxTextDistillationTrainer(peft_trainer.PeftTrainer):
         top_k_indices=input_data.top_k_indices,
     )
 
-  def _post_process_train_step(self, aux: dict[str, jax.Array]) -> None:
-    """Extracts auxiliary metrics from the strategy and buffers them for logging."""
+  def _post_process_train_step(self, aux: dict[str, tuple[jax.Array, jax.Array]]) -> None:
+    """Buffers (sum, count) metrics from the strategy for token-weighted logging.
+
+    `compute_loss` returns each metric as a (sum, count) pair. We store the pair
+    in the metrics buffer and use `weighted_mean` as the aggregator so the final
+    logged value is `sum(sums) / sum(counts)` — unbiased across hosts and across
+    logging windows even when valid-token counts vary per step.
+    """
     if self._buffered_train_metrics is None:
       return
 
-    # 'aux' contains the dictionary we returned from compute_loss:
-    # {"distill/soft_loss": ..., "distill/hard_loss": ...}
     for name, value in aux.items():
-      # We accumulate these values. PeftTrainer handles the averaging.
-      # The structure expected is: dict[metric_name, (list_of_values, aggregation_fn)]
       if name not in self._buffered_train_metrics.additional_metrics:
-        self._buffered_train_metrics.additional_metrics[name] = ([], np.mean)
+        self._buffered_train_metrics.additional_metrics[name] = ([], distillation_utils.weighted_mean)
 
       self._buffered_train_metrics.additional_metrics[name][0].append(value)
 
