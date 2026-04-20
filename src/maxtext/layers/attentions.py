@@ -1184,6 +1184,7 @@ class Attention(nnx.Module):
           key,
           value,
           decoder_segment_ids,
+          inputs_positions,
           model_mode,
           cached_values,
           previous_chunk,

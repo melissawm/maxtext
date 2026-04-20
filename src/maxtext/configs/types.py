@@ -29,7 +29,7 @@ import yaml
 from typing import Any, Literal, NewType, Optional
 
 import jax
-from maxtext.common.common_types import AttentionType, DecoderBlockType, ShardMode
+from maxtext.common.common_types import AttentionType, DecoderBlockType, ReorderStrategy, ShardMode
 from maxtext.utils import gcs_utils
 from maxtext.utils import max_utils
 from maxtext.utils.globals import MAXTEXT_ASSETS_ROOT
@@ -820,6 +820,10 @@ class HardwareAndMesh(BaseModel):
   context_parallel_strategy: str = Field(
       "all_gather",
       description="Strategy for context parallelism ('all_gather' or 'ring').",
+  )
+  context_parallel_reorder_strategy: ReorderStrategy = Field(
+      "auto",
+      description="Reorder strategy for load-balanced context parallelism.",
   )
   custom_mesh: str = Field("", description="Available options: ['hybrid_ring_64x4', 'hybrid_ring_32x8']")
   custom_mesh_and_rule: str = Field("", description="Customized mesh and logical rules for granularity.")
@@ -2672,6 +2676,20 @@ class MaxTextConfig(
         raise ValueError(
             "Ring context parallelism strategy (context_parallel_strategy='ring') is only supported on GPUs."
         )
+    # STRIPED reorder strategy is a Transformer Engine feature and is GPU-only.
+    # The AUTO + packing case (which training resolves to STRIPED) is not validated here
+    # because test code paths may load the same config but use a different reorder path.
+    # Training's runtime path in max_utils.reorder_causal_load_balanced enforces this.
+    if (
+        self.context_parallel_size > 1
+        and "gpu" not in self.hardware
+        and self.context_parallel_load_balance
+        and self.context_parallel_reorder_strategy == ReorderStrategy.STRIPED
+    ):
+      raise ValueError(
+          "STRIPED reorder strategy requires Transformer Engine and is only supported on GPUs. "
+          f"Got hardware={self.hardware!r}."
+      )
     if self.hardware == "gpu" and self.packing and self.attention == "cudnn_flash_te" and self.max_segments_per_seq <= 0:
       raise ValueError("max_segments_per_seq must be set when using TransformerEngine attention and packing")
     dcn_product = (
