@@ -191,6 +191,8 @@ def forward_with_context_expert_parallelism(
   # If load balanced cp, shuffle along seq dim for input
   # This corresponds to the pre-shuffle step in training
   context_parallel_size = cfg_cp.context_parallel_size
+  # This helper is TPU-oriented and uses the TPU-compatible DUAL_CHUNK_SWAP reorder path.
+  # It does not model GPU-specific packed/striped reorder behavior.
   if context_parallel_size > 1 and cfg_cp.context_parallel_load_balance:
     batch = {
         "inputs": lnx,
@@ -198,7 +200,9 @@ def forward_with_context_expert_parallelism(
         "inputs_position": decoder_positions,
     }
     with mesh_cp:
-      reordered_batch = maxtext_utils.get_reorder_callable(context_parallel_size, ShardMode.AUTO)(batch)
+      reordered_batch = maxtext_utils.get_reorder_callable(
+          context_parallel_size, ShardMode.AUTO, hardware=cfg_cp.hardware
+      )(batch)
     lnx = reordered_batch["inputs"]
     decoder_segment_ids = reordered_batch["inputs_segmentation"]
     decoder_positions = reordered_batch["inputs_position"]
