@@ -122,27 +122,65 @@ def _fix_restore_args_for_shape_mismatch(restore_args, stored_metadata_tree, mes
     return node
 
   mismatched_paths = []
+  rank_mismatched_paths = []
+  missing_paths = []  # paths in model that are absent from the checkpoint tree
+  found_array_count = [0]
 
   def _fix_one(path, restore_arg):
     if not isinstance(restore_arg, ocp.ArrayRestoreArgs):
       return restore_arg
     stored_meta = _lookup_stored_meta(path)
-    if stored_meta is not None and _is_orbax_array_metadata(stored_meta):
+    if stored_meta is None:
+      missing_paths.append(f"  {'.'.join(_key_str(k) for k in path)}")
+      return restore_arg
+    if _is_orbax_array_metadata(stored_meta):
       stored_shape = tuple(stored_meta.shape)
-      if (
-          restore_arg.global_shape is not None
-          and restore_arg.global_shape != stored_shape
-          and len(stored_shape) == len(restore_arg.global_shape)
-      ):
-        mismatched_paths.append(
-            f"  {'.'.join(_key_str(k) for k in path)}: stored={stored_shape} -> model={restore_arg.global_shape}"
-        )
-        return dataclasses.replace(
-            restore_arg, global_shape=None, shape=None, sharding=replicated, mesh=None, mesh_axes=None
-        )
+      if restore_arg.global_shape is not None and restore_arg.global_shape != stored_shape:
+        if len(stored_shape) != len(restore_arg.global_shape):
+          rank_mismatched_paths.append(
+              f"  {'.'.join(_key_str(k) for k in path)}: "
+              f"checkpoint shape {stored_shape} (rank {len(stored_shape)}) "
+              f"vs model shape {restore_arg.global_shape} (rank {len(restore_arg.global_shape)})"
+          )
+        else:
+          mismatched_paths.append(
+              f"  {'.'.join(_key_str(k) for k in path)}: stored={stored_shape} -> model={restore_arg.global_shape}"
+          )
+          found_array_count[0] += 1
+          return dataclasses.replace(
+              restore_arg, global_shape=None, shape=None, sharding=replicated, mesh=None, mesh_axes=None
+          )
+      else:
+        found_array_count[0] += 1
     return restore_arg
 
   fixed = jax.tree_util.tree_map_with_path(_fix_one, restore_args, is_leaf=lambda x: isinstance(x, ocp.ArrayRestoreArgs))
+  if rank_mismatched_paths:
+    sample = "\n".join(rank_mismatched_paths[:5])
+    more = f"\n  ... and {len(rank_mismatched_paths) - 5} more" if len(rank_mismatched_paths) > 5 else ""
+    raise ValueError(
+        f"Checkpoint rank mismatches detected ({len(rank_mismatched_paths)} arrays). "
+        "This usually means a scanned (scan_layers=True) checkpoint was loaded with "
+        "scan_layers=False, or vice versa. Please ensure the checkpoint format matches "
+        f"the scan_layers setting.\n{sample}{more}"
+    )
+
+  # Detect structural mismatch (e.g. scanned checkpoint loaded into unscanned model).
+  # In that case the checkpoint tree has "layers" (all layers stacked) but the model
+  # expects "layers_0", "layers_1", etc., so _lookup_stored_meta returns None for every
+  # layer parameter and nearly all paths end up in missing_paths.
+  total_arrays = found_array_count[0] + len(rank_mismatched_paths) + len(missing_paths)
+  if total_arrays > 0 and len(missing_paths) / total_arrays > 0.8:
+    sample = "\n".join(missing_paths[:5])
+    more = f"\n  ... and {len(missing_paths) - 5} more" if len(missing_paths) > 5 else ""
+    raise ValueError(
+        f"Checkpoint structure mismatch: {len(missing_paths)} of {total_arrays} model parameter "
+        "paths were not found in the checkpoint. "
+        "This usually means a scanned (scan_layers=True) checkpoint is being loaded with "
+        "scan_layers=False, or vice versa. Please ensure the checkpoint format matches the "
+        f"scan_layers setting.\nExample missing paths:\n{sample}{more}"
+    )
+
   if mismatched_paths:
     max_logging.log(
         f"Checkpoint shape mismatches ({len(mismatched_paths)} arrays): loading with replicated "
@@ -613,15 +651,6 @@ def from_pretrained(
         else:
           checkpoint = restored["params"]["params"]
 
-        loaded_count = len(jax.tree_util.tree_leaves(checkpoint))
-        expected_count = len(jax.tree_util.tree_leaves(target_for_restore))
-        if loaded_count < expected_count:
-          raise ValueError(
-              f"Checkpoint at '{config.load_parameters_path}' loaded only {loaded_count} of {expected_count} "
-              "expected parameter arrays. This usually means a scanned (stacked-layers) checkpoint was provided "
-              "where an unscanned checkpoint is required. Please convert the checkpoint to unscanned format first."
-          )
-
         if checkpoint:
           model_arrays = jax.tree.map(
               lambda v: v.value,
@@ -667,6 +696,13 @@ def from_pretrained(
           checkpoint = _filter_to_model_keys(checkpoint, model_arrays)
           checkpoint = jax.tree.map(_expand_checkpoint_to_model_shapes, checkpoint, model_arrays)
           nnx.update(model, checkpoint)
+        else:
+          raise ValueError(
+              f"Checkpoint restore from '{config.load_parameters_path}' yielded no parameters. "
+              "This usually means the checkpoint format is incompatible with the model configuration "
+              "(e.g. a scanned checkpoint loaded with scan_layers=False, or vice versa). "
+              "Please ensure the checkpoint format matches the scan_layers setting."
+          )
 
       except Exception as e:
         raise ValueError(f"Checkpoint loading failed: {e}") from e

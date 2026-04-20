@@ -896,6 +896,8 @@ class Qwen3NextScannableBlock(nnx.Module):
       previous_chunk=None,
       page_state: None | page_manager.PageState = None,
       slot: None | int = None,
+      kv_cache=None,
+      attention_metadata=None,
   ) -> tuple[Array, None]:
     """Applies the block of decoder layers to the input carry.
 
@@ -924,6 +926,8 @@ class Qwen3NextScannableBlock(nnx.Module):
           previous_chunk,
           page_state,
           slot,
+          kv_cache=kv_cache,
+          attention_metadata=attention_metadata,
       )
 
     # The output of the block is the carry for the next scan iteration.
@@ -1235,10 +1239,7 @@ class Qwen3DecoderLayer(AttentionWithNorm):
     layer_output = intermediate_inputs + mlp_lnx
     layer_output = nn.with_logical_constraint(layer_output, self.activation_axis_names)
 
-    if self.config.scan_layers:
-      return layer_output, None
-    else:
-      return layer_output, kv_cache
+    return layer_output, kv_cache
 
 
 # -----------------------------------------
@@ -1284,6 +1285,14 @@ class Qwen3MoeDecoderLayer(AttentionWithNorm):
       attention_metadata: None | dict[str, Any] = None,
   ):
     # Unpack inputs if it's a tuple (e.g. from a previous layer returning (hidden_states, kv_cache))
+    is_scan_carry = False
+    if isinstance(inputs, tuple) and len(inputs) == 3:
+      hidden_states, stacked_kv_cache, layer_idx = inputs
+      kv_cache = stacked_kv_cache[layer_idx]
+      inputs = hidden_states
+      is_scan_carry = True
+    elif isinstance(inputs, tuple):
+      inputs = inputs[0]
     if isinstance(inputs, tuple):
       inputs = inputs[0]
     hidden_states, intermediate_inputs, kv_cache = self.apply_attention_with_norm(
@@ -1304,8 +1313,15 @@ class Qwen3MoeDecoderLayer(AttentionWithNorm):
     layer_output = intermediate_inputs + mlp_lnx
     layer_output = nn.with_logical_constraint(layer_output, self.activation_axis_names)
 
-    if self.config.scan_layers:
-      return layer_output, None
+    if is_scan_carry:
+
+      def update_cache(cache, val):
+        if jnp.size(val) > 0:
+          return cache.at[layer_idx].set(val)
+        return cache
+
+      stacked_kv_cache = jax.tree_util.tree_map(update_cache, stacked_kv_cache, kv_cache)
+      return (layer_output, stacked_kv_cache, layer_idx + 1), None
     else:
       return layer_output, kv_cache
 

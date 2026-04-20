@@ -106,15 +106,14 @@ class FixRestoreArgsRankGuardTest(unittest.TestCase):
     metadata_tree = {"kernel": _FakeArrayMetadata(shape=stored_shape)}
     return _fix_restore_args_for_shape_mismatch(restore_args, metadata_tree, self.mesh)
 
-  def test_scanned_ckpt_unscanned_model_not_modified(self):
+  def test_scanned_ckpt_unscanned_model_raises_error(self):
     """Rank mismatch (scanned ckpt rank 4 vs unscanned model rank 3): arg must be unchanged."""
     # Simulates: scanned checkpoint key kernel (94, 4096, 4, 128) vs vLLM model (4096, 64, 128).
     stored_shape = (94, 4096, 4, 128)
     model_shape = (4096, 64, 128)
-    fixed = self._run_fix(stored_shape, model_shape)
-    arg = fixed["kernel"]
-    # The restore arg should be unchanged — global_shape still points to model_shape.
-    self.assertEqual(arg.global_shape, model_shape)
+    with self.assertRaises(ValueError) as cm:
+      self._run_fix(stored_shape, model_shape)
+    self.assertIn("Checkpoint rank mismatches detected", str(cm.exception))
 
   def test_same_rank_shape_mismatch_is_modified(self):
     """Same rank, shape mismatch (KV padding): arg should be switched to replicated."""
