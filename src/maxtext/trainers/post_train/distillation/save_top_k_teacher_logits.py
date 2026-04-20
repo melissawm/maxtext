@@ -33,6 +33,7 @@ import tensorflow as tf
 import re
 
 import jax
+import jax.numpy as jnp
 import functools
 from itertools import islice
 
@@ -68,17 +69,15 @@ def get_start_step(config, local_args):
     return 0
 
   # Find the highest part number from the filenames
-  max_part_num = -1
-  for f in existing_files:
-    max_part_num = max(
-        (int(m.group(1)) for f in existing_files if (m := re.search(r"part_(\d+).array_record", os.path.basename(f)))),
-        default=-1,
-    )
+  max_part_num = max(
+      (int(m.group(1)) for f in existing_files if (m := re.search(r"part_(\d+).array_record", os.path.basename(f)))),
+      default=-1,
+  )
 
   if max_part_num == -1:
     return 0
 
-  start_step = (max_part_num + 1) * local_args.steps_per_file
+  start_step = max_part_num * local_args.steps_per_file
   max_logging.log(f"Found existing data, resuming from step {start_step}")
   return start_step
 
@@ -102,7 +101,7 @@ def generate_and_save_data(config, local_args):
 
   # Determine start_step for resuming
   start_step = get_start_step(config, local_args)
-  start_step = int(multihost_utils.broadcast_one_to_all(jax.numpy.array(start_step)))
+  start_step = int(multihost_utils.broadcast_one_to_all(jnp.array(start_step)))
 
   writer = None
   local_output_path = None
@@ -128,6 +127,7 @@ def generate_and_save_data(config, local_args):
           gcs_file_path = os.path.join(gcs_upload_path, os.path.basename(local_output_path))
           max_logging.log(f"Uploading {local_output_path} to {gcs_file_path}")
           tf.io.gfile.copy(local_output_path, gcs_file_path, overwrite=True)
+          os.remove(local_output_path)
           max_logging.log("Upload complete.")
 
       file_index = step // steps_per_file
@@ -179,6 +179,7 @@ def generate_and_save_data(config, local_args):
       gcs_file_path = os.path.join(gcs_upload_path, os.path.basename(local_output_path))
       max_logging.log(f"Uploading final chunk to: {gcs_file_path}")
       tf.io.gfile.copy(local_output_path, gcs_file_path, overwrite=True)
+      os.remove(local_output_path)
       max_logging.log("GCS Upload complete.")
 
   # Sync all hosts one last time so worker hosts don't terminate the job
