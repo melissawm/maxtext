@@ -163,6 +163,23 @@ class PartialRotaryEmbeddingTest(unittest.TestCase):
         err_msg="PartialRotaryEmbedding attention should be shift-invariant.",
     )
 
+  def test_snapshot_verification(self):
+    """Verify output values against captured snapshot."""
+    layer = PartialRotaryEmbedding(
+        min_timescale=1,
+        max_timescale=10000,
+        mesh=self.mesh,
+        embedding_dims=4,
+        partial_rotary_factor=0.5,
+        rngs=self.nnx_rng,
+    )
+    inputs = jnp.ones((1, 2, 1, 4))
+    position = jnp.array([[0, 1]])
+    outputs = layer(inputs, position=position)
+
+    expected = jnp.array([[[[1.0, 1.0, 1.0, 1.0]], [[-0.30078125, 1.3828125, 1.0, 1.0]]]])
+    np.testing.assert_allclose(outputs, expected, atol=1e-5)
+
 
 class Gemma4PartialRotaryEmbeddingTest(unittest.TestCase):
   """Tests for the Gemma4PartialRotaryEmbedding layer."""
@@ -277,6 +294,23 @@ class Gemma4PartialRotaryEmbeddingTest(unittest.TestCase):
         atol=1e-5,
         err_msg="Gemma4PartialRotaryEmbedding attention should be shift-invariant.",
     )
+
+  def test_snapshot_verification(self):
+    """Verify output values against captured snapshot."""
+    layer = Gemma4PartialRotaryEmbedding(
+        min_timescale=1,
+        max_timescale=10000,
+        mesh=self.mesh,
+        embedding_dims=4,
+        partial_rotary_factor=0.5,
+        rngs=self.nnx_rng,
+    )
+    inputs = jnp.ones((1, 2, 1, 4))
+    position = jnp.array([[0, 1]])
+    outputs = layer(inputs, position=position)
+
+    expected = jnp.array([[[[1.0, 1.0, 1.0, 1.0]], [[-0.300781, 1.0, 1.38281, 1.0]]]])
+    np.testing.assert_allclose(outputs, expected, atol=1e-5)
 
 
 if __name__ == "__main__":
