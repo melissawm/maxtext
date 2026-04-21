@@ -57,7 +57,7 @@ pip install uv
 # curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # Create virtual environment
-export VENV_NAME=<your virtual env name> # e.g., docker_venv
+export VENV_NAME=<VENV_NAME> # e.g., docker_venv
 uv venv --python 3.12 --seed ${VENV_NAME?}
 source ${VENV_NAME?}/bin/activate
 
@@ -98,7 +98,7 @@ before proceeding with the installation.
 
 ```bash
 # Create virtual environment
-export VENV_NAME=<your virtual env name> # e.g., docker_venv
+export VENV_NAME=<VENV_NAME> # e.g., docker_venv
 uv venv --python 3.12 --seed ${VENV_NAME?}
 source ${VENV_NAME?}/bin/activate
 
@@ -155,7 +155,7 @@ build_maxtext_docker_image WORKFLOW=post-training
 
 ```bash
 # Make sure to set `CLOUD_IMAGE_NAME` with your desired image name.
-export CLOUD_IMAGE_NAME=<Docker Image Name>
+export CLOUD_IMAGE_NAME=<IMAGE_NAME>
 upload_maxtext_docker_image CLOUD_IMAGE_NAME=${CLOUD_IMAGE_NAME?}
 ```
 
