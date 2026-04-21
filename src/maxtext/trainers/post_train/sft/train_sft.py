@@ -160,11 +160,12 @@ def setup_trainer_state(mt_config, goodput_recorder=None):
   with maybe_record_goodput(goodput_recorder, GoodputEvent.TRAINING_PREPARATION):
     training_hooks = hooks.SFTTrainingHooks(mt_config, mesh, learning_rate_schedule, goodput_recorder)
     data_hooks = hooks.SFTDataHooks(mt_config, mesh, goodput_recorder)
-
-    trainer = peft_trainer.PeftTrainer(model, optimizer, tunix_config)
-    trainer.with_training_hooks(training_hooks)
-    trainer.with_data_hooks(data_hooks)
-    trainer = use_maxtext_loss_function(trainer, mt_config)
+    # Provide rules context so 'norm' is translated to mesh axes during maybe_restore
+    with nn_partitioning.axis_rules(mt_config.logical_axis_rules):
+      trainer = peft_trainer.PeftTrainer(model, optimizer, tunix_config)
+      trainer.with_training_hooks(training_hooks)
+      trainer.with_data_hooks(data_hooks)
+      trainer = use_maxtext_loss_function(trainer, mt_config)
 
   return trainer, mesh
 
