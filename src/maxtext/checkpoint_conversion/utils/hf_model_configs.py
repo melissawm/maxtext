@@ -593,7 +593,6 @@ qwen3_30b_a3b_thinking_2507_config = transformers.Qwen3MoeConfig(
     tie_word_embeddings=False,
     torch_dtype="bfloat16",
     use_cache=True,
-    use_sliding_window=False,
     vocab_size=151936,
 )
 
@@ -630,7 +629,6 @@ qwen3_235b_a22b_thinking_2507_config = transformers.Qwen3MoeConfig(
     torch_dtype="bfloat16",
     transformers_version="4.51.0",
     use_cache=True,
-    use_sliding_window=False,
     vocab_size=151936,
 )
 
@@ -668,7 +666,6 @@ qwen3_coder_480b_a35b_config = transformers.Qwen3MoeConfig(
     transformers_version="4.51.0",
     use_cache=True,
     use_qk_norm=True,
-    use_sliding_window=False,
     vocab_size=151936,
 )
 
@@ -1076,7 +1073,6 @@ qwen3_next_80b_a3b_dict = {
     "torch_dtype": "bfloat16",
     "transformers_version": "4.57.0.dev0",
     "use_cache": True,
-    "use_sliding_window": False,
     "vocab_size": 151936,
 }
 qwen3_next_80b_a3b_config = transformers.Qwen3NextConfig(**qwen3_next_80b_a3b_dict)

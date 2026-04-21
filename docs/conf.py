@@ -165,6 +165,9 @@ linkcheck_ignore = [
     r"https://github\.com/jax-ml/jax/commits/.*",
     # Ignore Hugging Face settings links which require login
     r"https://huggingface\.co/settings/tokens",
+    # Ignore GitHub PRs and blobs that trigger rate limiting
+    r"https://github\.com/AI-Hypercomputer/maxtext/pull/.*",
+    r"https://github\.com/google/maxtext/blob/.*",
 ]
 
 
