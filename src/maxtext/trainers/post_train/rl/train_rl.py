@@ -74,7 +74,7 @@ from maxtext.configs import pyconfig
 from maxtext.utils.globals import MAXTEXT_CONFIGS_DIR
 from maxtext.trainers.post_train.rl.evaluate_rl import evaluate
 from maxtext.trainers.post_train.rl import utils_rl
-from maxtext.input_pipeline.instruction_data_processing import load_template_from_file
+from maxtext.input_pipeline.instruction_data_processing import load_data_template_from_file
 from maxtext.utils import max_logging, max_utils, model_creation_utils
 
 
@@ -113,7 +113,7 @@ def get_dataset(
         download=True,
     )
 
-  template_config = load_template_from_file(tmvp_config.chat_template_path)
+  template_config = load_data_template_from_file(tmvp_config.chat_template_path)
 
   loaded_dataset = (
       grain.MapDataset.source(data)
@@ -230,7 +230,7 @@ def prepare_datasets(trainer_config, model_tokenizer):
 
     split_name = trainer_config.train_split if trainer_config.train_split != "train" else "train_1M"
     splits = prepare_openinstructmath2_dataset(split=split_name)
-    template_config = load_template_from_file(trainer_config.chat_template_path)
+    template_config = load_data_template_from_file(trainer_config.chat_template_path)
 
     train_dataset = (
         grain.MapDataset.source(splits["train"])
@@ -494,7 +494,7 @@ def create_rl_components(
         epsilon_high=trainer_config.rl.epsilon_high,
     )
     # Instantiate the custom MaxText chat parser
-    template_config = load_template_from_file(trainer_config.chat_template_path)
+    template_config = load_data_template_from_file(trainer_config.chat_template_path)
     chat_parser = utils_rl.MaxTextChatParser(
         model_tokenizer=model_tokenizer, template_config=template_config, tmvp_config=trainer_config
     )
