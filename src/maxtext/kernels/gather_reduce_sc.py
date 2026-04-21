@@ -1560,13 +1560,6 @@ def sc_gather_reduce(
             ir.Attribute.parse("#tpu.dimension_semantics<parallel>"),
         ]
     )
-    args_attributes = [
-        ir.DictAttr.get({}),  # i
-        ir.DictAttr.get({}),  # j
-        ir.DictAttr.get({"sc.persistent": ir.UnitAttr.get()}),  # idx
-        ir.DictAttr.get({"sc.persistent": ir.UnitAttr.get()}),  # op
-        ir.DictAttr.get({"sc.persistent": ir.UnitAttr.get()}),  # out
-    ]
     window_params = [
         ir.DictAttr.get(
             {
@@ -1588,7 +1581,6 @@ def sc_gather_reduce(
     if topk_weights is not None:
       # Insert weights before output - we append here because it's the same
       # attribute as output.
-      args_attributes.append(ir.DictAttr.get({"sc.persistent": ir.UnitAttr.get()}))
       window_params.append(
           ir.DictAttr.get(
               {
@@ -1598,7 +1590,6 @@ def sc_gather_reduce(
       )
 
     f.attributes["window_params"] = ir.ArrayAttr.get(window_params)
-    f.arg_attrs = args_attributes
     f.attributes["tpu.core_type"] = ir.Attribute.parse("#tpu.core_type<sc_vector_subcore>")
     assert f.verify(), f
     m = ir.Module.create()
