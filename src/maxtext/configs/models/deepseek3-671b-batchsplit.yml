@@ -59,24 +59,22 @@ use_batch_split_schedule: True
 shard_mode: "explicit"
 remove_size_one_mesh_axis_from_type: False
 override_logical_axis_rules: True
-mesh_axes: ['diloco', 'data', 'stage', 'fsdp', 'expert', 'context']
-data_sharding: [['data', 'stage', 'fsdp', 'expert', 'context']]
+mesh_axes: ['data', 'fsdp', 'expert', 'context']
+data_sharding: [['data', 'fsdp', 'expert', 'context']]
 logical_axis_rules: [
     ['activation_batch', ['data', 'fsdp', 'expert', 'context']],
     ['activation_batch_moe', ['data', 'fsdp', 'expert', 'context']],
-    ['activation_embed_and_logits_batch', ['data', 'stage', 'fsdp', 'expert', 'context']],
+    ['activation_embed_and_logits_batch', ['data', 'fsdp', 'expert', 'context']],
     ['activation_kv_batch', ['data', 'fsdp', 'expert', 'context']],
     ['activation_norm_length', []],
     ['activation_norm_length_moe', []],
     ['activation_heads', []],
-    ['activation_stage', 'stage'],
     ['embed', ['fsdp']],
     ['embed_moe', ['fsdp']],
     ['embed_no_exp', ['fsdp']],
     ['embed_no_exp_moe', ['fsdp']],
     ['q_lora', ['fsdp']],
     ['kv_lora', ['fsdp']],
-    ['layers', 'stage'],
     ['q_lora_up_proj', []],
     ['kv_lora_up_proj', []],
     ['q_heads', []],
@@ -84,5 +82,4 @@ logical_axis_rules: [
     ['heads', []],
     ['mlp', []],
     ['expert_only', ['expert']],
-    ['diloco', 'diloco'],
 ]

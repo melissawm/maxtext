@@ -714,7 +714,7 @@ def scan_batch_split_layers(
           pairwise_swap_and_negate_mask=yarn_mask,
       )
       # Offload to host memory.
-      for residual_name in ("mlpwi_0", "mlpwi_1"):
+      for residual_name in ("mlpwi_0", "mlpwi_1", "attn_out", "layer_inputs"):
         r = res.pop(residual_name)
         r = jax.tree.map(lambda x: jax.device_put(x, jax.typeof(x).sharding.with_memory_kind("pinned_host")), r)
         res[residual_name] = r
@@ -736,7 +736,7 @@ def scan_batch_split_layers(
         pairwise_swap_and_negate_mask=yarn_mask,
     )
     # Offload first layer residuals to host memory.
-    for residual_name in ("mlpwi_0", "mlpwi_1"):
+    for residual_name in ("mlpwi_0", "mlpwi_1", "attn_out", "layer_inputs"):
       r = first_res.pop(residual_name)
       r = jax.tree.map(lambda x: jax.device_put(x, jax.typeof(x).sharding.with_memory_kind("pinned_host")), r)
       first_res[residual_name] = r
@@ -829,7 +829,7 @@ def scan_batch_split_layers(
       next_next_ws_grad = all_reduce_ws_grad_dcn(next_next_ws_grad, mesh)
       all_layer_ws_grad = insert_layer_ws_grad(all_layer_ws_grad, next_next_ws_grad, layer_idx + 2, cfg.param_scan_axis)
       # Get residuals from host.
-      for residual_name in ("mlpwi_0", "mlpwi_1"):
+      for residual_name in ("mlpwi_0", "mlpwi_1", "attn_out", "layer_inputs"):
         r = res.pop(residual_name)
         r = jax.tree.map(lambda x: jax.device_put(x, jax.typeof(x).sharding.with_memory_kind("device")), r)
         res[residual_name] = r
@@ -890,7 +890,7 @@ def scan_batch_split_layers(
       prev_prev_ws = gather_weights(extract_layer_weights(all_weights, num_layers - 3, cfg.param_scan_axis), mesh)
       ws_grad = reduce_scatter_ws_grad(ws_grad, mesh)
     # Get residuals from host.
-    for residual_name in ("mlpwi_0", "mlpwi_1"):
+    for residual_name in ("mlpwi_0", "mlpwi_1", "attn_out", "layer_inputs"):
       r = last_last_res.pop(residual_name)
       r = jax.tree.map(lambda x: jax.device_put(x, jax.typeof(x).sharding.with_memory_kind("device")), r)
       last_last_res[residual_name] = r
@@ -931,7 +931,7 @@ def scan_batch_split_layers(
     third_ws_grad = all_reduce_ws_grad_dcn(third_ws_grad, mesh)
     all_layer_ws_grad = insert_layer_ws_grad(all_layer_ws_grad, third_ws_grad, 2, cfg.param_scan_axis)
     # Get residuals from host.
-    for residual_name in ("mlpwi_0", "mlpwi_1"):
+    for residual_name in ("mlpwi_0", "mlpwi_1", "attn_out", "layer_inputs"):
       r = first_res.pop(residual_name)
       r = jax.tree.map(lambda x: jax.device_put(x, jax.typeof(x).sharding.with_memory_kind("device")), r)
       first_res[residual_name] = r
