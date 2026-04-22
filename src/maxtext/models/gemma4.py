@@ -299,7 +299,7 @@ class Gemma4DecoderLayer(nnx.Module):
     else:
       self.post_ffw_norm = None
 
-    self.layer_scalar = nnx.Param(jnp.ones((1,), dtype=config.dtype), sharding=(None,))
+    self.layer_scalar = nnx.Param(jnp.ones((1,), dtype=config.weight_dtype), sharding=(None,))
 
     if model_mode == MODEL_MODE_PREFILL:
       self.activation_axis_names = ("activation_batch", "prefill_activation_norm_length", "activation_embed")
