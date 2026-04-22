@@ -35,8 +35,10 @@ Architecture Overview:
 
 import inspect
 import logging
+import shlex
 from typing import Sequence, Callable, Any
 from absl import app
+from etils import epath
 from flax import nnx
 from flax.linen import partitioning as nn_partitioning
 import jax
@@ -706,6 +708,35 @@ def train_distill(
   max_logging.log("Distillation Complete.")
 
 
+def _save_run_manifest(argv: Sequence[str], config: pyconfig.HyperParameters) -> None:
+  """Writes the source YAML and a shell-pasteable command to the output dir.
+
+  Saves `distillation.yml` (verbatim copy of the user's config file) and
+  `command.sh` (the CLI overrides) so a run can be reproduced by copying the
+  YAML and re-running the saved command.
+  """
+  if jax.process_index() != 0:
+    return
+  if not (config.base_output_directory and config.run_name):
+    return
+  if len(argv) < 2:
+    return
+
+  try:
+    out_dir = epath.Path(config.base_output_directory) / config.run_name
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    source_yml = epath.Path(pyconfig.resolve_config_path(argv[1]))
+    source_yml.copy(out_dir / "distillation.yml", overwrite=True)
+
+    cli_args = shlex.join(argv[2:])
+    command = "python3 -m maxtext.trainers.post_train.distillation.train_distill " f"distillation.yml {cli_args}\n"
+    (out_dir / "command.sh").write_text(command)
+    max_logging.log(f"Saved run manifest (distillation.yml, command.sh) to {out_dir}")
+  except Exception as e:  # pylint: disable=broad-exception-caught
+    max_logging.log(f"Warning: could not save run manifest: {e}")
+
+
 def main(argv: Sequence[str]) -> None:
   """Entry point for the script.
 
@@ -717,6 +748,7 @@ def main(argv: Sequence[str]) -> None:
   """
   # 1. Parse Global Config to extract Overrides
   global_config = pyconfig.initialize(argv)
+  _save_run_manifest(argv, global_config)
 
   # 2. Initialize STUDENT Config
   # Order of precedence: YAML < CLI < kwargs (student_overrides).
