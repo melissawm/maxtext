@@ -70,6 +70,7 @@ logical_axis_rules: [
     ['activation_stage', 'stage'],
     ['embed', ['fsdp']],
     ['embed_moe', ['fsdp']],
+    ['embed_vocab', ['fsdp']],
     ['embed_no_exp', ['fsdp']],
     ['embed_no_exp_moe', ['fsdp']],
     ['q_lora', ['fsdp']],
