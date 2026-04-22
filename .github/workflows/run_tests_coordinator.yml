@@ -102,24 +102,24 @@ jobs:
         ${{ fromJSON('{
             "tpu-unit": "not cpu_only and not gpu_only and not integration_test and not post_training",
             "tpu-integration": "not cpu_only and not gpu_only and integration_test and not post_training",
-            "tpu-post-training-unit": "not cpu_only and not gpu_only and not integration_test",
+            "tpu-post-training-unit": "not cpu_only and not gpu_only and not integration_test and post_training",
             "tpu-post-training-integration": "not cpu_only and not gpu_only and integration_test",
             "gpu-unit": "not cpu_only and not tpu_only and not integration_test and not post_training",
             "gpu-integration": "not cpu_only and not tpu_only and integration_test and not post_training",
             "cpu-unit": "cpu_only and not post_training",
-            "cpu-post-training-unit": "cpu_only"
+            "cpu-post-training-unit": "cpu_only and post_training"
           }')[inputs.flavor] }}
 
       pytest_addopts: >-
         ${{ fromJSON('{
             "tpu-unit": "",
             "tpu-integration": "",
-            "tpu-post-training-unit": "tests/post_training/unit",
+            "tpu-post-training-unit": "tests/post_training/unit tests/unit",
             "tpu-post-training-integration": "tests/post_training/integration",
             "gpu-unit": "",
             "gpu-integration": "",
             "cpu-unit": "",
-            "cpu-post-training-unit": "tests/post_training/unit"
+            "cpu-post-training-unit": "tests/post_training/unit tests/unit"
           }')[inputs.flavor] }}
 
       pytest_extra_args: >-
