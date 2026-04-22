@@ -38,7 +38,7 @@ from maxtext.common.common_types import (
     AttentionType,
     AxisIdxes,
     AxisNames,
-    BATCH,
+    BATCH_ATTN,
     CACHE_BATCH,
     CACHE_BATCH_PREFILL,
     CACHE_HEADS,
@@ -297,8 +297,8 @@ def attention_op_as_linen(
     float32_qk_product: bool = False,
     max_prefill_predict_length: int = -1,
     float32_logits: bool = False,
-    flash_axis_names_q: AxisNames = (BATCH, HEAD, LENGTH, D_KV),
-    flash_axis_names_kv: AxisNames = (BATCH, HEAD, KV_LENGTH, D_KV),
+    flash_axis_names_q: AxisNames = (BATCH_ATTN, HEAD, LENGTH, D_KV),
+    flash_axis_names_kv: AxisNames = (BATCH_ATTN, HEAD, KV_LENGTH, D_KV),
     flash_axis_names_splash_kernel: AxisNames = (HEAD, LENGTH),
     prefill_cache_logical_axis_names: AxisNames = (
         CACHE_BATCH_PREFILL,
@@ -394,8 +394,8 @@ class AttentionOp(nnx.Module):
       float32_qk_product: bool = False,
       max_prefill_predict_length: int = -1,
       float32_logits: bool = False,
-      flash_axis_names_q: AxisNames = (BATCH, HEAD, LENGTH, D_KV),
-      flash_axis_names_kv: AxisNames = (BATCH, HEAD, KV_LENGTH, D_KV),
+      flash_axis_names_q: AxisNames = (BATCH_ATTN, HEAD, LENGTH, D_KV),
+      flash_axis_names_kv: AxisNames = (BATCH_ATTN, HEAD, KV_LENGTH, D_KV),
       flash_axis_names_splash_kernel: AxisNames = (HEAD, LENGTH),
       prefill_cache_logical_axis_names: AxisNames = (
           CACHE_BATCH_PREFILL,
@@ -1144,13 +1144,13 @@ class AttentionOp(nnx.Module):
     segment_axis_names_kv = None
     sink_axis_names = self._logical_to_mesh_axes((HEAD,))
     if decoder_segment_ids is not None:
-      segment_axis_names_q = self._logical_to_mesh_axes((BATCH, Q_LENGTH))
-      segment_axis_names_kv = self._logical_to_mesh_axes((BATCH, KV_LENGTH))
+      segment_axis_names_q = self._logical_to_mesh_axes((BATCH_ATTN, Q_LENGTH))
+      segment_axis_names_kv = self._logical_to_mesh_axes((BATCH_ATTN, KV_LENGTH))
 
     axis_names_splash_kernel = self._logical_to_mesh_axes(self.flash_axis_names_splash_kernel)
     axis_names_q = self._logical_to_mesh_axes(self.flash_axis_names_q)
     axis_names_kv = self._logical_to_mesh_axes(self.flash_axis_names_kv)
-    indexer_mask_axis_names = self._logical_to_mesh_axes((BATCH, Q_LENGTH, KV_LENGTH))
+    indexer_mask_axis_names = self._logical_to_mesh_axes((BATCH_ATTN, Q_LENGTH, KV_LENGTH))
 
     global global_block_q, global_block_kv, global_block_kv_compute, global_block_q_dkv, global_block_kv_dkv
     global global_block_kv_dkv_compute, global_block_q_dq, global_block_kv_dq, global_use_fused_bwd_kernel
@@ -1730,7 +1730,7 @@ class AttentionOp(nnx.Module):
     if model_mode == MODEL_MODE_AUTOREGRESSIVE and self.is_partition_in_decode(q_seq_len):
       local_out = partitioning.with_sharding_constraint(local_out, (DECODE_BATCH, DECODE_LENGTH, HEAD, D_KV))
     elif model_mode == MODEL_MODE_PREFILL:
-      local_out = partitioning.with_sharding_constraint(local_out, (BATCH, KV_LENGTH, HEAD, D_KV))
+      local_out = partitioning.with_sharding_constraint(local_out, (BATCH_ATTN, KV_LENGTH, HEAD, D_KV))
 
     if self.reshape_q and q_seq_len == 1:
       local_max = local_max[:, 0:1, :, :]
@@ -1774,7 +1774,7 @@ class AttentionOp(nnx.Module):
 
     # special sharding for decode
     q_seq_len = query.shape[1]
-    prefill_qkv_sharding = (BATCH, PREFILL_LENGTH, HEAD, D_KV)
+    prefill_qkv_sharding = (BATCH_ATTN, PREFILL_LENGTH, HEAD, D_KV)
     decode_qkv_sharding = (DECODE_BATCH, DECODE_LENGTH, HEAD, D_KV)
     if self.is_partition_in_decode(q_seq_len):
       query = partitioning.with_sharding_constraint(query, decode_qkv_sharding)
@@ -1799,7 +1799,9 @@ class AttentionOp(nnx.Module):
     if self.is_partition_in_decode(q_seq_len):
       attn_weights = partitioning.with_sharding_constraint(attn_weights, (KV_LENGTH, HEAD, None, None, None))
     elif model_mode == MODEL_MODE_PREFILL:
-      attn_weights = partitioning.with_sharding_constraint(attn_weights, (BATCH, HEAD, None, PREFILL_LENGTH, KV_LENGTH))
+      attn_weights = partitioning.with_sharding_constraint(
+          attn_weights, (BATCH_ATTN, HEAD, None, PREFILL_LENGTH, KV_LENGTH)
+      )
 
     if self.attn_logits_soft_cap:
       attn_weights = jnp.tanh(attn_weights / self.attn_logits_soft_cap)
@@ -1846,7 +1848,7 @@ class AttentionOp(nnx.Module):
     if self.is_partition_in_decode(q_seq_len):
       attn_mask = partitioning.with_sharding_constraint(attn_mask, (KV_LENGTH, HEAD, None, None, None))
     elif model_mode == MODEL_MODE_PREFILL:
-      attn_mask = partitioning.with_sharding_constraint(attn_mask, (BATCH, HEAD, None, PREFILL_LENGTH, KV_LENGTH))
+      attn_mask = partitioning.with_sharding_constraint(attn_mask, (BATCH_ATTN, HEAD, None, PREFILL_LENGTH, KV_LENGTH))
     if attn_mask is not None:
       attn_weights = apply_mask_to_logits(attn_weights, attn_mask)
 

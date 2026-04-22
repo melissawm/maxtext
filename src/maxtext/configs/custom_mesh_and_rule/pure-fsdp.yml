@@ -18,6 +18,7 @@ mesh_axes: ['fsdp']
 data_sharding: [['fsdp']]
 logical_axis_rules: [
                       ['activation_batch', ['fsdp']],
+                      ['activation_batch_attn', ['fsdp']],
                       ['activation_batch_moe', ['fsdp']],
                       ['activation_embed_and_logits_batch', ['fsdp']],
                       ['activation_embed_and_logits_batch_sequence', ['fsdp']],

@@ -31,15 +31,16 @@ mesh_axes: ['data', 'attn_dp', 'model', 'expert', 'attn_dp_expert']
 logical_axis_rules: [
                       ['activation_batch', ['data']],
                       ['activation_batch_moe', ['data']],
+                      ['activation_batch_attn', ['data']],
                       ['activation_embed_and_logits_batch', ['data', 'expert']],
                       ['activation_embed_and_logits_batch_sequence', ['data', 'expert']],
                       ['activation_heads', ['model', 'expert']],
                       ['activation_kv_heads', ['model', 'expert']],
-                      ['activation_attn_length', []],
+                      ['activation_length_attn', []],
                       ['activation_length', []],
                       ['activation_length_moe', []],
                       ['activation_q_length', ['expert', 'attn_dp_expert']],
-                      ['activation_attn_embed', 'model'],
+                      ['activation_embed_attn', 'model'],
                       # Expert is missing explicitly from activation_embed despite using TP.
                       # We are going for a replicate-AR style of TP as opposed to our typical AG-RS style of TP
                       # due to the output sharding of the fused_moe_gmm kernel in tpu-inference.

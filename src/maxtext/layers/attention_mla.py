@@ -36,7 +36,7 @@ from maxtext.common.common_types import (
     Array,
     AxisIdxes,
     AxisNames,
-    BATCH,
+    BATCH_ATTN,
     CACHE_BATCH,
     CACHE_BATCH_PREFILL,
     CACHE_SEQUENCE,
@@ -424,8 +424,8 @@ def mla_as_linen(
     query_axis_names: AxisNames = (KV_BATCH, LENGTH, KV_HEAD, KV_HEAD_DIM),
     key_axis_names: AxisNames = (KV_BATCH, LENGTH, KV_HEAD, KV_HEAD_DIM),
     value_axis_names: AxisNames = (KV_BATCH, LENGTH, KV_HEAD, KV_HEAD_DIM),
-    input_axis_names: AxisNames = (BATCH, LENGTH, EMBED),
-    out_axis_names: AxisNames = (BATCH, LENGTH, HEAD, D_KV),
+    input_axis_names: AxisNames = (BATCH_ATTN, LENGTH, EMBED),
+    out_axis_names: AxisNames = (BATCH_ATTN, LENGTH, HEAD, D_KV),
     prefill_input_axis_names: AxisNames = (PREFILL_KV_BATCH, PREFILL_LENGTH, EMBED),
     decode_input_axis_names: AxisNames = (DECODE_BATCH, DECODE_LENGTH, EMBED),
     prefill_out_axis_names: AxisNames = (PREFILL_KV_BATCH, PREFILL_LENGTH, HEAD, D_KV),
@@ -562,8 +562,8 @@ class MLA(Attention):
       query_axis_names: AxisNames = (KV_BATCH, LENGTH, KV_HEAD, KV_HEAD_DIM),
       key_axis_names: AxisNames = (KV_BATCH, LENGTH, KV_HEAD, KV_HEAD_DIM),
       value_axis_names: AxisNames = (KV_BATCH, LENGTH, KV_HEAD, KV_HEAD_DIM),
-      input_axis_names: AxisNames = (BATCH, LENGTH, EMBED),
-      out_axis_names: AxisNames = (BATCH, LENGTH, HEAD, D_KV),
+      input_axis_names: AxisNames = (BATCH_ATTN, LENGTH, EMBED),
+      out_axis_names: AxisNames = (BATCH_ATTN, LENGTH, HEAD, D_KV),
       prefill_input_axis_names: AxisNames = (PREFILL_KV_BATCH, PREFILL_LENGTH, EMBED),
       decode_input_axis_names: AxisNames = (DECODE_BATCH, DECODE_LENGTH, EMBED),
       prefill_out_axis_names: AxisNames = (PREFILL_KV_BATCH, PREFILL_LENGTH, HEAD, D_KV),
@@ -1153,7 +1153,7 @@ class MLA(Attention):
     else:
       inputs_q = self._maybe_shard_with_logical(inputs_q, self.input_axis_names)
       inputs_kv = self._maybe_shard_with_logical(inputs_kv, self.input_axis_names)
-      out_logical_name = (BATCH, LENGTH, HEAD, D_KV)
+      out_logical_name = (BATCH_ATTN, LENGTH, HEAD, D_KV)
 
     if model_mode != MODEL_MODE_TRAIN and decoder_segment_ids is None:
       decoder_segment_ids = jnp.ones(inputs_q.shape[:2], dtype=jnp.int32)

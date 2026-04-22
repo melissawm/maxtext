@@ -31,12 +31,13 @@ logical_axis_rules: [
                       # Attention
                       # ==========================================
                       # Attention Activations
+                      ['activation_batch_attn', ['data', 'fsdp']],
                       ['activation_heads', []],
                       ['activation_kv_heads', []],
-                      ['activation_attn_length', ['expert']],
+                      ['activation_length_attn', ['expert']],
                       ['activation_q_length', ['expert']],
                       ['activation_kv_length', []],
-                      ['activation_attn_embed', []],
+                      ['activation_embed_attn', []],
                       ['activation_kv', []],
                       ['activation_kv_batch', ['data', 'fsdp']],
                       ['activation_kv_head_dim', []],

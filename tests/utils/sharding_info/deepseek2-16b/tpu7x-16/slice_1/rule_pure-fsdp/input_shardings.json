@@ -14,13 +14,13 @@
     },
     {
       "attention_mla/inputs_q: bfloat16[192,2048,2048]": {
-        "logic_axes": "('activation_batch', 'activation_length', 'activation_embed')",
+        "logic_axes": "('activation_batch_attn', 'activation_length', 'activation_embed')",
         "PartitionSpec": "P('fsdp', None, None)"
       }
     },
     {
       "attention_mla/inputs_kv: bfloat16[192,2048,2048]": {
-        "logic_axes": "('activation_batch', 'activation_length', 'activation_embed')",
+        "logic_axes": "('activation_batch_attn', 'activation_length', 'activation_embed')",
         "PartitionSpec": "P('fsdp', None, None)"
       }
     },
@@ -98,7 +98,7 @@
     },
     {
       "attention_mla/out: bfloat16[192,2048,16,128]": {
-        "logic_axes": "('activation_batch', 'activation_length', 'activation_heads', 'activation_kv')",
+        "logic_axes": "('activation_batch_attn', 'activation_length', 'activation_heads', 'activation_kv')",
         "PartitionSpec": "P('fsdp', None, None, None)"
       }
     },
