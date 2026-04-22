@@ -63,6 +63,7 @@ mesh_axes: ['data', 'fsdp', 'expert', 'context']
 data_sharding: [['data', 'fsdp', 'expert', 'context']]
 logical_axis_rules: [
     ['activation_batch', ['data', 'fsdp', 'expert', 'context']],
+    ['activation_batch_attn', ['data', 'fsdp', 'expert', 'context']],
     ['activation_batch_moe', ['data', 'fsdp', 'expert', 'context']],
     ['activation_embed_and_logits_batch', ['data', 'fsdp', 'expert', 'context']],
     ['activation_kv_batch', ['data', 'fsdp', 'expert', 'context']],

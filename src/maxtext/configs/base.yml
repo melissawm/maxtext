@@ -464,13 +464,14 @@ logical_axis_rules: [
                       # Attention
                       # ==========================================
                       # Attention Activations
+                      ['activation_batch_attn', ['data', 'fsdp', 'fsdp_transpose', 'expert']],
                       ['activation_heads', ['tensor', 'tensor_transpose', 'sequence', 'tensor_sequence', 'autoregressive']],
                       ['activation_kv_heads', ['tensor', 'tensor_transpose', 'sequence', 'tensor_sequence']],
-                      ['activation_attn_length', ['sequence', 'context']],
-                      ['activation_attn_length', ['context']],
+                      ['activation_length_attn', ['sequence', 'context']],
+                      ['activation_length_attn', ['context']],
                       ['activation_q_length', ['context']],
                       ['activation_kv_length', []],
-                      ['activation_attn_embed', ['tensor', 'tensor_transpose']],
+                      ['activation_embed_attn', ['tensor', 'tensor_transpose']],
                       ['activation_kv', ['tensor', 'tensor_transpose', 'tensor_sequence']],
                       ['activation_kv_batch', ['data', 'fsdp', 'fsdp_transpose', 'expert']],
                       ['activation_kv_head_dim', ['tensor', 'tensor_transpose', 'tensor_sequence']],
@@ -514,7 +515,7 @@ logical_axis_rules: [
                       # ==========================================
                       # Dense Activations
                       ['activation_mlp', ['tensor', 'tensor_transpose', 'tensor_sequence']],
-                      # Note activation batch and length also get used in attention and vocab
+                      # Note activation batch and length also get used in vocab
                       ['activation_batch', ['data', 'fsdp', 'fsdp_transpose', 'expert']],
                       ['activation_length', ['sequence', 'context']],
                       ['activation_length', ['context']],

@@ -32,8 +32,9 @@ AxisNames = tuple[str, ...]
 AxisIdxes = tuple[int, ...]
 
 BATCH = "activation_batch"
+BATCH_ATTN = "activation_batch_attn"
 
-ATTN_LENGTH = "activation_attn_length"
+ATTN_LENGTH = "activation_length_attn"
 
 LENGTH = "activation_length"
 PREFILL_LENGTH = "prefill_activation_length"
@@ -41,7 +42,7 @@ Q_LENGTH = "activation_q_length"
 Q_LORA_UP_PROJ = "q_lora_up_proj"
 KV_LENGTH = "activation_kv_length"
 KV_LORA_UP_PROJ = "kv_lora_up_proj"
-ATTN_EMBED = "activation_attn_embed"
+ATTN_EMBED = "activation_embed_attn"
 EMBED = "activation_embed"
 HEAD = "activation_heads"
 PREFILL_KV_BATCH = "activation_prefill_kv_batch"
