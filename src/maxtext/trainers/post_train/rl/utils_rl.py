@@ -526,8 +526,11 @@ def get_optimizer(tmvp_config, max_train_steps):
   return optax.inject_hyperparams(make_optimizer)(learning_rate=schedule)
 
 
-def format_maxtext_messages(messages: list[dict[str, str]], template_config: dict, tmvp_config) -> list[dict[str, str]]:
+def format_maxtext_messages(messages: list[str], template_config: dict, tmvp_config) -> list[dict[str, str]]:
   """Helper to inject MaxText's system prompt into the input user messages."""
+  if template_config is None:
+    raise ValueError("template_config cannot be None for format_maxtext_messages.")
+
   formatted_messages = []
   for msg in messages:
     formatted_content = template_config["TEMPLATE"].format(

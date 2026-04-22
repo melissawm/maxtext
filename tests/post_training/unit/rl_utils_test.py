@@ -370,5 +370,37 @@ class TestGetOptimizer(unittest.TestCase):
     self.assertIn("learning_rate", state.hyperparams)
 
 
+class TestFormatMaxTextMessages(unittest.TestCase):
+  """Tests for utils_rl.format_maxtext_messages."""
+
+  def setUp(self):
+    self.config = _make_config()
+    self.template_config = {
+        "SYSTEM_PROMPT": "Reason between {reasoning_start_token} and {reasoning_end_token}. "
+        + "Solution between {solution_start_token} and {solution_end_token}.",
+        "TEMPLATE": "system: {system_prompt}\nquestion: {question}",
+    }
+
+  @pytest.mark.cpu_only
+  def test_format_with_template(self):
+    """Test formatting when a template is provided."""
+    messages = ["What is 2+2?"]
+    formatted = utils_rl.format_maxtext_messages(messages, self.template_config, self.config)
+    self.assertEqual(len(formatted), 1)
+    self.assertEqual(formatted[0]["role"], "user")
+    expected_content = (
+        "system: Reason between <reasoning> and </reasoning>. "
+        "Solution between <answer> and </answer>.\n"
+        "question: What is 2+2?"
+    )
+    self.assertEqual(formatted[0]["content"], expected_content)
+
+  @pytest.mark.cpu_only
+  def test_format_without_template(self):
+    """Test formatting when template_config is None (the fix)."""
+    messages = ["What is 2+2?"]
+    self.assertRaises(ValueError, lambda: utils_rl.format_maxtext_messages(messages, None, self.config))
+
+
 if __name__ == "__main__":
   unittest.main()
