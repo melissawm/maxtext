@@ -1152,7 +1152,7 @@ def copy_weights_prefused(src_model, dst_model):
 
 
 @pytest.mark.tpu_only
-@pytest.mark.skip(reason="These tests require an updated tpu-inference version.")
+@pytest.mark.post_training
 class FusedMoeTPUTest(unittest.TestCase):
   """Tests for fused_moe_matmul (vllm_rpa path) in RoutedMoE."""
 
