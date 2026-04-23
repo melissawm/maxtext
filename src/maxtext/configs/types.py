@@ -1830,6 +1830,10 @@ class RLEvaluation(BaseModel):
       False,
       description="If True, return a list of (question, answer, responses) during evaluation.",
   )
+  eval_mode: Literal["pass", "maj", "pass_at_1"] = Field(
+      "pass",
+      description="Evaluation mode to use ('pass' for pass@K, 'maj' for maj@K, 'pass_at_1' for pass@1 estimation).",
+  )
 
 
 class Reward(BaseModel):
@@ -1847,6 +1851,11 @@ class Reward(BaseModel):
   )
   penalty_incorrect_format: float = Field(-0.5, description="Penalty for an incorrect format.")
   penalty_incorrect_answer: float = Field(-1.0, description="Penalty for an incorrect answer.")
+  math_verify_timeout: int = Field(300, description="Global timeout (seconds) for math_verify calls per batch.")
+  math_verify_num_procs: int | None = Field(
+      None,
+      description=("Max worker processes for the math_verify pool. None ⇒ " "min(batch_size, cpu_count())."),
+  )
 
 
 class SpecialTokens(BaseModel):
