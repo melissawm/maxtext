@@ -445,29 +445,27 @@ compile_xla_flags: "" # Compiler options e.g. compile_xla_flags="--xla_tpu_num_s
 # Parallelism
 shard_mode: "auto" # can be either auto or explicit
 custom_mesh_and_rule: "" # replace default mesh and logical rule by specifying yml name under config/mesh_and_rule/.
-mesh_axes: ['diloco', 'data', 'stage', 'fsdp', 'fsdp_transpose', 'sequence', 'context', 'context_autoregressive', 'tensor', 'tensor_transpose', 'tensor_sequence', 'expert', 'autoregressive']
+mesh_axes: ['diloco', 'data', 'stage', 'fsdp', 'fsdp_transpose', 'context', 'context_autoregressive', 'tensor', 'tensor_transpose', 'tensor_sequence', 'expert', 'autoregressive']
 logical_axis_rules: [
                       # ==========================================
                       # Vocabulary Embedding
                       # ==========================================
                       # Vocab Activations
                       ['activation_embed_and_logits_batch', ['data', 'stage', 'fsdp', 'fsdp_transpose', 'expert']],
-                      ['activation_embed_and_logits_batch_sequence', ['data', 'stage', 'fsdp', 'fsdp_transpose', 'sequence', 'context', 'expert']],
+                      ['activation_embed_and_logits_batch_sequence', ['data', 'stage', 'fsdp', 'fsdp_transpose', 'context', 'expert']],
                       ['activation_vocab', ['tensor', 'tensor_transpose', 'tensor_sequence']],
                       ['activation_vocab', ['tensor', 'tensor_transpose']],
                       ['activation_vocab', 'tensor_sequence'],
-                      ['activation_vocab', ['sequence', 'context']],
                       # Vocab Weights
                       ['vocab', ['tensor', 'tensor_transpose', 'tensor_sequence', 'autoregressive']],
-                      ['embed_vocab', ['fsdp', 'fsdp_transpose', 'sequence', 'context', 'expert']],
+                      ['embed_vocab', ['fsdp', 'fsdp_transpose', 'context', 'expert']],
                       # ==========================================
                       # Attention
                       # ==========================================
                       # Attention Activations
                       ['activation_batch_attn', ['data', 'fsdp', 'fsdp_transpose', 'expert']],
-                      ['activation_heads', ['tensor', 'tensor_transpose', 'sequence', 'tensor_sequence', 'autoregressive']],
-                      ['activation_kv_heads', ['tensor', 'tensor_transpose', 'sequence', 'tensor_sequence']],
-                      ['activation_length_attn', ['sequence', 'context']],
+                      ['activation_heads', ['tensor', 'tensor_transpose', 'tensor_sequence', 'autoregressive']],
+                      ['activation_kv_heads', ['tensor', 'tensor_transpose', 'tensor_sequence']],
                       ['activation_length_attn', ['context']],
                       ['activation_q_length', ['context']],
                       ['activation_kv_length', []],
@@ -482,34 +480,33 @@ logical_axis_rules: [
                       ['qkv', []],
                       ['kv', []],
                       ['kv_head_dim', []],
-                      ['q_lora', ['fsdp', 'fsdp_transpose', 'sequence', 'context', 'tensor_transpose', 'expert']],
-                      ['q_lora', ['fsdp', 'sequence', 'context', 'tensor_transpose', 'expert']],
-                      ['q_lora', ['fsdp', 'fsdp_transpose', 'sequence', 'context', 'expert']],
-                      ['q_lora', ['fsdp', 'sequence', 'context', 'expert']],
+                      ['q_lora', ['fsdp', 'fsdp_transpose', 'context', 'tensor_transpose', 'expert']],
+                      ['q_lora', ['fsdp', 'context', 'tensor_transpose', 'expert']],
+                      ['q_lora', ['fsdp', 'fsdp_transpose', 'context', 'expert']],
+                      ['q_lora', ['fsdp', 'context', 'expert']],
                       ["q_lora_up_proj", []],
-                      ['kv_lora', ['fsdp', 'fsdp_transpose', 'sequence', 'context', 'tensor_transpose', 'expert']],
-                      ['kv_lora', ['fsdp', 'sequence', 'context', 'tensor_transpose', 'expert']],
-                      ['kv_lora', ['fsdp', 'fsdp_transpose', 'sequence', 'context', 'expert']],
-                      ['kv_lora', ['fsdp', 'sequence', 'context', 'expert']],
+                      ['kv_lora', ['fsdp', 'fsdp_transpose', 'context', 'tensor_transpose', 'expert']],
+                      ['kv_lora', ['fsdp', 'context', 'tensor_transpose', 'expert']],
+                      ['kv_lora', ['fsdp', 'fsdp_transpose', 'context', 'expert']],
+                      ['kv_lora', ['fsdp', 'context', 'expert']],
                       ["kv_lora_up_proj", []],
                       # ==========================================
                       # Mixture of Experts (MoE)
                       # ==========================================
                       # MoE Activations
                       ['activation_batch_moe', ['data', 'fsdp', 'fsdp_transpose']],
-                      ['activation_length_moe', ['sequence', 'context']],
                       ['activation_length_moe', ['context']],
-                      ['activation_norm_length_moe', ['tensor_sequence', 'context', 'sequence']],
+                      ['activation_norm_length_moe', ['tensor_sequence', 'context']],
                       ['activation_embed_moe', ['tensor', 'tensor_transpose']],
                       ['activation_mlp_moe', ['tensor', 'tensor_transpose', 'tensor_sequence']],
                       ['activation_exp', ['expert']],
                       # MoE Weights
                       ['exp', 'expert'],
                       ['mlp_moe', ['fsdp_transpose', 'tensor', 'tensor_sequence', 'autoregressive']],
-                      ['embed_moe', ['fsdp', 'fsdp_transpose', 'sequence', 'tensor_transpose', 'context']],
-                      ['embed_moe', ['fsdp', 'sequence', 'tensor_transpose', 'context']],
-                      ['embed_moe', ['fsdp', 'fsdp_transpose', 'sequence', 'context']],
-                      ['embed_moe', ['fsdp', 'sequence', 'context']],
+                      ['embed_moe', ['fsdp', 'fsdp_transpose', 'tensor_transpose', 'context']],
+                      ['embed_moe', ['fsdp', 'tensor_transpose', 'context']],
+                      ['embed_moe', ['fsdp', 'fsdp_transpose', 'context']],
+                      ['embed_moe', ['fsdp', 'context']],
                       # ==========================================
                       # Standard MLP / Dense Layers / Model Structure
                       # ==========================================
@@ -517,17 +514,16 @@ logical_axis_rules: [
                       ['activation_mlp', ['tensor', 'tensor_transpose', 'tensor_sequence']],
                       # Note activation batch and length also get used in vocab
                       ['activation_batch', ['data', 'fsdp', 'fsdp_transpose', 'expert']],
-                      ['activation_length', ['sequence', 'context']],
                       ['activation_length', ['context']],
-                      ['activation_norm_length', ['tensor_sequence', 'context', 'sequence']],
+                      ['activation_norm_length', ['tensor_sequence', 'context']],
                       ['activation_embed', ['tensor', 'tensor_transpose']],
                       ['activation_stage', 'stage'],
                       # General Weights
                       ['mlp', ['fsdp_transpose', 'tensor', 'tensor_sequence', 'autoregressive']],
-                      ['embed', ['fsdp', 'fsdp_transpose', 'sequence', 'tensor_transpose', 'context', 'expert']],
-                      ['embed', ['fsdp', 'sequence', 'tensor_transpose', 'context', 'expert']],
-                      ['embed', ['fsdp', 'fsdp_transpose', 'sequence', 'context', 'expert']],
-                      ['embed', ['fsdp', 'sequence', 'context', 'expert']],
+                      ['embed', ['fsdp', 'fsdp_transpose', 'tensor_transpose', 'context', 'expert']],
+                      ['embed', ['fsdp', 'tensor_transpose', 'context', 'expert']],
+                      ['embed', ['fsdp', 'fsdp_transpose', 'context', 'expert']],
+                      ['embed', ['fsdp', 'context', 'expert']],
                       ['norm', ['tensor', 'tensor_transpose']],
                       ['layers', 'stage'],
                       ['diloco', 'diloco'],
@@ -538,11 +534,11 @@ logical_axis_rules: [
                       # ==========================================
                       # Inference(Prefill, Decode, Cache)
                       # ==========================================
-                      ['prefill_activation_length', ['sequence', 'context']],
-                      ['prefill_activation_norm_length', ['tensor_sequence', 'context', 'sequence']],
+                      ['prefill_activation_length', ['context']],
+                      ['prefill_activation_norm_length', ['tensor_sequence', 'context']],
                       ['activation_prefill_kv_batch', ['data', 'fsdp', 'fsdp_transpose', 'expert']],
                       ['decode_batch', ['data', 'fsdp', 'fsdp_transpose', 'expert']],
-                      ['decode_length', ['sequence']],
+                      ['decode_length', []],
                       ['cache_heads', ['autoregressive', 'tensor', 'tensor_transpose', 'tensor_sequence']],
                       ['cache_heads', ['autoregressive', 'tensor', 'tensor_sequence']],
                       ['paged_kv_heads', ['tensor']],
@@ -562,7 +558,7 @@ logical_axis_rules: [
                       ['exp_with_fsdp', 'fsdp'],
                   ]
 # Axes used for DCN must be earlier in this list than ICI, see (b/339009148) for details
-data_sharding: [['data', 'stage', 'fsdp', 'fsdp_transpose', 'sequence', 'context', 'context_autoregressive', 'tensor', 'tensor_transpose', 'tensor_sequence', 'expert', 'autoregressive']]
+data_sharding: [['data', 'stage', 'fsdp', 'fsdp_transpose', 'context', 'context_autoregressive', 'tensor', 'tensor_transpose', 'tensor_sequence', 'expert', 'autoregressive']]
 input_data_sharding_logical_axes: ['activation_embed_and_logits_batch', 'activation_norm_length']
 # Determines which physical axis plays the role of context parallelism for input data processing and load balancing
 # only supports "context" or "expert" (when custom_mesh_and_rule=ep-as-cp)

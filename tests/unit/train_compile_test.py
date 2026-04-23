@@ -183,25 +183,6 @@ class TrainCompile(unittest.TestCase):
     )
 
   @pytest.mark.cpu_only
-  def test_sequence_parallelism(self):
-    temp_dir = gettempdir()
-    compiled_trainstep_file = os.path.join(temp_dir, "test_compiled.pickle")
-    train_compile_main(
-        (
-            "",
-            get_test_config_path(),
-            f"compiled_trainstep_file={compiled_trainstep_file}",
-            "compile_topology=v5p-64",
-            "use_iota_embed=true",
-            "compile_topology_num_slices=1",
-            "ici_sequence_parallelism=16",
-            "global_parameter_scale=32",
-            "per_device_batch_size=0.0625",
-            "max_target_length=65536",
-        )
-    )
-
-  @pytest.mark.cpu_only
   def test_remat_save_dot_except_mlpwi(self):
     temp_dir = gettempdir()
     compiled_trainstep_file = os.path.join(temp_dir, "test_remat_save_dot_except_mlpwi.pickle")
@@ -305,7 +286,7 @@ class TrainCompile(unittest.TestCase):
             "compile_topology=v6e-256",
             "use_iota_embed=true",
             "compile_topology_num_slices=1",
-            "ici_sequence_parallelism=4",
+            "ici_context_parallelism=4",
             "global_parameter_scale=32",
             "per_device_batch_size=0.25",
             "max_target_length=65536",
