@@ -955,3 +955,22 @@ class TrainCompile(unittest.TestCase):
             "qk_clip_threshold=100",
         )
     )
+
+  @pytest.mark.cpu_only
+  def test_vocab_tiling_bf16(self):
+    """test vocab_tiling when weight_dtype=bfloat16"""
+    compiled_trainstep_file = "/tmp/test_vocab_tiling_bf16.pickle"
+    train_compile_main(
+        (
+            "",
+            get_test_config_path(),
+            f"compiled_trainstep_file={compiled_trainstep_file}",
+            "compile_topology=v5p-8",
+            "compile_topology_num_slices=1",
+            "base_num_decoder_layers=2",
+            "per_device_batch_size=2",
+            "max_target_length=1024",
+            "num_vocab_tiling=4",
+            "weight_dtype=bfloat16",
+        )
+    )
