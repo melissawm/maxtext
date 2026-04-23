@@ -29,8 +29,17 @@ You can train from scratch to generate a new checkpoint. One example command to 
 python3 -m maxtext.trainers.pre_train.train src/maxtext/configs/base.yml model_name=gemma4-26b base_output_directory=${BASE_OUTPUT_DIRECTORY?} dataset_path=${DATASET_PATH?} tokenizer_path=google/gemma-4-26b-a4b-it per_device_batch_size=1 run_name=runner_pretrain_gemma4_26b steps=10 enable_checkpointing=false sharding_tolerance=0.03
 ```
 
+### Load balance loss (MoE only)
+Gemma4-26B is a Mixture-of-Experts model and uses an auxiliary load balance loss during training to encourage uniform expert utilization. The weight is controlled by `load_balance_loss_weight` and defaults to `0.001` in `src/maxtext/configs/models/gemma4-26b.yml`. To tune or disable it, override from the command line, for example:
+
+```sh
+python3 -m maxtext.trainers.pre_train.train src/maxtext/configs/base.yml model_name=gemma4-26b <other flags> load_balance_loss_weight=0.01
+```
+
+Set `load_balance_loss_weight=0.0` to turn the auxiliary loss off. This flag has no effect on the dense Gemma4-31B model.
+
 ## Checkpoint Conversion
-To obtain the Gemma4 model weights, you can access them on Hugging Face (e.g., [google/gemma-4-31B-it](https://huggingface.co/google/gemma-4-31B-it)). You will need to accept the Gemma4 license through your Hugging Face account and provide your Hugging Face access token (as `HF_TOKEN`) for authentication. You can then convert them directly into a MaxText compatible format. Here's an example of converting the model weights using the conversion script (`tests/end_to_end/tpu/gemma4/26b/convert_gemma4_26b.sh`):
+To obtain the Gemma4 model weights, you can access them on Hugging Face (e.g., [google/gemma-4-31B-it](https://huggingface.co/google/gemma-4-31B-it)). You will need to accept the Gemma4 license through your Hugging Face account and provide your Hugging Face access token (as `HF_TOKEN`) for authentication. You can then convert them directly into a MaxText compatible format. Here's an example of converting the model weights using the conversion script (`tests/end_to_end/tpu/gemma4/26b/convert_gemma4.sh`):
 
 ```sh
 python3 -m maxtext.checkpoint_conversion.to_maxtext src/maxtext/configs/base.yml \
