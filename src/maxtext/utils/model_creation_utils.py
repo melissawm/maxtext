@@ -507,6 +507,16 @@ def from_pretrained(
 
         # Get the structure of checkpoint in `config.load_parameters_path`
         metadata = ckptr.metadata(config.load_parameters_path)
+        if metadata is None or metadata.item_metadata is None:
+          max_logging.log(
+              f"ERROR: No valid Orbax checkpoint found at '{config.load_parameters_path}'. "
+              "Please check your load_parameters_path, the path may be missing, empty, "
+              "or point to a parent directory rather than the checkpoint step directory "
+          )
+          raise ValueError(
+              f"No valid Orbax checkpoint found at '{config.load_parameters_path}'. "
+              "Please check your load_parameters_path."
+          )
 
         def _adjust_target_for_moe_fusion(target, meta_tree, is_nnx):
           if not hasattr(target, "items") or not hasattr(meta_tree, "items"):
