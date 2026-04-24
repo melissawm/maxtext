@@ -81,6 +81,7 @@ frozenlist>=1.8.0
 fsspec>=2026.1.0
 gast>=0.6.0
 gcsfs>=2026.1.0
+gepa>=0.1.1
 gguf>=0.17.1
 google-api-core>=2.28.1
 google-api-python-client>=2.187.0
