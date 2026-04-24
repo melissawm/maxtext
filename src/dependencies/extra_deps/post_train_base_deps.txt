@@ -1,1 +1,1 @@
-google-tunix @ https://github.com/google/tunix/archive/f0102a7b0dccc0020503c0617869883f16b3b4ed.zip
+google-tunix @ https://github.com/google/tunix/archive/9d25e2647520b205ef43e5182ded030d20f3f52b.zip
