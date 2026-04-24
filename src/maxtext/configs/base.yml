@@ -729,6 +729,7 @@ grain_num_threads_eval: 16
 grain_prefetch_buffer_size_eval: 500
 grain_data_source_max_workers: 16  # Max workers for ThreadPoolExecutor when mixing multiple Grain data sources.
 grain_shuffle_buffer_size: 100 # shuffle buffer when using sequential access formats such as Parquet, TFRecord.
+grain_use_elastic_iterator: False # For elastic training, set to this true and packing=False
 # for using pathways
 colocated_python_data_input: False  # experimental feature, under testing
 

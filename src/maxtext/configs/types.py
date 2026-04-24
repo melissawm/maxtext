@@ -1123,6 +1123,13 @@ class GrainDataset(BaseModel):
   grain_file_type: str = Field(
       "arrayrecord", description="File type for Grain data. Supported: arrayrecord, tfrecord, parquet."
   )
+  grain_use_elastic_iterator: bool = Field(
+      False,
+      description=(
+          "Whether to use grain's `ElasticIterator` for data loading. When True, the iterator"
+          "checkpoint can be restored after a change in the number of data-loading shards."
+      ),
+  )
   grain_worker_count: int = Field(1, description="Number of workers for Grain data loading.")
   grain_per_worker_buffer_size: int = Field(1, description="Per-worker buffer size for Grain train data loading.")
   grain_worker_count_eval: int = Field(1, description="Number of workers for Grain eval data loading.")
@@ -2620,6 +2627,31 @@ class MaxTextConfig(
       raise ValueError("At most one of `load_parameters_path` or `load_full_state_path` should be set.")
     if self.elastic_enabled and not self.enable_single_controller:
       raise ValueError("Elastic training is only supported with Pathways (`enable_single_controller=True`).")
+    if self.grain_use_elastic_iterator and self.grain_file_type != "arrayrecord":
+      raise ValueError(
+          "`grain_use_elastic_iterator=True` only supports `grain_file_type=arrayrecord`. "
+          "tfrecord and parquet pipelines use `InterleaveIterDataset` (a many-to-one "
+          "IterDataset transform), which `ElasticIterator` forbids. "
+          f"Got grain_file_type={self.grain_file_type}."
+      )
+    if self.grain_use_elastic_iterator and self.packing:
+      raise ValueError("`grain_use_elastic_iterator=True` requires `packing=False`.")
+    if self.use_dpo and self.packing:
+      raise ValueError("DPO does not support packing. Set `packing=False`.")
+    if self.grain_use_elastic_iterator and not self.use_truncation:
+      raise ValueError(
+          "`grain_use_elastic_iterator=True` requires `use_truncation=True`. "
+          "`TokenizeAndChunk` uses `apply`, which produces a many-to-one "
+          "IterDataset transform that `ElasticIterator` forbids."
+      )
+    if self.grain_use_elastic_iterator and (
+        self.grain_train_mixture_config_path or ";" in (self.grain_train_files or "")
+    ):
+      raise ValueError(
+          "`grain_use_elastic_iterator=True` does not support dataset mixtures. "
+          "Set `grain_train_mixture_config_path` to empty and use a single "
+          "`grain_train_files` pattern (no ';' separator)."
+      )
     if (self.load_parameters_path or self.load_full_state_path) and not self.enable_checkpointing:
       raise ValueError("You must set enable_checkpointing=True to load a checkpoint.")
     if self.enable_multi_tier_checkpointing:

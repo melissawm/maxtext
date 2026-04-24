@@ -74,8 +74,16 @@ def get_local_batch_size(config):
   return batch_size
 
 
-def format_and_batch(dataset, config, batch_size, pad_id, data_columns, tokenizer_model):
-  """Packs or pads the dataset according to config and batches it."""
+def format_and_batch(dataset, config, batch_size, pad_id, data_columns, tokenizer_model, shift=True):
+  """Packs or pads the dataset, batches it, and optionally shifts tokens for next-token prediction.
+
+  When `config.grain_use_elastic_iterator` is True, batching is skipped
+  (ElasticIterator performs it internally) and, if `shift=True`, the shift is
+  applied pre-batch on axis 0, which is equivalent to a post-batch axis=1 shift.
+
+  `shift` should be False for pipelines that don't do next-token prediction
+  (e.g. DPO, which scores full sequences).
+  """
   if config.packing:
     length_struct = {col: config.max_target_length for col in data_columns}
     max_segments = config.max_segments_per_seq
@@ -113,23 +121,24 @@ def format_and_batch(dataset, config, batch_size, pad_id, data_columns, tokenize
   else:
     dataset = dataset.map(input_pipeline_utils.PadOrTrimToMaxLength(config.max_target_length, pad_id))
 
+  if config.grain_use_elastic_iterator:
+    # ElasticIterator batches internally, so return the pre-batch dataset.
+    if shift:
+      dataset = dataset.map(input_pipeline_utils.ShiftData(ignored_ids=[pad_id], axis=0))
+    return dataset
+
   batch_fn = functools.partial(grain.experimental.batch_and_pad, batch_size=batch_size, pad_value=pad_id)
   dataset = dataset.batch(batch_size, batch_fn=batch_fn)
+  if shift:
+    dataset = dataset.map(input_pipeline_utils.ShiftData(ignored_ids=[pad_id], axis=1))
   return dataset
-
-
-def shift_dataset(dataset, pad_id):
-  """Shift tokens to create inputs and targets for standard next-token prediction."""
-  return dataset.map(
-      input_pipeline_utils.ShiftData(
-          ignored_ids=[pad_id],
-          axis=1,
-      )
-  )
 
 
 def apply_multiprocessing_and_prefetch(dataset, config, grain_worker_count, grain_per_worker_buffer_size):
   """Applies multiprocessing and prefetching configurations to the dataset."""
+  if config.grain_use_elastic_iterator:
+    # ElasticIterator applies multiprocessing itself.
+    return dataset
   multiprocessing_options = (
       pick_performance_config(
           ds=dataset,
