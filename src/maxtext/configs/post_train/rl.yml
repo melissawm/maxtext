@@ -68,6 +68,9 @@ rl:
   degenerate_group_masking: True
   # Upper-bound clipping epsilon for GRPO loss; defaults to grpo_epsilon when null.
   epsilon_high: null
+  # Number of model keys to chunk for resharding tensors between trainer and rollout devices.
+  # If null, the entire model is resharded at once.
+  reshard_chunk_size: null
 
 
 # ====== Models ======

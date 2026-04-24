@@ -405,6 +405,7 @@ def create_rl_components(
           rollout_vllm_max_num_seqs=trainer_config.max_num_seqs,
           rollout_vllm_async_scheduling=trainer_config.async_scheduling,
           rollout_vllm_server_mode=trainer_config.rl.use_agentic_rollout,
+          rollout_vllm_reshard_chunk_size=trainer_config.rl.reshard_chunk_size,
           rollout_vllm_kwargs={
               "hf_overrides": trainer_config.vllm_hf_overrides,
               "enable_expert_parallel": sampler_config.enable_expert_parallel,
