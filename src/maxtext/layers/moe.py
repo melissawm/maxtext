@@ -403,16 +403,9 @@ class RoutedMoE(nnx.Module):
     if rule is not None:
       if not isinstance(rule, qwix.QtRule):
         raise ValueError("Expect a QtRule for quantized training.")
-      if (
-          rule.additional_qt_config
-          and "sparsity_rule" in rule.additional_qt_config
-      ):
+      if rule.additional_qt_config and "sparsity_rule" in rule.additional_qt_config:
         q_s_rule = rule.additional_qt_config["sparsity_rule"]
-        if (
-            q_s_rule
-            and q_s_rule.weight_sparsity_n
-            and q_s_rule.weight_sparsity_m
-        ):
+        if q_s_rule and q_s_rule.weight_sparsity_n and q_s_rule.weight_sparsity_m:
           sparsity_rule = q_s_rule
 
     if sparsity_rule is not None:
@@ -1064,14 +1057,16 @@ class RoutedMoE(nnx.Module):
     def get_tokamax_group_sizes(group_sizes, inputs, kernel):
       # TODO (b/491979205) pipeline fsdp ag per repeat fails tokamax gmm
       if self.config.use_qwix_quantization or (
-          self.config.using_pipeline_parallelism
-          and self.config.pipeline_fsdp_ag_per_repeat
+          self.config.using_pipeline_parallelism and self.config.pipeline_fsdp_ag_per_repeat
       ):
         return group_sizes
       elif self.config.attention == "vllm_rpa":
         return group_sizes
       else:
-        return tokamax.RaggedDotGroupSizes(group_sizes, len(inputs))
+        return tokamax.RaggedDotGroupSizes(
+            group_sizes,
+            (inputs.shape[0] // kernel.shape[0],) * kernel.shape[0],
+        )
 
     def get_quantization_dtypes():
       lhs_quantize_dtype, rhs_quantize_dtype = None, None
@@ -2194,15 +2189,9 @@ class RoutedMoE(nnx.Module):
       wo_kernel = wo_kernel * jnp.asarray(self.per_expert_scale[...], self.dtype)[:, None, None]
 
     if self.wi_0_sparsity_module is not None:
-      _, w0_kernel = self.wi_0_sparsity_module(
-          jnp.zeros_like(w0_kernel), w0_kernel
-      )
-      _, w1_kernel = self.wi_1_sparsity_module(
-          jnp.zeros_like(w1_kernel), w1_kernel
-      )
-      _, wo_kernel = self.wo_sparsity_module(
-          jnp.zeros_like(wo_kernel), wo_kernel
-      )
+      _, w0_kernel = self.wi_0_sparsity_module(jnp.zeros_like(w0_kernel), w0_kernel)
+      _, w1_kernel = self.wi_1_sparsity_module(jnp.zeros_like(w1_kernel), w1_kernel)
+      _, wo_kernel = self.wo_sparsity_module(jnp.zeros_like(wo_kernel), wo_kernel)
     if cfg.mlp_bias:
       w0_bias = jnp.asarray(self.wi_0_bias[...], self.dtype)
       w1_bias = jnp.asarray(self.wi_1_bias[...], self.dtype)
