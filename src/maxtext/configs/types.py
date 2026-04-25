@@ -436,26 +436,16 @@ class Quantization(BaseModel):
   )
   weight_sparsity_n: int | None = Field(
       None,
-      description=(
-          "The 'N' in N:M sparsity, representing the maximum number of non-zero"
-          " values in each block."
-      ),
+      description=("The 'N' in N:M sparsity, representing the maximum number of non-zero" " values in each block."),
   )
   weight_sparsity_m: int | None = Field(
       None,
-      description=(
-          "The 'M' in N:M sparsity, representing the number of values in each"
-          " block."
-      ),
+      description=("The 'M' in N:M sparsity, representing the number of values in each" " block."),
   )
-  weight_sparsity_update_step: int = Field(
-      10, description="The step size for updating weight sparsity masks."
-  )
+  weight_sparsity_update_step: int = Field(10, description="The step size for updating weight sparsity masks.")
   weight_sparsity_start_step: int = Field(
       50,
-      description=(
-          "The first number of steps before updating the sparsity masks."
-      ),
+      description=("The first number of steps before updating the sparsity masks."),
   )
 
 
@@ -1821,6 +1811,13 @@ class RL(BaseModel):
   )
   epsilon_high: Optional[float] = Field(
       None, description="Upper-bound clipping epsilon for GRPO loss. Defaults to epsilon when None (agentic only)."
+  )
+  reshard_chunk_size: Optional[int] = Field(
+      None,
+      description=(
+          "Number of model keys to chunk for resharding tensors between trainer and rollout devices."
+          "If None, no chunking is applied, which may lead to OOM errors if tensors are too large."
+      ),
   )
 
 
