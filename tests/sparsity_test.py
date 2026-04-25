@@ -18,6 +18,7 @@ import os
 import tempfile
 from absl.testing import absltest
 from absl.testing import parameterized
+import pytest
 from maxtext.trainers.pre_train import train
 from tests.utils.test_helpers import get_test_config_path
 
@@ -45,9 +46,8 @@ class Train(parameterized.TestCase):
           "use_sparsity": True,
       },
   )
-  def test_different_quant_sparsity_configs(
-      self, quantization: str, use_sparsity: bool
-  ):
+  @pytest.mark.tpu_only
+  def test_different_quant_sparsity_configs(self, quantization: str, use_sparsity: bool):
     test_tmpdir = os.environ.get("TEST_TMPDIR", gettempdir())
     outputs_dir = os.environ.get("TEST_UNDECLARED_OUTPUTS_DIR", test_tmpdir)
     args = [
@@ -81,11 +81,13 @@ class Train(parameterized.TestCase):
         f"metrics_file={os.path.join(outputs_dir, 'metrics.json')}",
     ]
     if use_sparsity:
-      args.extend([
-          "weight_sparsity_n=2",
-          "weight_sparsity_m=4",
-          "weight_sparsity_update_step=1",
-      ])
+      args.extend(
+          [
+              "weight_sparsity_n=2",
+              "weight_sparsity_m=4",
+              "weight_sparsity_update_step=1",
+          ]
+      )
     train_main(args)
 
 
