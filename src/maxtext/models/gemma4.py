@@ -370,7 +370,7 @@ class Gemma4DecoderLayer(nnx.Module):
 
     next_layer_addition = mlp_lnx + residual
     layer_output = next_layer_addition
-    layer_output = layer_output * self.layer_scalar.value
+    layer_output = layer_output * jnp.asarray(self.layer_scalar.value, cfg.dtype)
 
     layer_output = nn.with_logical_constraint(layer_output, self.activation_axis_names)
 
