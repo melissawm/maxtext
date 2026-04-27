@@ -116,8 +116,8 @@ class DistillationMetricsTest(unittest.TestCase):
     t_p = jax.nn.softmax(t_logits, axis=-1)
     optax_kl = float(optax.kl_divergence(log_s, t_p)[0, 0])
 
-    # Reference: forward KL(teacher || student) = sum_i t_i (log t_i - log s_i)
-    log_t = np.log(np.asarray(t_p[0, 0]) + 1e-30)
+    # Reference: forward KL(teacher || student) = sum_i t_i (log t_i - log s_i).
+    log_t = np.asarray(jax.nn.log_softmax(t_logits, axis=-1)[0, 0])
     ref_fwd = float(np.sum(np.asarray(t_p[0, 0]) * (log_t - np.asarray(log_s[0, 0]))))
     np.testing.assert_allclose(optax_kl, ref_fwd, rtol=1e-5, atol=1e-6)
 
@@ -140,10 +140,12 @@ class DistillationMetricsTest(unittest.TestCase):
     for temperature in [0.5, 1.0, 2.0, 8.0]:
       strategy = _make_strategy(vocab_size, temperature=temperature, alpha=1.0)  # alpha=1 -> total = soft only
       total_loss, metrics = strategy.compute_loss(out, out, labels, step=None)
-      # Float32 KL on numerically equal log_softmax outputs is ~1e-5; allow a bit of slack.
-      np.testing.assert_allclose(float(total_loss), 0.0, atol=1e-4)
+      # soft_loss is scaled by T^2, so per-position float32 noise gets amplified
+      # by T^2. Scale tolerances with T^2 so the assertion is meaningful across T.
+      t_sq = max(1.0, float(temperature)) ** 2
+      np.testing.assert_allclose(float(total_loss), 0.0, atol=1e-4 * t_sq)
       soft_sum, _ = metrics["distill/soft_loss"]
-      np.testing.assert_allclose(float(soft_sum), 0.0, atol=1e-3)
+      np.testing.assert_allclose(float(soft_sum), 0.0, atol=1e-3 * t_sq)
 
   # --- 2. Perplexity / CE numerics --------------------------------------
 
@@ -415,6 +417,152 @@ class DistillationMetricsTest(unittest.TestCase):
     _, m_diff = strategy_diff.compute_loss(s_out, t_out, labels, step=None)
     feat_diff, _ = m_diff["distill/out_proj_feature_loss"]
     self.assertGreater(float(feat_diff), 0.0)
+
+  # --- 7b. Feature loss NaN-safety (pad mask + epsilon) -----------------
+
+  def _features_with_zero_pad_positions(self, num_layers, batch_size, seq_len, hidden_dim, rng):
+    """Returns [L, B, T, D] features where the last column of T is all zeros
+    (matches what typically sits at padded positions after masked attention)."""
+    feats = jnp.asarray(rng.normal(size=(num_layers, batch_size, seq_len, hidden_dim)).astype(np.float32))
+    feats = feats.at[:, :, -1, :].set(0.0)
+    return feats
+
+  def test_feature_loss_stays_finite_when_padded_positions_are_zero_norm(self):
+    """Before the patch, cosine distance at padded positions gave 0/0 = NaN
+    and the mean leaked into the aggregated loss. The mask must zero those
+    positions out before any reduction."""
+    vocab_size, batch_size, seq_len, hidden_dim = 4, 2, 4, 8
+    num_layers = 4
+    rng = np.random.default_rng(21)
+    # Padded positions (last token) have zero features for BOTH student and teacher.
+    s_features = self._features_with_zero_pad_positions(num_layers, batch_size, seq_len, hidden_dim, rng)
+    t_features = self._features_with_zero_pad_positions(num_layers, batch_size, seq_len, hidden_dim, rng)
+
+    s_logits = jnp.zeros((batch_size, seq_len, vocab_size), dtype=jnp.float32)
+    # Targets: last position is pad (pad_id=0); others are valid tokens 1..3.
+    targets = jnp.array([[1, 2, 3, 0], [3, 2, 1, 0]], dtype=jnp.int32)
+    labels = _one_hot_labels(targets, vocab_size, pad_id=0)
+
+    s_out = distillation_utils.DistillationForwardOutput(logits=s_logits, out_projection_activations=s_features)
+    t_out = distillation_utils.DistillationForwardOutput(logits=s_logits, out_projection_activations=t_features)
+
+    strategy = _make_strategy(vocab_size, alpha=0.0, beta_feature=1.0, layer_indices=[0, 1, 2, 3])
+    total_loss, metrics = strategy.compute_loss(s_out, t_out, labels, step=None)
+
+    feat_sum, _ = metrics["distill/out_proj_feature_loss"]
+    self.assertTrue(np.isfinite(float(feat_sum)), f"feature loss not finite: {float(feat_sum)!r}")
+    self.assertTrue(np.isfinite(float(total_loss)), f"total loss not finite: {float(total_loss)!r}")
+
+  def test_feature_loss_is_invariant_to_padded_position_values(self):
+    """The mask must make the feature loss independent of what sits at
+    padded positions — i.e. rewriting pad features to garbage or zeros must
+    not change the loss value."""
+    vocab_size, batch_size, seq_len, hidden_dim = 4, 1, 3, 8
+    num_layers = 2
+    rng = np.random.default_rng(22)
+    s_features = jnp.asarray(rng.normal(size=(num_layers, batch_size, seq_len, hidden_dim)).astype(np.float32))
+    t_features = jnp.asarray(rng.normal(size=(num_layers, batch_size, seq_len, hidden_dim)).astype(np.float32))
+
+    # Mark the last position as padding in labels.
+    targets = jnp.array([[1, 2, 0]], dtype=jnp.int32)
+    labels = _one_hot_labels(targets, vocab_size, pad_id=0)
+    s_logits = jnp.zeros((batch_size, seq_len, vocab_size), dtype=jnp.float32)
+
+    def run(pad_filler):
+      s = s_features.at[:, :, -1, :].set(pad_filler)
+      t = t_features.at[:, :, -1, :].set(pad_filler)
+      s_out = distillation_utils.DistillationForwardOutput(logits=s_logits, out_projection_activations=s)
+      t_out = distillation_utils.DistillationForwardOutput(logits=s_logits, out_projection_activations=t)
+      strategy = _make_strategy(vocab_size, alpha=0.0, beta_feature=1.0, layer_indices=[0, 1])
+      _, m = strategy.compute_loss(s_out, t_out, labels, step=None)
+      return float(m["distill/out_proj_feature_loss"][0])
+
+    # Replace pad positions with zeros, then with huge noise; both must give the same loss.
+    loss_zero_pad = run(0.0)
+    loss_huge_pad = run(1e6)
+    np.testing.assert_allclose(loss_zero_pad, loss_huge_pad, rtol=1e-5, atol=1e-6)
+
+  def test_feature_loss_safe_norm_handles_zero_valid_activations(self):
+    """Even on valid (non-padded) positions, a zero-norm row must not blow up
+    cosine distance — the optax epsilon in the patched fn floors the
+    denominator. This guards against late-training activation collapse."""
+    vocab_size, batch_size, seq_len, hidden_dim = 4, 1, 2, 8
+    num_layers = 2
+    # BOTH student and teacher have zero-norm vectors on ALL positions
+    # (including the valid ones). No mask can rescue us here — epsilon must.
+    s_features = jnp.zeros((num_layers, batch_size, seq_len, hidden_dim), dtype=jnp.float32)
+    t_features = jnp.zeros((num_layers, batch_size, seq_len, hidden_dim), dtype=jnp.float32)
+
+    targets = jnp.array([[1, 2]], dtype=jnp.int32)  # both valid
+    labels = _one_hot_labels(targets, vocab_size, pad_id=0)
+    s_logits = jnp.zeros((batch_size, seq_len, vocab_size), dtype=jnp.float32)
+
+    s_out = distillation_utils.DistillationForwardOutput(logits=s_logits, out_projection_activations=s_features)
+    t_out = distillation_utils.DistillationForwardOutput(logits=s_logits, out_projection_activations=t_features)
+
+    strategy = _make_strategy(vocab_size, alpha=0.0, beta_feature=1.0, layer_indices=[0, 1])
+    total_loss, metrics = strategy.compute_loss(s_out, t_out, labels, step=None)
+
+    feat_sum, _ = metrics["distill/out_proj_feature_loss"]
+    self.assertTrue(np.isfinite(float(feat_sum)))
+    self.assertTrue(np.isfinite(float(total_loss)))
+
+  def test_feature_loss_gradient_finite_under_degenerate_inputs(self):
+    """The backward pass is where 0/0 actually bites in training: jax.grad
+    of cosine on a zero-norm row would produce NaN without epsilon. Assert
+    gradients flow cleanly through the patched feature loss."""
+    num_layers, batch_size, seq_len, hidden_dim = 2, 1, 2, 4
+
+    def _loss(s, t, mask):
+      # Exercise the patched default feature_loss_fn in isolation.
+      strategy = _make_strategy(vocab_size=4, alpha=0.0, beta_feature=1.0)
+      return strategy.feature_loss_fn(s, t, mask)
+
+    # Degenerate case: zero-norm rows everywhere.
+    s = jnp.zeros((num_layers, batch_size, seq_len, hidden_dim), dtype=jnp.float32)
+    t = jnp.zeros((num_layers, batch_size, seq_len, hidden_dim), dtype=jnp.float32)
+    mask = jnp.ones((batch_size, seq_len), dtype=jnp.float32)
+
+    grad_s = jax.grad(_loss, argnums=0)(s, t, mask)
+    self.assertTrue(bool(jnp.all(jnp.isfinite(grad_s))), f"grad not finite: {np.asarray(grad_s)!r}")
+
+  def test_feature_loss_l2_respects_mask(self):
+    """Same masking contract applies to the L2 branch — padded positions
+    must not contribute to the loss."""
+    vocab_size, batch_size, seq_len, hidden_dim = 4, 1, 3, 8
+    num_layers = 2
+    rng = np.random.default_rng(23)
+    s_features = jnp.asarray(rng.normal(size=(num_layers, batch_size, seq_len, hidden_dim)).astype(np.float32))
+    t_features = jnp.asarray(rng.normal(size=(num_layers, batch_size, seq_len, hidden_dim)).astype(np.float32))
+
+    targets = jnp.array([[1, 2, 0]], dtype=jnp.int32)
+    labels = _one_hot_labels(targets, vocab_size, pad_id=0)
+    s_logits = jnp.zeros((batch_size, seq_len, vocab_size), dtype=jnp.float32)
+
+    def run(pad_filler):
+      s = s_features.at[:, :, -1, :].set(pad_filler)
+      t = t_features.at[:, :, -1, :].set(pad_filler)
+      # Build an L2 strategy directly (constructor override).
+      strategy = distillation_utils.CombinedDistillationStrategy(
+          student_forward_fn=lambda *_a, **_k: None,
+          teacher_forward_fn=lambda *_a, **_k: None,
+          pad_id=0,
+          temperature=1.0,
+          alpha=0.0,
+          beta_feature=1.0,
+          layer_indices=[0, 1],
+          feature_loss_type="l2",
+          vocab_size=vocab_size,
+          max_steps=1,
+      )
+      s_out = distillation_utils.DistillationForwardOutput(logits=s_logits, out_projection_activations=s)
+      t_out = distillation_utils.DistillationForwardOutput(logits=s_logits, out_projection_activations=t)
+      _, m = strategy.compute_loss(s_out, t_out, labels, step=None)
+      return float(m["distill/out_proj_feature_loss"][0])
+
+    loss_zero_pad = run(0.0)
+    loss_huge_pad = run(1e6)
+    np.testing.assert_allclose(loss_zero_pad, loss_huge_pad, rtol=1e-5, atol=1e-6)
 
   # --- 8. compute_eval_loss returns (sum, count) ------------------------
 
