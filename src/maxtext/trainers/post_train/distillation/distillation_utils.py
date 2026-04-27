@@ -52,6 +52,8 @@ class DistillationForwardOutput:
   logits: jax.Array
   #: out_projection_activations
   out_projection_activations: jax.Array | None = None
+  #: moe load balance loss
+  moe_lb_loss: jax.Array | None = None
 
 
 @flax.struct.dataclass(frozen=True)
@@ -327,7 +329,7 @@ class CombinedDistillationStrategy(DistillationStrategy):
       alpha: float = 0.5,
       beta_feature: float = 0.0,
       layer_indices: Optional[List[int]] = None,
-      feature_loss_fn: Callable[[jax.Array, jax.Array], jax.Array] | None = None,
+      feature_loss_fn: Callable[[jax.Array, jax.Array, jax.Array], jax.Array] | None = None,
       feature_loss_type: Literal["cosine", "l2"] = "cosine",
       cosine_distance_axis: int | tuple[int, ...] = -1,
       vocab_size: int = 0,
@@ -350,8 +352,9 @@ class CombinedDistillationStrategy(DistillationStrategy):
         layer_indices: Layer indices to apply feature loss.
         feature_loss_type: The type of feature loss to use if `feature_loss_fn` is None.
           Can be "cosine" (default) or "l2".
-        feature_loss_fn: A function that takes two jax.Arrays (student_map,
-          teacher_map) and returns a scalar loss. Defaults to cosine distance.
+        feature_loss_fn: A function (student_features, teacher_features, mask) -> scalar
+          where features are [L, B, T, D] and mask is [B, T] (1.0 for valid tokens).
+          Defaults to a masked cosine distance with epsilon-floored safe-norm.
         cosine_distance_axis: The axis to use for cosine distance computation if
           feature_loss_fn is not provided. Defaults to -1.
         alpha_end: Target alpha value at end of training. None keeps alpha fixed.
@@ -408,16 +411,30 @@ class CombinedDistillationStrategy(DistillationStrategy):
             f"Set {param_name}_end to a target value or use schedule='constant'."
         )
 
+    # Mask keeps zero-norm pad activations out of the cosine denominator to avoid 0/0 NaN.
     self.feature_loss_fn = feature_loss_fn
     if feature_loss_fn is None:
       if feature_loss_type == "cosine":
-        self.feature_loss_fn = lambda student_features, teacher_features: jnp.mean(
-            optax.cosine_distance(student_features, teacher_features, axis=cosine_distance_axis)
-        )
+
+        def _masked_cosine(student_features, teacher_features, mask):
+          # epsilon>0 floors the safe-norm so an all-zero row can't divide by zero.
+          cd = optax.cosine_distance(
+              student_features, teacher_features, axis=cosine_distance_axis, epsilon=1e-6
+          )  # [L, B, T]
+          mask_b = mask.astype(cd.dtype)
+          num_valid_terms = jnp.maximum(jnp.sum(mask_b), 1.0) * cd.shape[0]
+          return jnp.sum(cd * mask_b[None, :, :]) / num_valid_terms
+
+        self.feature_loss_fn = _masked_cosine
       elif feature_loss_type == "l2":
-        self.feature_loss_fn = lambda student_features, teacher_features: jnp.mean(
-            optax.l2_loss(student_features, teacher_features)
-        )
+
+        def _masked_l2(student_features, teacher_features, mask):
+          sq = jnp.mean(jnp.square(student_features - teacher_features), axis=-1)  # [L, B, T]
+          mask_b = mask.astype(sq.dtype)
+          num_valid_terms = jnp.maximum(jnp.sum(mask_b), 1.0) * sq.shape[0]
+          return jnp.sum(sq * mask_b[None, :, :]) / num_valid_terms
+
+        self.feature_loss_fn = _masked_l2
       else:
         raise ValueError(f"Unsupported feature_loss_type: {feature_loss_type!r}")
 
@@ -516,9 +533,20 @@ class CombinedDistillationStrategy(DistillationStrategy):
       s_features_sliced = s_features_sliced.astype(jnp.float32)
       t_features_sliced = t_features_sliced.astype(jnp.float32)
 
-      feature_loss = beta_feature * self.feature_loss_fn(s_features_sliced, t_features_sliced)
+      feature_loss = beta_feature * self.feature_loss_fn(s_features_sliced, t_features_sliced, mask)
 
     total_loss = base_logit_loss + feature_loss
+
+    moe_lb_loss = jnp.array(0.0)
+    if student_output.moe_lb_loss is not None:
+      # The moe_lb_loss collected from the model is already scaled by load_balance_loss_weight
+      # within the MoE layer itself (see load_balance_loss in moe.py).
+      moe_lb_loss = student_output.moe_lb_loss
+      total_loss += moe_lb_loss
+
+    teacher_moe_lb_loss = jnp.array(0.0)
+    if teacher_output.moe_lb_loss is not None:
+      teacher_moe_lb_loss = teacher_output.moe_lb_loss
 
     # Per-step next-token perplexity. Note: this is mean(exp(per-step CE)), not
     # exp(window-CE-mean) — close to true perplexity in steady state. For the exact
@@ -545,6 +573,8 @@ class CombinedDistillationStrategy(DistillationStrategy):
         "distill/kl_div_T1": (kl_t1_sum, valid_count),
         # Per-step quantities: (value, 1.0) so the aggregator yields a simple mean over steps.
         "distill/out_proj_feature_loss": (feature_loss, one),
+        "distill/moe_lb_loss": (moe_lb_loss, one),
+        "distill/teacher_moe_lb_loss": (teacher_moe_lb_loss, one),
         "distill/total_loss": (total_loss, one),
         "distill/temperature": (temperature, one),
         "distill/alpha": (alpha, one),

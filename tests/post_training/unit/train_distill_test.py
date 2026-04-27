@@ -439,6 +439,7 @@ class TrainDistillTest(unittest.TestCase):
         "distill/kl_div_T1",
         "distill/teacher_loss",
         "distill/out_proj_feature_loss",
+        "distill/moe_lb_loss",
         "distill/total_loss",
         "distill/temperature",
         "distill/alpha",
@@ -1028,6 +1029,8 @@ class TrainDistillTest(unittest.TestCase):
     mock_global.student_overrides = {}
     mock_global.teacher_overrides = {}  # No checkpoint needed
     mock_global.offline_data_dir = "gs://bucket/data"  # Triggers offline mode
+    mock_global.base_output_directory = ""
+    mock_global.run_name = ""
 
     mock_student_cfg = mock.Mock()
     mock_student_cfg.vocab_size = 32000
@@ -1124,6 +1127,8 @@ class TrainDistillTest(unittest.TestCase):
     mock_global.student_overrides = {}
     mock_global.teacher_overrides = {"load_parameters_path": "gs://ckpt"}
     mock_global.offline_data_dir = None  # Triggers online mode
+    mock_global.base_output_directory = ""
+    mock_global.run_name = ""
 
     mock_student_cfg = mock.Mock()
     mock_student_cfg.vocab_size = 32000
@@ -1286,6 +1291,43 @@ class TrainDistillTest(unittest.TestCase):
     # Verify layer2 has changed (trained)
     is_layer2_unchanged = np.allclose(student.layer2.kernel.get_value(), initial_layer2_weights)
     self.assertFalse(is_layer2_unchanged, msg="layer2 weights should have updated.")
+
+  def test_save_run_manifest_writes_files(self):
+    """Verifies _save_run_manifest copies the source YAML and writes command.sh."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+      source_yml = os.path.join(tmp_dir, "my_distill.yml")
+      with open(source_yml, "w", encoding="utf-8") as f:
+        f.write("# example config\nsteps: 10\n")
+
+      config = mock.Mock()
+      config.base_output_directory = tmp_dir
+      config.run_name = "test_run"
+      argv = ["train_distill.py", source_yml, "steps=20", "learning_rate=1e-4"]
+
+      train_distill._save_run_manifest(argv, config)  # pylint: disable=protected-access
+
+      out_dir = os.path.join(tmp_dir, "test_run")
+      saved_yml = os.path.join(out_dir, "distillation.yml")
+      saved_cmd = os.path.join(out_dir, "command.sh")
+      self.assertTrue(os.path.exists(saved_yml))
+      self.assertTrue(os.path.exists(saved_cmd))
+      with open(saved_yml, encoding="utf-8") as f:
+        self.assertIn("steps: 10", f.read())
+      with open(saved_cmd, encoding="utf-8") as f:
+        command = f.read()
+      self.assertIn("distillation.yml", command)
+      self.assertIn("steps=20", command)
+      self.assertIn("learning_rate=1e-4", command)
+
+  def test_save_run_manifest_swallows_errors(self):
+    """Verifies _save_run_manifest does not raise if the source YAML is missing."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+      config = mock.Mock()
+      config.base_output_directory = tmp_dir
+      config.run_name = "test_run"
+      argv = ["train_distill.py", "/does/not/exist.yml"]
+      # Must not raise — failures here should not kill training.
+      train_distill._save_run_manifest(argv, config)  # pylint: disable=protected-access
 
 
 if __name__ == "__main__":
