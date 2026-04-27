@@ -434,19 +434,6 @@ class Quantization(BaseModel):
       "absmax",
       description="Quantization calibration method used for gradients.",
   )
-  weight_sparsity_n: int | None = Field(
-      None,
-      description=("The 'N' in N:M sparsity, representing the maximum number of non-zero" " values in each block."),
-  )
-  weight_sparsity_m: int | None = Field(
-      None,
-      description=("The 'M' in N:M sparsity, representing the number of values in each" " block."),
-  )
-  weight_sparsity_update_step: int = Field(10, description="The step size for updating weight sparsity masks.")
-  weight_sparsity_start_step: int = Field(
-      50,
-      description=("The first number of steps before updating the sparsity masks."),
-  )
 
 
 class ModelArchitecture(BaseModel):
@@ -1207,6 +1194,26 @@ class Distillation(BaseModel):
       "constant", description="Schedule type for beta annealing ('constant', 'linear', or 'cosine')."
   )
 
+  # --- Learn to init related parameters --
+  learn_to_init_mode: bool = Field(False, description="Runs in the learn-to-init mode only")
+
+  lti_use_general_linear_map: bool = Field(
+      False,
+      description="enable general map (i.e. single learnable projection instead of the bi-linear mapping. "
+      "Needs much more HBM.",
+  )
+
+  distill_weights_copy_map: dict[str, Any] = Field(
+      default_factory=dict,
+      description="Dictionary of copying original teacher weights to the student model.",
+  )
+
+  distill_student_weights_share_map: dict[str, Any] = Field(
+      default_factory=dict,
+      description="Experimental weight sharing map inside the student model for learn-to-init phase",
+  )
+  # ---------------------------------------
+
   # --- Distillation freezing filter --
   student_params_to_update: None | list = Field(
       None,
@@ -1812,13 +1819,6 @@ class RL(BaseModel):
   epsilon_high: Optional[float] = Field(
       None, description="Upper-bound clipping epsilon for GRPO loss. Defaults to epsilon when None (agentic only)."
   )
-  reshard_chunk_size: Optional[int] = Field(
-      None,
-      description=(
-          "Number of model keys to chunk for resharding tensors between trainer and rollout devices."
-          "If None, no chunking is applied, which may lead to OOM errors if tensors are too large."
-      ),
-  )
 
 
 class RLDataset(BaseModel):
@@ -1850,10 +1850,6 @@ class RLEvaluation(BaseModel):
       False,
       description="If True, return a list of (question, answer, responses) during evaluation.",
   )
-  eval_mode: Literal["pass", "maj", "pass_at_1"] = Field(
-      "pass",
-      description="Evaluation mode to use ('pass' for pass@K, 'maj' for maj@K, 'pass_at_1' for pass@1 estimation).",
-  )
 
 
 class Reward(BaseModel):
@@ -1871,11 +1867,6 @@ class Reward(BaseModel):
   )
   penalty_incorrect_format: float = Field(-0.5, description="Penalty for an incorrect format.")
   penalty_incorrect_answer: float = Field(-1.0, description="Penalty for an incorrect answer.")
-  math_verify_timeout: int = Field(300, description="Global timeout (seconds) for math_verify calls per batch.")
-  math_verify_num_procs: int | None = Field(
-      None,
-      description=("Max worker processes for the math_verify pool. None ⇒ " "min(batch_size, cpu_count())."),
-  )
 
 
 class SpecialTokens(BaseModel):
@@ -2625,7 +2616,7 @@ class MaxTextConfig(
       supports_flash_splash = self.attention == "flash" and self.use_tokamax_splash
       if not (supports_dot_product or supports_flash_splash):
         raise NotImplementedError(
-            "Sparse indexer is only supported with dot_product attention or flash attention with tokamax splash."
+            "Sparse indexer is only supported dot_product attention or flash attention with tokamax splash."
         )
       if self.indexer_loss_scaling_factor > 0.0 and self.indexer_topk >= self.max_target_length:
         raise ValueError(

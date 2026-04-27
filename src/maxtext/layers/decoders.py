@@ -449,6 +449,8 @@ class Decoder(nn.Module):
         return [DecoderLayer]
       case DecoderBlockType.LLAMA2:
         return [llama2.LlamaDecoderLayerToLinen]
+      case DecoderBlockType.LLAMA2LTI:
+        return [llama2.LlamaLTIDecoderLayerToLinen]
       case DecoderBlockType.MISTRAL:
         # TODO(ranran): update to Mistral with sliding window attention
         return [mistral.MistralDecoderLayerToLinen]
@@ -543,6 +545,7 @@ class Decoder(nn.Module):
         DecoderBlockType.SIMPLE_MLP,
         DecoderBlockType.LLAMA4,
         DecoderBlockType.OLMO3,
+        DecoderBlockType.LLAMA2LTI,
     ):
       return functools.partial(rms_norm, num_features=num_features, shard_mode=self.config.shard_mode)
     elif self.config.decoder_block == DecoderBlockType.GPT3:
@@ -566,7 +569,6 @@ class Decoder(nn.Module):
             "cache": cache_spec,
             "intermediates": 0,
             "aqt": 0,
-            "batch_stats": 0,
             "_overwrite_with_gradient": 0,
         },
         split_rngs={

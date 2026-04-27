@@ -32,9 +32,8 @@ AxisNames = tuple[str, ...]
 AxisIdxes = tuple[int, ...]
 
 BATCH = "activation_batch"
-BATCH_ATTN = "activation_batch_attn"
 
-ATTN_LENGTH = "activation_length_attn"
+ATTN_LENGTH = "activation_attn_length"
 
 LENGTH = "activation_length"
 PREFILL_LENGTH = "prefill_activation_length"
@@ -42,7 +41,7 @@ Q_LENGTH = "activation_q_length"
 Q_LORA_UP_PROJ = "q_lora_up_proj"
 KV_LENGTH = "activation_kv_length"
 KV_LORA_UP_PROJ = "kv_lora_up_proj"
-ATTN_EMBED = "activation_embed_attn"
+ATTN_EMBED = "activation_attn_embed"
 EMBED = "activation_embed"
 HEAD = "activation_heads"
 PREFILL_KV_BATCH = "activation_prefill_kv_batch"
@@ -108,6 +107,8 @@ class DecoderBlockType(enum.Enum):
   SIMPLE_MLP = "simple_mlp"
   LLAMA4 = "llama4"
   OLMO3 = "olmo3"
+
+  LLAMA2LTI = "llama2_learn_to_init"
 
 
 class AttentionType(enum.Enum):

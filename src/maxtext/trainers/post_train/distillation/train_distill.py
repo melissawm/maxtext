@@ -35,10 +35,8 @@ Architecture Overview:
 
 import inspect
 import logging
-import shlex
 from typing import Sequence, Callable, Any
 from absl import app
-from etils import epath
 from flax import nnx
 from flax.linen import partitioning as nn_partitioning
 import jax
@@ -50,8 +48,9 @@ from orbax import checkpoint
 from maxtext.configs import pyconfig
 from maxtext.input_pipeline import tokenizer
 from maxtext.input_pipeline import input_pipeline_interface
+from maxtext.layers.learn_to_init_layer import apply_lti_model_update
 from maxtext.optimizers import optimizers
-from maxtext.trainers.post_train.distillation import distillation_utils
+from maxtext.trainers.post_train.distillation import distillation_utils, lti_utils
 from maxtext.utils import max_logging
 from maxtext.utils import maxtext_utils
 from maxtext.utils import model_creation_utils
@@ -151,15 +150,8 @@ def create_forward_fn(config: pyconfig.HyperParameters) -> Callable[..., distill
     if config.distill_beta > 0.0:
       out_projection_activations = maxtext_utils.get_intermediate_value(model, "out_projection_activations", clear=True)
 
-    moe_lb_loss = None
-    if config.num_experts > 1 and config.load_balance_loss_weight > 0.0:
-      intermediate_outputs = nnx.pop(model, nnx.Intermediate)
-      total_moe_lb_losses = maxtext_utils.collect_intermediates_by_suffix(intermediate_outputs, "moe_lb_loss")
-      if total_moe_lb_losses:
-        moe_lb_loss = jnp.mean(jnp.concatenate(total_moe_lb_losses))
-
     retval = distillation_utils.DistillationForwardOutput(
-        logits=logits, out_projection_activations=out_projection_activations, moe_lb_loss=moe_lb_loss
+        logits=logits, out_projection_activations=out_projection_activations
     )
     return retval
 
@@ -187,7 +179,7 @@ def _log_config_details(config: pyconfig.HyperParameters, label: str) -> None:
 class ModelBundle(nnx.Module):
   """Wrapper for teacher and student modules."""
 
-  def __init__(self, teacher_model: nnx.Module, student_model: nnx.Module):
+  def __init__(self, teacher_model: nnx.Module | None, student_model: nnx.Module):
     self.teacher_model = teacher_model
     self.student_model = student_model
     self.training_step = nnx.Variable(jnp.zeros((), dtype=jnp.int32))
@@ -375,6 +367,7 @@ class MaxTextDistillationTrainer(peft_trainer.PeftTrainer):
         self._buffered_train_metrics.additional_metrics[name] = ([], distillation_utils.weighted_mean)
 
       self._buffered_train_metrics.additional_metrics[name][0].append(value)
+    max_logging.log(f"Distillation metrics: {aux}")
 
   def setup_checkpoint_manager_and_restore(self, raw_train_iter, config):
     """Configures the trainer's CheckpointManager and restores states.
@@ -419,6 +412,7 @@ class MaxTextDistillationTrainer(peft_trainer.PeftTrainer):
     self.checkpoint_manager = distillation_utils.MaxTextCheckpointManager(
         raw_iterator=iterator_to_manage,
         root_directory=config.checkpoint_dir,
+        student_config=config,  # Pass the config here
         options=self.config.checkpointing_options,
     )
 
@@ -516,7 +510,7 @@ def build_training_components(
       max_steps=student_config.steps,
   )
 
-  # Prepare optimizer
+  # 4. Optimizer & Config
   optimizer = get_distillation_optimizer(student_config, student_config.steps)
 
   checkpointing_options = checkpoint.CheckpointManagerOptions(
@@ -590,16 +584,6 @@ def train_distill(
   with mesh, nn_partitioning.axis_rules(student_config.logical_axis_rules):
 
     # 2. Load Models
-    max_logging.log(f"Loading Student from {student_config.load_parameters_path}...")
-    _log_config_details(student_config, "Student")
-    student_model = get_maxtext_model(student_config, mesh)
-
-    student_params_to_update = getattr(student_config, "student_params_to_update", [])
-
-    def student_freeze_param_fn(path) -> bool:
-      path_str = "/".join(str(p) for p in path)
-      return not any(template in path_str for template in student_params_to_update)
-
     if is_offline:
       max_logging.log("Offline Distillation: Skipping Teacher Model loading.")
       teacher_model = None
@@ -608,6 +592,27 @@ def train_distill(
       _log_config_details(teacher_config, "Teacher")
       teacher_model = get_maxtext_model(teacher_config, mesh)
       teacher_model.eval()
+
+    # LTI phase needs the student initialization step to know about the teacher configuration
+    student_config.get_keys()["teacher_config"] = teacher_config
+
+    max_logging.log(f"Loading Student from {student_config.load_parameters_path}...")
+    _log_config_details(student_config, "Student")
+    student_model = get_maxtext_model(student_config, mesh)
+    student_params_to_update = getattr(student_config, "student_params_to_update", [])
+
+    def student_freeze_param_fn(path) -> bool:
+      path_str = "/".join(str(p) for p in path)
+      return not any(template in path_str for template in student_params_to_update)
+
+    # Inject the teacher's frozen weights into the student model
+    if teacher_model:
+      lti_utils.prepare_student_weights(
+          student_model,
+          teacher_model,
+          teacher_weights_copy_map=getattr(student_config, "distill_weights_copy_map", {}),
+          student_weights_share_map=getattr(student_config, "distill_student_weights_share_map", {}),
+      )
 
     student_model.train()
     model_bundle = ModelBundle(teacher_model, student_model)
@@ -685,6 +690,11 @@ def train_distill(
     # Pass both iterators to the trainer
     trainer.train(train_iter, eval_iter)
 
+  if student_config.learn_to_init_mode:
+    # If learn_to_init_mode is enabled, generate the final weights and update the model structure
+    max_logging.log("Learn-to-init mode enabled. Finalizing student model...")
+    apply_lti_model_update(student_model, student_config)
+
   # 9. Final Save (Conditional)
   if student_config.save_checkpoint_on_completion:
     should_save = student_config.steps % student_config.checkpoint_period
@@ -692,8 +702,12 @@ def train_distill(
     if should_save:
       max_logging.log(f"Saving final checkpoint to {student_config.checkpoint_dir}...")
       try:
+        # TODO: tmp solution for learn_to_init_mode - we need to save the changed model checkpoint,
+        # force=True doesn't work and orbax can keep skip saving the most recent model
+        # temporal hack is to simply bump the step number
+        # you are supppsed to run regular distillation from scratch afterwards anyway
         saved = trainer.checkpoint_manager.save(
-            trainer.train_steps,
+            trainer.train_steps + (1 if student_config.learn_to_init_mode else 0),
             trainer.model,
             optimizer=trainer.optimizer,
             save_only_lora_params=getattr(trainer, "_lora_enabled", False),
@@ -715,35 +729,6 @@ def train_distill(
   max_logging.log("Distillation Complete.")
 
 
-def _save_run_manifest(argv: Sequence[str], config: pyconfig.HyperParameters) -> None:
-  """Writes the source YAML and a shell-pasteable command to the output dir.
-
-  Saves `distillation.yml` (verbatim copy of the user's config file) and
-  `command.sh` (the CLI overrides) so a run can be reproduced by copying the
-  YAML and re-running the saved command.
-  """
-  if jax.process_index() != 0:
-    return
-  if not (config.base_output_directory and config.run_name):
-    return
-  if len(argv) < 2:
-    return
-
-  try:
-    out_dir = epath.Path(config.base_output_directory) / config.run_name
-    out_dir.mkdir(parents=True, exist_ok=True)
-
-    source_yml = epath.Path(pyconfig.resolve_config_path(argv[1]))
-    source_yml.copy(out_dir / "distillation.yml", overwrite=True)
-
-    cli_args = shlex.join(argv[2:])
-    command = "python3 -m maxtext.trainers.post_train.distillation.train_distill " f"distillation.yml {cli_args}\n"
-    (out_dir / "command.sh").write_text(command)
-    max_logging.log(f"Saved run manifest (distillation.yml, command.sh) to {out_dir}")
-  except Exception as e:  # pylint: disable=broad-exception-caught
-    max_logging.log(f"Warning: could not save run manifest: {e}")
-
-
 def main(argv: Sequence[str]) -> None:
   """Entry point for the script.
 
@@ -755,7 +740,6 @@ def main(argv: Sequence[str]) -> None:
   """
   # 1. Parse Global Config to extract Overrides
   global_config = pyconfig.initialize(argv)
-  _save_run_manifest(argv, global_config)
 
   # 2. Initialize STUDENT Config
   # Order of precedence: YAML < CLI < kwargs (student_overrides).
