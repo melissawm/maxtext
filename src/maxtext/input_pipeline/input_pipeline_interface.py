@@ -30,13 +30,15 @@ from maxtext.input_pipeline.tfds_data_processing_c4_mlperf import make_c4_mlperf
 from maxtext.input_pipeline.synthetic_data_processing import SyntheticDataIterator
 from maxtext.input_pipeline.synthetic_data_processing import PlaceHolderDataIterator
 from maxtext.utils import max_logging
+from maxtext.utils.sharding import remove_size_one_mesh_axis
 
 
 def get_process_loading_real_data(
     data_sharding, global_batch_size_to_load, global_batch_size_to_train_on, max_target_length, mesh
 ):
   """Get list of processes loading data from GCS when expansion_factor_real_data != -1"""
-  sharding = jax.sharding.NamedSharding(mesh, P(*data_sharding))
+  data_sharding_pspec = remove_size_one_mesh_axis(P(*data_sharding), mesh)
+  sharding = jax.sharding.NamedSharding(mesh, data_sharding_pspec)
   devices_indices_map = sharding.devices_indices_map((global_batch_size_to_load, max_target_length))
   batch_cutoff = global_batch_size_to_train_on
   process_loading_real_data = set()
