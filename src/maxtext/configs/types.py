@@ -2625,7 +2625,7 @@ class MaxTextConfig(
       supports_flash_splash = self.attention == "flash" and self.use_tokamax_splash
       if not (supports_dot_product or supports_flash_splash):
         raise NotImplementedError(
-            "Sparse indexer is only supported dot_product attention or flash attention with tokamax splash."
+            "Sparse indexer is only supported with dot_product attention or flash attention with tokamax splash."
         )
       if self.indexer_loss_scaling_factor > 0.0 and self.indexer_topk >= self.max_target_length:
         raise ValueError(
