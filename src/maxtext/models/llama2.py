@@ -51,7 +51,6 @@ class LlamaDecoderLayer(nnx.Module):
       rngs: nnx.Rngs,
       quant: None | Quant = None,
   ):
-
     self.config = config
     self.mesh = mesh
     self.quant = quant
