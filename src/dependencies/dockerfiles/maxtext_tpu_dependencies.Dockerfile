@@ -65,7 +65,6 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 COPY ${PACKAGE_DIR}/maxtext/ src/maxtext/
 COPY ${PACKAGE_DIR}/MaxText/ src/MaxText/
 # Now copy resource needed for pytest:
-COPY tools*/ tools/
 COPY tests*/ tests/
 COPY pytest.ini pytest.ini
 COPY benchmarks*/ benchmarks/

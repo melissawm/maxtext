@@ -60,7 +60,7 @@ jobs:
         # Image date
         echo "image_date=$(date +%Y-%m-%d)" >> $GITHUB_OUTPUT
 
-  build-and-test:
+  build-and-push:
     name: ${{ matrix.image_name }}
     needs: setup
     strategy:
@@ -101,5 +101,42 @@ jobs:
       dockerfile: ${{ matrix.dockerfile }}
       maxtext_sha: ${{ needs.setup.outputs.maxtext_sha }}
       image_date: ${{ needs.setup.outputs.image_date }}
+    secrets:
+      HF_TOKEN: ${{ secrets.HF_TOKEN }}
+
+  promote:
+    name: promote-${{ matrix.image_name }}
+    needs: build-and-push
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - device: tpu
+            build_mode: stable
+            workflow: pre-training
+            image_name: maxtext_jax_stable
+          - device: tpu
+            build_mode: nightly
+            workflow: pre-training
+            image_name: maxtext_jax_nightly
+          - device: tpu
+            build_mode: nightly
+            workflow: post-training
+            image_name: maxtext_post_training_nightly
+          - device: gpu
+            build_mode: stable
+            workflow: pre-training
+            image_name: maxtext_gpu_jax_stable
+          - device: gpu
+            build_mode: nightly
+            workflow: pre-training
+            image_name: maxtext_gpu_jax_nightly
+
+    uses: ./.github/workflows/promote_docker_image.yml
+    with:
+      image_name: ${{ matrix.image_name }}${{ inputs.image_suffix  }}
+      image_tag: ${{ github.run_id }}
+      device: ${{ matrix.device }}
+      workflow: ${{ matrix.workflow }}
     secrets:
       HF_TOKEN: ${{ secrets.HF_TOKEN }}
