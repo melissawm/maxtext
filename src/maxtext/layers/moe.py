@@ -446,10 +446,16 @@ class RoutedMoE(nnx.Module):
       self.wi_1 = jnp.zeros((num_experts, self.moe_expert_input_dim, intermediate_dim))
       self.wo = jnp.zeros((num_experts, intermediate_dim, self.moe_expert_input_dim))
     elif self.config.prefuse_moe_weights and self.config.attention == "vllm_rpa":
+      # Pad model dimension in Fused MoE weight kernels for GMM_v2 execution.
+      moe_intermediate_dim = (
+          self.config.padded_base_moe_mlp_dim
+          if self.config.padded_base_moe_mlp_dim is not None
+          else self.intermediate_dim
+      )
       self.wi = nnx.Param(
           self.kernel_init(
               self.rngs.params(),
-              (num_experts, self.moe_expert_input_dim, intermediate_dim * 2),
+              (num_experts, self.moe_expert_input_dim, moe_intermediate_dim * 2),
               weight_dtype,
               kernel_in_axis,
               kernel_out_axis,
@@ -467,10 +473,16 @@ class RoutedMoE(nnx.Module):
           sharding=self.wo_kernel_axes,
       )
     else:
+      # Pad model dimension in Unfused MoE weight kernels for GMM_v2 execution.
+      moe_intermediate_dim = (
+          self.config.padded_base_moe_mlp_dim
+          if self.config.padded_base_moe_mlp_dim is not None
+          else self.intermediate_dim
+      )
       self.wi_0 = nnx.Param(
           self.kernel_init(
               self.rngs.params(),
-              (num_experts, self.moe_expert_input_dim, intermediate_dim),
+              (num_experts, self.moe_expert_input_dim, moe_intermediate_dim),
               weight_dtype,
               kernel_in_axis,
               kernel_out_axis,
@@ -480,7 +492,7 @@ class RoutedMoE(nnx.Module):
       self.wi_1 = nnx.Param(
           self.kernel_init(
               self.rngs.params(),
-              (num_experts, self.moe_expert_input_dim, intermediate_dim),
+              (num_experts, self.moe_expert_input_dim, moe_intermediate_dim),
               weight_dtype,
               kernel_in_axis,
               kernel_out_axis,
