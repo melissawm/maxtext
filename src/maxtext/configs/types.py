@@ -1207,6 +1207,26 @@ class Distillation(BaseModel):
       "constant", description="Schedule type for beta annealing ('constant', 'linear', or 'cosine')."
   )
 
+  # --- Learn to init related parameters --
+  learn_to_init_mode: bool = Field(False, description="Runs in the learn-to-init mode only")
+
+  lti_use_general_linear_map: bool = Field(
+      False,
+      description="enable general map (i.e. single learnable projection instead of the bi-linear mapping. "
+      "Needs much more HBM.",
+  )
+
+  distill_weights_copy_map: dict[str, Any] = Field(
+      default_factory=dict,
+      description="Dictionary of copying original teacher weights to the student model.",
+  )
+
+  distill_student_weights_share_map: dict[str, Any] = Field(
+      default_factory=dict,
+      description="Experimental weight sharing map inside the student model for learn-to-init phase",
+  )
+  # ---------------------------------------
+
   # --- Distillation freezing filter --
   student_params_to_update: None | list = Field(
       None,

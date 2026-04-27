@@ -1059,6 +1059,12 @@ class TrainDistillTest(unittest.TestCase):
     mock_student_cfg.use_sft = False
     mock_student_cfg.enable_dropout = False
 
+    # LTI related attributes
+    mock_student_cfg.learn_to_init_mode = False
+    mock_student_cfg.distill_weights_copy_map = {}
+    mock_student_cfg.distill_student_weights_share_map = {}
+    mock_student_cfg.get_keys.return_value = {}
+
     # Add scheduling attributes
     mock_student_cfg.distill_alpha_end = None
     mock_student_cfg.distill_alpha_schedule = "constant"
@@ -1151,6 +1157,12 @@ class TrainDistillTest(unittest.TestCase):
     mock_student_cfg.use_sft = False
     mock_student_cfg.enable_dropout = False
 
+    # LTI-attributes
+    mock_student_cfg.learn_to_init_mode = False
+    mock_student_cfg.distill_weights_copy_map = {}
+    mock_student_cfg.distill_student_weights_share_map = {}
+    mock_student_cfg.get_keys.return_value = {}
+
     # Add scheduling attributes
     mock_student_cfg.distill_alpha_end = None
     mock_student_cfg.distill_alpha_schedule = "constant"
@@ -1175,7 +1187,8 @@ class TrainDistillTest(unittest.TestCase):
 
     mock_student_model = mock.Mock()
     mock_teacher_model = mock.Mock()
-    mock_get_model.side_effect = [mock_student_model, mock_teacher_model]
+    # The teacher is loaded before the student in online mode
+    mock_get_model.side_effect = [mock_teacher_model, mock_student_model]
 
     mock_build_tokenizer.return_value = mock.Mock(pad_id=0)
     mock_create_iterator.return_value = (mock.Mock(), mock.Mock())

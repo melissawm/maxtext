@@ -614,7 +614,10 @@ def to_linen_class(
 
   # Set the class name correctly to avoid issues like ScanToLinenPartial_0
   # Instead of ToLinenPartial_0, we can use the base class name + 'ToLinen'
-  class_name = f"{base_nnx_class.__name__}ToLinen"
+  if isinstance(base_nnx_class, partial):
+    class_name = f"{base_nnx_class.func.__name__}ToLinen"
+  else:
+    class_name = f"{base_nnx_class.__name__}ToLinen"
 
   class ToLinenPartial(ToLinen):
     """A dynamically created Linen Module that wraps a specific NNX Module."""
