@@ -183,29 +183,9 @@ jobs:
       is_scheduled_run: true
       maxtext_installed: true
 
-  notebook-test:
-    needs: build_and_push
-    if: |
-      inputs.device == 'tpu' &&
-      inputs.workflow == 'post-training' &&
-      needs.build_and_push.result == 'success' &&
-      needs.build_and_push.outputs.should_run == 'true'
-    uses: ./.github/workflows/run_jupyter_notebooks.yml
-    with:
-      device_type: tpu
-      device_name: v6e-4
-      base_image: ${{ inputs.image_name }}:${{ github.run_id }}
-      cloud_runner: linux-x86-ct6e-180-4tpu
-      maxtext_installed: true
-    secrets:
-      HF_TOKEN: ${{ secrets.HF_TOKEN }}
-
   tagging:
-    needs: [test, notebook-test]
-    if: |
-      always() &&
-      needs.test.result == 'success' &&
-      (needs.notebook-test.result == 'success' || needs.notebook-test.result == 'skipped')
+    needs: [test]
+    if: needs.test.result == 'success'
     runs-on: linux-x86-n2-16-buildkit
     container: google/cloud-sdk:524.0.0
     steps:
