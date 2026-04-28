@@ -989,16 +989,58 @@ class Decoder(nn.Module):
                 "nope_layer_interval": self.config.nope_layer_interval,
                 "interleave_moe_layer_step": self.config.interleave_moe_layer_step,
             }
-          y, _ = self.scan_decoder_layers(
-              cfg,
-              RemattedBlockLayer,
-              scan_length,
-              "layers",
-              mesh,
-              in_axes_tuple=(nn.broadcast,) * len(broadcast_args),
-              model_mode=model_mode,
-              **layer_kwargs,
-          )(y, *broadcast_args)
+          # Update broadcast_args and in_axes_tuple for vLLM RPA
+          in_axes_tuple = (nn.broadcast,) * len(broadcast_args)
+          current_broadcast_args = list(broadcast_args)
+          current_in_axes_tuple = list(in_axes_tuple)
+
+          if kv_caches is not None:
+            # Stack kv_caches for scan: [num_layers, ...]
+            stacked_kv_cache = jnp.stack(kv_caches, axis=0)
+
+            # We pass (y, stacked_kv_cache, 0) as the carry
+            carry = (y, stacked_kv_cache, 0)
+
+            # We don't pass kv_cache as a scanned argument anymore
+
+            # Pass None for previous_chunk, slot, page_state, kv_cache to align with __call__ signature
+            current_broadcast_args.extend([None, None, None, None, attention_metadata])
+            current_in_axes_tuple.extend([nn.broadcast] * 5)
+
+            max_logging.info(f"DEBUG: len(current_broadcast_args)={len(current_broadcast_args)}")
+            max_logging.info(f"DEBUG: current_broadcast_args={[type(a) for a in current_broadcast_args]}")
+
+            final_carry, _ = self.scan_decoder_layers(
+                cfg,
+                RemattedBlockLayer,
+                scan_length,
+                "layers",
+                mesh,
+                in_axes_tuple=tuple(current_in_axes_tuple),
+                model_mode=model_mode,
+                **layer_kwargs,
+            )(carry, *current_broadcast_args)
+
+            y, returned_kv_cache, _ = final_carry
+
+            # Update the list of KV caches from the scanned results
+            for i in range(cfg.num_decoder_layers):
+              kv_caches[i] = returned_kv_cache[i]
+          else:
+            # Fallback to old behavior if kv_caches is None (not vLLM RPA)
+            current_broadcast_args.append(None)
+            current_in_axes_tuple.append(nn.broadcast)
+
+            y, _ = self.scan_decoder_layers(
+                cfg,
+                RemattedBlockLayer,
+                scan_length,
+                "layers",
+                mesh,
+                in_axes_tuple=tuple(current_in_axes_tuple),
+                model_mode=model_mode,
+                **layer_kwargs,
+            )(y, *current_broadcast_args)
       else:
         if cfg.decoder_block == DecoderBlockType.DEEPSEEK:
           assert len(RemattedBlockLayers) == 2, "Unscanned layers must have a length of 2 using deepseek."
