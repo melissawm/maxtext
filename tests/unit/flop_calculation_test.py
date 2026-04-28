@@ -335,6 +335,29 @@ class FlopCalculation(parameterized.TestCase):
     calculated_tflops, _, _ = calculate_tflops_training_per_device(cfg)
     self.assertFlopsAlmostEqual(calculated_tflops, golden_tflops)
 
+  def test_qwen3_custom_30b_a3b_flops(self):
+    """Test Qwen3 Custom 30B-A3B (compressed-latent MoE) FLOPs calculation.
+
+    The custom variant compresses attention output and MoE input to
+    attention_output_dim = moe_expert_input_dim = 768 (vs emb_dim = 2048),
+    then up-projects 768 -> 2048 once per layer. ~2.86B active parameters
+    per token (48 layers x (Q/K/V/O + gate + 8 routed experts + up_proj)
+    + unembedding).
+    """
+    cfg = self._initialize_model_config(
+        "qwen3-custom-30b-a3b",
+        max_target_length=2048,
+        per_device_batch_size=4,
+    )
+    kwargs = cfg.get_keys()
+    B = cfg.per_device_batch_size
+    S = cfg.max_target_length
+    attention_flops = self.compute_regular_attention_flops_per_device(kwargs)
+    golden_param_size = 2.86e9  # active params per token
+    golden_tflops = 6 * B * S * golden_param_size / 1e12 + attention_flops
+    calculated_tflops, _, _ = calculate_tflops_training_per_device(cfg)
+    self.assertFlopsAlmostEqual(calculated_tflops, golden_tflops)
+
   def test_deepseek32_671b_flops(self):
     """Test DeepSeek3.2-671b FLops calculation"""
     cfg = self._initialize_model_config(
