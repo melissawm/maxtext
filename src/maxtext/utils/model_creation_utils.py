@@ -31,7 +31,7 @@ import jax.numpy as jnp
 import numpy as np
 from jax.sharding import Mesh
 from maxtext.configs import pyconfig
-from maxtext.common.common_types import MODEL_MODE_TRAIN
+from maxtext.common.common_types import MODEL_MODE_AUTOREGRESSIVE, MODEL_MODE_TRAIN
 from maxtext.layers import quantizations
 from maxtext.models import models
 from maxtext.utils import max_logging
@@ -580,20 +580,21 @@ def from_pretrained(
               }
           }
         else:
-          # structure of nnx checkpoint: {'decoder': {'value': ...}}
+          # NNX checkpoint: {'decoder': {'value': ...}}, or NNX-RL with extra 'base' nesting.
+          # Restore only nnx.Param — RNG variable shapes may differ between checkpoint and model.
           target_for_restore = jax.tree.map(
               lambda v: {"value": v.value},
               sharded_state,
               is_leaf=lambda n: isinstance(n, nnx.Variable),
           )
-          target_for_restore = _adjust_target_for_moe_fusion(target_for_restore, metadata.item_metadata.tree, True)
-          item_to_restore = target_for_restore
-          base_restore_args = ocp.checkpoint_utils.construct_restore_args(target_for_restore)
+          has_base_key = "base" in metadata.item_metadata.tree
+          meta_tree_for_params = metadata.item_metadata.tree.get("base", metadata.item_metadata.tree)
+          target_for_restore = _adjust_target_for_moe_fusion(target_for_restore, meta_tree_for_params, True)
+          item_to_restore = {"base": target_for_restore} if has_base_key else target_for_restore
           restore_args = _fix_restore_args_for_shape_mismatch(
-              base_restore_args,
-              metadata.item_metadata.tree,
-              mesh,
+              ocp.checkpoint_utils.construct_restore_args(target_for_restore), meta_tree_for_params, mesh
           )
+          restore_args = {"base": restore_args} if has_base_key else restore_args
 
         restored = ckptr.restore(
             epath.Path(config.load_parameters_path),
@@ -603,9 +604,10 @@ def from_pretrained(
         )
 
         if is_nnx_checkpoint:
+          restored_root = restored["base"] if has_base_key else restored
           checkpoint = jax.tree.map(
               lambda v: v["value"],
-              restored,
+              restored_root,
               is_leaf=lambda x: isinstance(x, dict) and "value" in x and not isinstance(x.get("value"), dict),
           )
         else:
@@ -656,6 +658,13 @@ def from_pretrained(
           # This prevents the replicated intermediate copies from persisting until function return.
           del restored
 
+          def _filter_to_model_keys(ckpt, model):
+            """Recursively keep only keys present in model, dropping checkpoint-only fields (e.g. to_nnx__rngs)."""
+            if not hasattr(ckpt, "items") or not hasattr(model, "items"):
+              return ckpt
+            return {k: _filter_to_model_keys(ckpt[k], model[k]) for k in model if k in ckpt}
+
+          checkpoint = _filter_to_model_keys(checkpoint, model_arrays)
           checkpoint = jax.tree.map(_expand_checkpoint_to_model_shapes, checkpoint, model_arrays)
           nnx.update(model, checkpoint)
 
@@ -672,3 +681,44 @@ def from_pretrained(
       return model
     else:
       return model, mesh
+
+
+def setup_decode_state_from_nnx(model, config, rng, mesh):
+  """Setup decode state by loading an NNX or NNX-RL checkpoint into a linen TrainState.
+
+  Calls from_pretrained (which handles NNX and NNX-RL 'base'-nested checkpoints and
+  applies mesh sharding internally), then extracts nnx.Param values into a plain dict
+  for the linen TrainState. For linen checkpoints, use maxtext_utils.setup_decode_state instead.
+
+  Args:
+    model: the flax linen model to initialize
+    config: config object
+    rng: jax.prng key
+    mesh: jax.devices() mesh
+
+  Returns:
+    state: linen TrainState with params loaded from the NNX checkpoint
+    state_mesh_annotations: the mesh annotations for the state
+  """
+  init_state_fn = partial(maxtext_utils.init_initial_state, model, None, config, False, rng)
+  _, state_mesh_annotations, _ = maxtext_utils.get_abstract_state(config, mesh, init_state_fn, False)
+
+  # Load the NNX model; from_pretrained handles sharding via jax.jit(out_shardings=...).
+  nnx_model = from_pretrained(config, mesh=mesh, model_mode=MODEL_MODE_AUTOREGRESSIVE)
+
+  # Extract nnx.Param values, converting the State pytree to a plain nested dict.
+  def _state_to_dict(tree):
+    if isinstance(tree, nnx.Variable):
+      return tree.value
+    if hasattr(tree, "items") and not isinstance(tree, jax.Array):
+      return {k: _state_to_dict(v) for k, v in tree.items()}
+    return tree
+
+  nnx_param_state = nnx.state(nnx_model, nnx.Param)
+  raw_params = _state_to_dict(nnx_param_state)
+  del nnx_model, nnx_param_state  # free memory
+
+  params = {"params": raw_params}
+
+  state = maxtext_utils.init_decode_state(model.apply, params)
+  return state, state_mesh_annotations
