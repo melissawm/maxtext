@@ -573,18 +573,22 @@ def calculate_mla_tflops_per_device(config):
   return qkv_flops, attention_flops, projection_flops
 
 
-def calculate_ffn_mamtul_tflops_per_device(config, mlp_dim):
+def calculate_ffn_mamtul_tflops_per_device(config, mlp_dim, in_dim=None):
   """Helper function to calculate matmul TFLOP in ffn based on MLP dimension.
 
   Applies to:
     - Dense FFN layers (mlp_dim = config.mlp_dim).
     - MoE FFN layers (mlp_dim = config.moe_mlp_dim),
       need to scale by shared_experts or num_experts_per_tok.
+    - Architectures that compress to a latent before the FFN (e.g. qwen3_custom_moe)
+      pass ``in_dim=config.moe_expert_input_dim``; defaults to ``config.emb_dim``.
   """
+  if in_dim is None:
+    in_dim = config.emb_dim
   ffn1_flops = (
-      2 * config.per_device_batch_size * config.max_target_length * mlp_dim * config.emb_dim * len(config.mlp_activations)
+      2 * config.per_device_batch_size * config.max_target_length * mlp_dim * in_dim * len(config.mlp_activations)
   )
-  ffn2_flops = 2 * config.per_device_batch_size * config.max_target_length * mlp_dim * config.emb_dim
+  ffn2_flops = 2 * config.per_device_batch_size * config.max_target_length * mlp_dim * in_dim
   return ffn1_flops + ffn2_flops
 
 
@@ -861,6 +865,14 @@ def calculate_tflops_training_per_device(config, log=True):
     ):
       total_ffn_flops = calculate_routed_and_shared_ffn_tflops_per_device(config)
       is_ffn_flops_already_total = True
+    elif config.decoder_block == DecoderBlockType.QWEN3_CUSTOM_MOE:
+      # MoE operates at moe_expert_input_dim (compressed latent), not emb_dim.
+      in_dim = config.moe_expert_input_dim
+      gate_flops = 2 * config.per_device_batch_size * config.max_target_length * in_dim * config.num_experts
+      total_ffn_flops = (
+          gate_flops
+          + calculate_ffn_mamtul_tflops_per_device(config, config.moe_mlp_dim, in_dim=in_dim) * config.num_experts_per_tok
+      )
     else:
       gate_flops = 2 * config.per_device_batch_size * config.max_target_length * config.emb_dim * config.num_experts
       total_ffn_flops = (
@@ -940,6 +952,24 @@ def calculate_tflops_training_per_device(config, log=True):
         * 3
         / 10**12
     )
+    attention_tflops = causal_attention_flops * config.num_decoder_layers * 3 / 10**12
+  elif config.decoder_block == DecoderBlockType.QWEN3_CUSTOM_MOE:
+    # Attention output projects (num_query_heads * head_dim) -> attention_output_dim, not -> emb_dim.
+    qwen3_custom_proj_flops = (
+        2
+        * config.per_device_batch_size
+        * config.max_target_length
+        * config.attention_output_dim
+        * config.num_query_heads
+        * config.head_dim
+    )
+    # Each layer has a final up-projection: attention_output_dim -> emb_dim.
+    layer_up_proj_flops = (
+        2 * config.per_device_batch_size * config.max_target_length * config.attention_output_dim * config.emb_dim
+    )
+    per_layer_flops = qkv_flops + qwen3_custom_proj_flops + layer_up_proj_flops
+    total_weight_flops = total_ffn_flops_all_layers + per_layer_flops * config.num_decoder_layers + embedding_flops
+    learnable_weight_tflops = total_weight_flops * 3 / 10**12
     attention_tflops = causal_attention_flops * config.num_decoder_layers * 3 / 10**12
   elif config.decoder_block == DecoderBlockType.QWEN3_NEXT:
     gdn_weight_flops_per_layer, gdn_attn_flops_per_layer = calculate_gated_delta_net_flops_per_device(config)
@@ -1386,18 +1416,14 @@ def setup_initial_state(
           out_shardings=state_mesh_shardings,
       )()
       sparsity_enabled = config.weight_sparsity_n and config.weight_sparsity_m
-      if (
-          sparsity_enabled and raw_params
-      ):  # If we loaded a partial state, we need to merge it.
+      if sparsity_enabled and raw_params:  # If we loaded a partial state, we need to merge it.
 
         def _merge_params(p_raw, p_init):
           if isinstance(p_raw, jax.ShapeDtypeStruct):
             return p_init
           return p_raw
 
-        merged_params = jax.tree_util.tree_map(
-            _merge_params, raw_params, state.params
-        )
+        merged_params = jax.tree_util.tree_map(_merge_params, raw_params, state.params)
         state = state.replace(params=merged_params)
       elif raw_params:
         state = state.replace(params=raw_params)
