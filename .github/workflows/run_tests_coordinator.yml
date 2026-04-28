@@ -47,6 +47,10 @@ on:
         description: 'If false, maxtext_sha must be provided for checkout'
         type: boolean
         default: false
+      is_update_hlo:
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -150,3 +154,4 @@ jobs:
       worker_group: ${{ matrix.worker_group }}
       total_workers: ${{ contains(inputs.flavor, 'cpu-unit') && 2 || 1 }}
       maxtext_sha: ${{ inputs.maxtext_sha }}
+      is_update_hlo: ${{ inputs.is_update_hlo }}
