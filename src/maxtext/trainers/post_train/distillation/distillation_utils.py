@@ -629,10 +629,12 @@ class MaxTextCheckpointManager(tunix_checkpoint_manager.CheckpointManager):
   def __init__(
       self,
       raw_iterator: Any | None,
-      root_directory: str | None = None,
+      root_directory: str | None,
+      student_config: Any | None,
       options: checkpoint.CheckpointManagerOptions | None = None,
   ):
     super().__init__(root_directory=root_directory, options=options)
+    self.student_config = student_config
     self._iterator = raw_iterator
 
     # Re-initialize internal Orbax manager with MaxText's Grain handler
@@ -659,7 +661,15 @@ class MaxTextCheckpointManager(tunix_checkpoint_manager.CheckpointManager):
       )
     # pylint: enable=access-member-before-definition
 
-  def save(self, step, model, optimizer=None, save_only_lora_params=False, force=False, custom_metadata=None):
+  def save(
+      self,
+      step,
+      model,
+      optimizer=None,
+      save_only_lora_params=False,
+      force=False,
+      custom_metadata=None,
+  ):
     """Saves the checkpoint including the input pipeline state (if available)."""
     if self._checkpoint_manager is None:
       return False
@@ -681,7 +691,10 @@ class MaxTextCheckpointManager(tunix_checkpoint_manager.CheckpointManager):
             item=params, save_args=jax.tree.map(lambda _: default_save_args, params)
         ),
     }
-    if optimizer is not None:
+    # Exclude optimizer state if the flag is set OR if learn_to_init_mode is active.
+    exclude_opt = self.student_config.learn_to_init_mode
+
+    if optimizer is not None and not exclude_opt:
       optimizer_state = nnx.state(optimizer, nnx.optimizer.OptState)
       cp_save_args["optimizer_state"] = checkpoint.args.PyTreeSave(
           item=optimizer_state, save_args=jax.tree.map(lambda _: default_save_args, optimizer_state)
