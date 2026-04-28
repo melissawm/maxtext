@@ -60,8 +60,15 @@
 #                        ${XPK_BASE_OUTPUT_DIR}/${XPK_WORKLOAD}/)
 #
 # OPTIONAL env vars (with defaults):
-#   XPK_BASE_IMAGE       default: maxtext_base_image
-#   XPK_WORKLOAD         default: distill-${USER}-${RANDOM}
+#   XPK_BASE_IMAGE       default: maxtext_base_image. A slash in the name
+#                        (e.g. gcr.io/...) switches xpk from --base-docker-image
+#                        (buildx re-push on each submit) to --docker-image
+#                        (pull from registry). Prefer the registry path after
+#                        the first submit.
+#   XPK_WORKLOAD         default: d-${USER:0:8}-${RANDOM} (~14 chars max).
+#                        Keep ≲16 chars: some clusters cap derived
+#                        resource names at 49 chars
+#                        (default-jobset-<workload>-<5>-...-<5>).
 #   XPK_PRIORITY         default: medium
 #   XPK_NUM_SLICES       default: 1
 #   XPK_DISTILL_CONFIG   default: src/maxtext/configs/post_train/distillation.yml
@@ -69,12 +76,14 @@
 #                        the subdir under base_output_directory where checkpoints
 #                        and TB logs land (...${OUTPUT_DIR}/${XPK_RUN_NAME}/...).
 #                        resume_until_done lists this subdir to find the latest step.
-#   XPK_USE_GCSFUSE      default: 0 — if 1, mount XPK_DATASET_BUCKET via gcsfuse
-#                        and override grain_train_files to the local mount path
-#                        (useful for ArrayRecord; gs:// paths are slower)
-#   XPK_DATASET_BUCKET   default: maxtext-dataset (only used when XPK_USE_GCSFUSE=1)
+#   XPK_USE_GCSFUSE      default: 1 — mount XPK_DATASET_BUCKET via gcsfuse and
+#                        point grain at the local mount path. ~10x faster than
+#                        direct gs:// reads for ArrayRecord shards. Set to 0
+#                        to bypass gcsfuse and read directly from gs://.
+#   XPK_DATASET_BUCKET   default: maxtext-dataset
 #   XPK_DATASET_SUBPATH  default: array-record/climbmix/*.arrayrecord
-#                        (relative to the bucket; only used when XPK_USE_GCSFUSE=1)
+#                        The script always sets grain_train_files from these
+#                        two, overriding the YAML in both modes.
 #   STEPS_OVERRIDE       default: empty — yml `steps` is used unless set
 #   CHECKPOINT_PERIOD_OVERRIDE  default: empty — yml `checkpoint_period` is used
 #   MAX_RETRIES          default: 10 — only used by resume_until_done
@@ -122,12 +131,12 @@ require_env() {
 
 # -------------------------- defaults --------------------------
 : "${XPK_BASE_IMAGE:=maxtext_base_image}"
-: "${XPK_WORKLOAD:=distill-${USER:-anon}-${RANDOM}}"
+: "${XPK_WORKLOAD:=d-${USER:0:8}-${RANDOM}}"
 : "${XPK_PRIORITY:=medium}"
 : "${XPK_NUM_SLICES:=1}"
 : "${XPK_DISTILL_CONFIG:=src/maxtext/configs/post_train/distillation.yml}"
 : "${XPK_RUN_NAME:=distill_run}"
-: "${XPK_USE_GCSFUSE:=0}"
+: "${XPK_USE_GCSFUSE:=1}"
 : "${XPK_DATASET_BUCKET:=maxtext-dataset}"
 : "${XPK_DATASET_SUBPATH:=array-record/climbmix/*.arrayrecord}"
 : "${MAX_RETRIES:=10}"
@@ -169,14 +178,14 @@ if [ -n "${CHECKPOINT_PERIOD_OVERRIDE:-}" ]; then
   extra_cli="$extra_cli checkpoint_period=${CHECKPOINT_PERIOD_OVERRIDE}"
 fi
 
-# Optional gcsfuse prelude — direct gs:// reads of ArrayRecord shards are slow,
-# so mounting the bucket and pointing grain at the local path is recommended.
+# Build grain_train_files (configs leave it empty); pick local mount or direct gs://.
 gcsfuse_prelude=""
-grain_files_override=""
 if [ "$XPK_USE_GCSFUSE" = "1" ]; then
   gcsfuse_prelude="bash src/dependencies/scripts/setup_gcsfuse.sh \
     DATASET_GCS_BUCKET=${XPK_DATASET_BUCKET} MOUNT_PATH=/tmp/gcsfuse;"
   grain_files_override="grain_train_files=/tmp/gcsfuse/${XPK_DATASET_SUBPATH}"
+else
+  grain_files_override="grain_train_files=gs://${XPK_DATASET_BUCKET}/${XPK_DATASET_SUBPATH}"
 fi
 
 # -------------------------- prep_image --------------------------
@@ -226,6 +235,14 @@ submit_workload() {
   echo "Config:      $XPK_DISTILL_CONFIG"
   [ -n "$extra_cli" ] && echo "Overrides:  $extra_cli"
 
+  # Registry path (contains slash) → --docker-image (pull on cluster);
+  # local tag → --base-docker-image (buildx re-push).
+  local image_flag="--base-docker-image"
+  if [[ "$XPK_BASE_IMAGE" == *"/"* ]]; then
+    image_flag="--docker-image"
+  fi
+  echo "Image flag:  $image_flag=$XPK_BASE_IMAGE"
+
   xpk workload create \
     --cluster "$XPK_CLUSTER" \
     --workload "$XPK_WORKLOAD" \
@@ -234,7 +251,7 @@ submit_workload() {
     --num-slices="$XPK_NUM_SLICES" \
     --project="$XPK_PROJECT" \
     --zone="$XPK_ZONE" \
-    --base-docker-image="$XPK_BASE_IMAGE" \
+    "$image_flag=$XPK_BASE_IMAGE" \
     --command "export PYTHONPATH=/app/src; \
 export BASE_OUTPUT_DIRECTORY=${OUTPUT_DIR}; \
 ${gcsfuse_prelude} \
