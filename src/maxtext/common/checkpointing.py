@@ -24,7 +24,7 @@ from flax.training import train_state
 import jax
 from maxtext.utils.globals import DEFAULT_OCDBT_TARGET_DATA_FILE_SIZE
 from maxtext.input_pipeline.multihost_dataloading import MultiHostDataLoadIterator
-from maxtext.input_pipeline.multihost_dataloading import RemoteIterator
+from maxtext.input_pipeline.multihost_dataloading import RemoteIteratorWrapper
 from maxtext.input_pipeline.synthetic_data_processing import PlaceHolderDataIterator
 from maxtext.utils import exceptions
 from maxtext.utils import max_logging
@@ -44,6 +44,7 @@ import json
 
 import grain
 from grain.python import PyGrainCheckpointHandler
+from grain.experimental import ElasticIterator
 
 CheckpointManager = ocp.CheckpointManager
 CheckpointManagerOptions = ocp.CheckpointManagerOptions
@@ -68,6 +69,22 @@ class GrainCheckpointHandler(PyGrainCheckpointHandler, ocp.CheckpointHandler):
   ):
     """Saves the given iterator to the checkpoint in `directory`."""
     item = item or args.item  # pytype:disable=attribute-error
+
+    # RemoteIteratorWrapper handles checkpointing via colocated python
+    if isinstance(item, RemoteIteratorWrapper):
+      step = int(directory.parent.name)
+      item.save_state(step)
+      return
+
+    # ElasticIterator state is a single global scalar shared by all shards,
+    # so we write one fixed `process_0.json` from process 0 only. This file
+    # layout survives changes in `jax.process_count()`.
+    if isinstance(item, ElasticIterator):
+      if jax.process_index() == 0:
+        directory.mkdir(parents=True, exist_ok=True)
+        filename = directory / "process_0.json"
+        filename.write_text(json.dumps(item.get_state(), indent=4))
+      return
 
     def save_single_process(item, process_index, process_count):
       filename = directory / f"process_{process_index}-of-{process_count}.json"
@@ -94,6 +111,21 @@ class GrainCheckpointHandler(PyGrainCheckpointHandler, ocp.CheckpointHandler):
     item = item or args.item
     process_index = getattr(args, "process_index", None)
     process_count = getattr(args, "process_count", None)
+
+    # In Pathways + colocated_python environment, RemoteIteratorWrapper handles checkpointing
+    if isinstance(item, RemoteIteratorWrapper):
+      step = int(directory.parent.name)
+      item.restore_state(step)
+      return item
+
+    # McJax and Pathways through controller cases
+    # ElasticIterator: every process reads the same shared `process_0.json`.
+    if isinstance(item, ElasticIterator):
+      filename = directory / "process_0.json"
+      if not filename.exists():
+        raise ValueError(f"File {filename} does not exist.")
+      item.set_state(json.loads(filename.read_text()))
+      return item
 
     def restore_single_process(item, process_index, process_count):
       filename = directory / f"process_{process_index}-of-{process_count}.json"
@@ -130,15 +162,6 @@ class GrainCheckpointRestore(ocp.args.CheckpointArgs):
   item: Any
   process_index: Optional[int | list[int]] = None
   process_count: Optional[int] = None
-
-
-def _is_remote_iterator(data_iterator):
-  """Check if data_iterator is a RemoteIterator or contains RemoteIterator instances."""
-  if isinstance(data_iterator, RemoteIterator):
-    return True
-  if isinstance(data_iterator, list):
-    return any(isinstance(item, RemoteIterator) for item in data_iterator)
-  return False
 
 
 def _load_full_state_from_path(
@@ -482,6 +505,17 @@ def _restore_grain_iterator(
   This function dispatches to the correct restore strategy based on
   the number of stored checkpoint files vs. current JAX processes.
   """
+  if isinstance(data_iterator, RemoteIteratorWrapper):
+    grain_restore_args = GrainCheckpointRestore(item=data_iterator)
+    restored_state = checkpoint_manager.restore(step, args=Composite(items=checkpoint_args, iter=grain_restore_args))
+    return (restored_state, None)
+
+  # ElasticIterator: one shared `process_0.json` regardless of shard count.
+  if not isinstance(data_iterator, list) and isinstance(data_iterator.local_iterator, ElasticIterator):
+    grain_restore_args = GrainCheckpointRestore(item=data_iterator.local_iterator)
+    restored_state = checkpoint_manager.restore(step, args=Composite(items=checkpoint_args, iter=grain_restore_args))
+    return (restored_state, None)
+
   directory = checkpoint_manager.directory / str(step) / "iter"
   process_count_jax = jax.process_count()
 
@@ -625,7 +659,7 @@ def load_state_if_possible(
               None,
           )
         # Case 2: Matches if dataset type is "grain" and the data iterator is not a
-        # PlaceHolderDataIterator or RemoteIterator and a specific checkpoint file exists for the iterator
+        # PlaceHolderDataIterator and a specific checkpoint file exists for the iterator
         case (
             checkpoint_manager,
             dataset_type,
@@ -634,7 +668,6 @@ def load_state_if_possible(
             dataset_type == "grain"
             and data_iterator
             and not isinstance(data_iterator, PlaceHolderDataIterator)
-            and not _is_remote_iterator(data_iterator)
             and (checkpoint_manager.directory / str(step) / "iter").exists()
         ):
           return _restore_grain_iterator(
@@ -810,22 +843,24 @@ def save_checkpoint(checkpoint_manager, step, state, config=None, data_iterator=
   )
   save_args_composite = {"items": checkpoint_args}
 
-  if (
-      config
-      and config.dataset_type == "grain"
-      and not isinstance(data_iterator, PlaceHolderDataIterator)
-      and not _is_remote_iterator(data_iterator)
-  ):
-    if not isinstance(data_iterator, list):
-      data_iterator = [data_iterator]
-    grain_iters_to_save = []
-    process_count_total = jax.process_count() * len(data_iterator)
-    if config.expansion_factor_real_data > 1:
-      process_count_total = process_count_total // config.expansion_factor_real_data
-    for i, data_iter in enumerate(data_iterator):
-      process_index = jax.process_index() + i * jax.process_count()
-      grain_iters_to_save.append((data_iter.local_iterator, process_index, process_count_total))
-    save_args_composite["iter"] = GrainCheckpointSave(item=grain_iters_to_save)
+  if config and config.dataset_type == "grain" and not isinstance(data_iterator, PlaceHolderDataIterator):
+    if isinstance(data_iterator, RemoteIteratorWrapper):
+      # Pass the wrapper directly; GrainCheckpointHandler will call save_state with the step
+      save_args_composite["iter"] = GrainCheckpointSave(item=data_iterator)
+    elif not isinstance(data_iterator, list) and isinstance(data_iterator.local_iterator, ElasticIterator):
+      # ElasticIterator checkpoints a single global scalar shared by all shards.
+      save_args_composite["iter"] = GrainCheckpointSave(item=data_iterator.local_iterator)
+    else:
+      if not isinstance(data_iterator, list):
+        data_iterator = [data_iterator]
+      grain_iters_to_save = []
+      process_count_total = jax.process_count() * len(data_iterator)
+      if config.expansion_factor_real_data > 1:
+        process_count_total = process_count_total // config.expansion_factor_real_data
+      for i, data_iter in enumerate(data_iterator):
+        process_index = jax.process_index() + i * jax.process_count()
+        grain_iters_to_save.append((data_iter.local_iterator, process_index, process_count_total))
+      save_args_composite["iter"] = GrainCheckpointSave(item=grain_iters_to_save)
 
   match (checkpoint_manager, config, data_iterator):
     case (checkpoint_manager, _, _) if isinstance(
