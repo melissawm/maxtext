@@ -30,6 +30,7 @@ from maxtext.input_pipeline import data_processing_utils
 from maxtext.input_pipeline import input_pipeline_utils
 from maxtext.input_pipeline import instruction_data_processing
 from maxtext.input_pipeline import multihost_dataloading
+from maxtext.utils import elastic_utils
 
 
 def _get_pad_id(tokenizer):
@@ -57,10 +58,14 @@ def vision_sft_preprocessing_pipeline(
   assert len(text_columns) == 2, f"Need two text_columns for query and response, received {text_columns=}"
   # Tunix GA requires per-micro-batch slicing at the data level,
   # whereas Native GA processes the full batch and splits it internally.
-  if config.use_tunix_gradient_accumulation:
-    batch_size = global_batch_size // jax.process_count() // config.gradient_accumulation_steps
+  if config.elastic_enabled:
+    local_batch_size = elastic_utils.get_local_batch_size(config)
   else:
-    batch_size = global_batch_size // jax.process_count()
+    local_batch_size = global_batch_size // jax.process_count()
+  if config.use_tunix_gradient_accumulation:
+    batch_size = local_batch_size // config.gradient_accumulation_steps
+  else:
+    batch_size = local_batch_size
 
   # for multi-epoch with shuffle, shuffle each epoch with different seeds then concat
   import datasets  # pylint: disable=import-outside-toplevel
@@ -192,6 +197,7 @@ def preprocessing_pipeline(
     dataloading_host_count,
     global_mesh,
     dataset,
+    config,
     data_column_names,
     tokenize,
     tokenizer_path,
@@ -226,10 +232,14 @@ def preprocessing_pipeline(
   assert global_batch_size % global_mesh.size == 0, "Batch size should be divisible by number of global devices."
   # Tunix GA requires per-micro-batch slicing at the data level,
   # whereas Native GA processes the full batch and splits it internally.
-  if use_tunix_gradient_accumulation:
-    batch_size = global_batch_size // jax.process_count() // num_microbatches
+  if config.elastic_enabled:
+    local_batch_size = elastic_utils.get_local_batch_size(config)
   else:
-    batch_size = global_batch_size // jax.process_count()
+    local_batch_size = global_batch_size // jax.process_count()
+  if use_tunix_gradient_accumulation:
+    batch_size = local_batch_size // num_microbatches
+  else:
+    batch_size = local_batch_size
 
   # for multi-epoch with shuffle, shuffle each epoch with different seeds then concat
   if shuffle and num_epoch > 1:
@@ -414,6 +424,7 @@ def make_hf_train_iterator(
         dataloading_host_count=len(process_indices_train),
         global_mesh=global_mesh,
         dataset=train_ds,
+        config=config,
         data_column_names=config.train_data_columns,
         tokenize=config.tokenize_train_data,
         tokenizer_path=config.tokenizer_path,
@@ -475,6 +486,7 @@ def make_hf_eval_iterator(
         dataloading_host_count=len(process_indices_eval),
         global_mesh=global_mesh,
         dataset=eval_ds,
+        config=config,
         data_column_names=config.eval_data_columns,
         tokenize=config.tokenize_eval_data,
         tokenizer_path=config.tokenizer_path,

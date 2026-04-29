@@ -32,6 +32,7 @@ import jax
 from maxtext.common.common_types import AttentionType, DecoderBlockType, ReorderStrategy, ShardMode
 from maxtext.utils import gcs_utils
 from maxtext.utils import max_utils
+from maxtext.utils import elastic_utils
 from maxtext.utils.globals import MAXTEXT_ASSETS_ROOT
 from maxtext.utils import accelerator_to_spec_map
 from pydantic.config import ConfigDict
@@ -1656,6 +1657,10 @@ class ElasticTraining(BaseModel):
       10,
       description="The maximum number of times to retry training when a slice failure occurs or when scaling up.",
   )
+  elastic_min_slice_count: int = Field(
+      -1,
+      description="The minimum number of slices to wait for before starting training. -1 means wait for all slices.",
+  )
 
 
 class GcpMonitoring(BaseModel):
@@ -2373,6 +2378,9 @@ class MaxTextConfig(
     self.num_decoder_layers = (2**layer_scale) * self.base_num_decoder_layers
 
     # E. HARDWARE-DEPENDENT CALCULATIONS
+    if self.elastic_enabled:
+      elastic_utils.ensure_elastic_manager_initialized(self)
+
     def get_num_target_devices():
       """Get the number of devices for the target topology, handling AOT compilation and single-controller modes."""
       if self.internal_compile:
@@ -2386,6 +2394,8 @@ class MaxTextConfig(
       elif self.subslice_shape and self.enable_single_controller:
         shape_tuple = tuple(int(x) for x in self.subslice_shape.split(","))
         return prod(shape_tuple)
+      elif self.elastic_enabled:
+        return len(elastic_utils.live_devices(config=self))
       else:
         return len(jax.devices())
 

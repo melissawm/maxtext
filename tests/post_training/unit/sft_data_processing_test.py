@@ -380,6 +380,7 @@ class SFTDataProcessingTest(unittest.TestCase):
         dataloading_host_count=len(self.process_indices),
         global_mesh=self.mesh,
         dataset=train_ds,
+        config=self.config,
         data_column_names=data_columns,
         tokenize=self.config.tokenize_train_data,
         tokenizer_path=self.config.tokenizer_path,

@@ -1243,3 +1243,4 @@ distill_beta_schedule: "constant"
 elastic_enabled: false
 elastic_timeout_seconds: 300
 elastic_max_retries: 10
+elastic_min_slice_count: -1

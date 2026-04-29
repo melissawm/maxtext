@@ -42,6 +42,7 @@ import orbax.checkpoint as ocp
 from orbax.checkpoint.experimental.emergency.multi_tier_checkpointing import initialization
 import psutil
 
+from maxtext.utils import elastic_utils
 from maxtext.common.gcloud_stub import is_decoupled
 from maxtext.common.gcloud_stub import writer, _TENSORBOARDX_AVAILABLE
 from maxtext.utils import max_logging
@@ -378,7 +379,7 @@ def _retrieve_jax_init_info(raw_keys):
   return "", ""
 
 
-def get_num_slices(raw_keys):
+def get_num_slices(raw_keys, config=None):
   """Calculate num_slices based on number of devices."""
   if raw_keys.get("num_slices", -1) != -1:
     max_logging.log(f"Using num_slices={raw_keys['num_slices']} per user request.")
@@ -389,9 +390,8 @@ def get_num_slices(raw_keys):
   if int(raw_keys["compile_topology_num_slices"]) > 0:
     return raw_keys["compile_topology_num_slices"]
   else:
-    devices = jax.devices()
     try:
-      return 1 + max(d.slice_index for d in devices)
+      return len(elastic_utils.live_slice_indices(config))
     except (ValueError, AttributeError):
       return 1
 

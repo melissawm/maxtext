@@ -15,12 +15,13 @@
 """Utility functions for Elastic Training."""
 
 import functools
+from collections import Counter
+
 import jax
 from maxtext.utils import gcs_utils
 from maxtext.utils import max_logging
 import pathwaysutils
 from pathwaysutils.elastic import manager
-
 
 elastic_manager: manager.Manager | None = None
 
@@ -64,16 +65,50 @@ def clean_up_checkpoints(checkpoint_dir: str):
     max_logging.log(f"Found commit_success file. Keeping {latest_checkpoint_path}.")
 
 
-def live_devices():
-  """Returns the list of live devices."""
+def ensure_elastic_manager_initialized(config):
+  """Initializes elastic manager if it's not initialized and pathways is used."""
   global elastic_manager
+  if pathwaysutils.is_pathways_backend_used() and config.elastic_enabled and elastic_manager is None:
+    elastic_manager = manager.Manager()
+
+
+def get_local_batch_size(config) -> int:
+  """Returns the local batch size based on the config."""
+  return config.per_device_batch_size * get_devices_per_host(config)
+
+
+def live_devices(config=None):
+  """Returns the list of live devices."""
   # If pathways is not used or elastic_manager is not initialized, return all devices
-  if pathwaysutils.is_pathways_backend_used():
-    if elastic_manager is None:
-      elastic_manager = manager.Manager()
+  if pathwaysutils.is_pathways_backend_used() and config is not None:
+    ensure_elastic_manager_initialized(config)
+    assert elastic_manager is not None
     # Filter devices that are in active slices
-    return [d for d in jax.devices() if d.slice_index in elastic_manager.active_slice_indices]
+    return [
+        d for d in jax.devices() if d is not None and getattr(d, "slice_index", 0) in elastic_manager.active_slice_indices
+    ]
   return jax.devices()
+
+
+def live_slice_indices(config) -> set[int]:
+  """Returns the set of live slice indices."""
+  return {getattr(d, "slice_index", 0) for d in live_devices(config) if d is not None}
+
+
+def get_devices_per_host(config):
+  """Dynamically calculates the number of chips per physical worker VM."""
+  devices = Counter(d.task_id for d in live_devices(config))
+
+  max_logging.log(f"elastic_utils: Device counts per task: {devices}")
+  if not devices:
+    raise ValueError("elastic_utils: get_devices_per_host: No devices found.")
+
+  devices_per_host = next(iter(devices.values()))
+  if devices_per_host == 0:
+    raise ValueError("elastic_utils: get_devices_per_host: Devices per host is 0.")
+  max_logging.log(f"elastic_utils: Devices per host: {devices_per_host}")
+
+  return devices_per_host
 
 
 def chain_callbacks(*funcs):
@@ -103,7 +138,6 @@ def elastic_retry(config, callback_fn=None):
   Returns:
     A decorator for elastic retry.
   """
-  global elastic_manager
   if not elastic_enabled(config):
     msg = (
         "Elastic training requires the Pathways backend, and elastic_enabled"
@@ -114,8 +148,9 @@ def elastic_retry(config, callback_fn=None):
     raise ValueError(msg)
 
   max_logging.log("Elastic Retry Enabled")
-  if elastic_manager is None:
-    elastic_manager = manager.Manager()
+
+  ensure_elastic_manager_initialized(config)
+  assert elastic_manager is not None
 
   cleanup_partial = functools.partial(clean_up_checkpoints, config.checkpoint_dir)
 
@@ -127,5 +162,29 @@ def elastic_retry(config, callback_fn=None):
   return elastic_manager.elastic_retry(
       max_retries=config.elastic_max_retries,
       timeout=config.elastic_timeout_seconds,
+      minimum_slice_count=None if config.elastic_min_slice_count == -1 else config.elastic_min_slice_count,
       on_elastic_event_callback=effective_callback,
   )
+
+
+def is_scale_up_event(config) -> bool:
+  """Returns whether a scale up event is detected."""
+  if elastic_enabled(config):
+    ensure_elastic_manager_initialized(config)
+    assert elastic_manager is not None
+    return elastic_manager.new_slice_event.is_set()
+
+  return False
+
+
+def maybe_elastic_scale_up(config, checkpoint_manager):
+  """Waits for a checkpoint to finish before interrupting for scale up."""
+  if is_scale_up_event(config):
+    max_logging.log(
+        "Started a checkpoint and a new slice is available. Waiting for current"
+        " checkpoint to finish before interrupting."
+    )
+    if checkpoint_manager is not None:
+      checkpoint_manager.wait_until_finished()
+    max_logging.log("Checkpoint save completed. Interrupting")
+    raise manager.ScaleUpSignalError()

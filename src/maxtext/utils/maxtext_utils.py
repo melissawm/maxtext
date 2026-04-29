@@ -54,6 +54,7 @@ from maxtext.utils import gcs_utils
 from maxtext.utils import max_logging
 from maxtext.utils import max_utils
 from maxtext.utils import sharding
+from maxtext.utils import elastic_utils
 
 OVERWRITE_WITH_GRADIENT = "_overwrite_with_gradient"
 
@@ -1576,7 +1577,14 @@ def create_device_mesh(config, devices=None):
   """Creates a device mesh with each slice in its own data parallel group. If there is only one slice, uses two replicas"""
   if devices is None:
     devices = jax.devices()
-  if config.subslice_shape and config.enable_single_controller and config.num_slices == 1:
+
+  if config.elastic_enabled:
+    devices = elastic_utils.live_devices(config)
+    num_slices = len(elastic_utils.live_slice_indices(config))
+  else:
+    num_slices = config.num_slices
+
+  if config.subslice_shape and config.enable_single_controller and num_slices == 1:
     max_logging.log(f"Trying to create a subslice with shape: {config.subslice_shape}")
     subslice_shape = tuple(int(x) for x in config.subslice_shape.split(","))
     device_coords = [device.coords for device in devices]
@@ -1593,7 +1601,7 @@ def create_device_mesh(config, devices=None):
     devices = subslice_devices
 
   num_devices = len(devices)
-  num_slices = 1 if config.inference_benchmark_test else config.num_slices
+  num_slices = 1 if config.inference_benchmark_test else num_slices
   num_devices_per_slice = num_devices // num_slices
 
   multi_slice_env = num_slices > 1

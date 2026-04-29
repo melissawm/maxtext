@@ -29,6 +29,7 @@ from maxtext.input_pipeline.synthetic_data_processing import PlaceHolderDataIter
 from maxtext.utils import exceptions
 from maxtext.utils import max_logging
 from maxtext.utils import gcs_utils
+from maxtext.utils import elastic_utils
 import numpy as np
 import orbax.checkpoint as ocp
 from orbax.checkpoint import v1 as ocp_v1
@@ -620,9 +621,7 @@ def load_state_if_possible(
             (EmergencyCheckpointManager, EmergencyReplicatorCheckpointManager),
         ):
           return (
-              checkpoint_manager.restore(
-                  step, args=Composite(state=checkpoint_args)
-              ).state,
+              checkpoint_manager.restore(step, args=Composite(state=checkpoint_args)).state,
               None,
           )
         # Case 2: Matches if dataset type is "grain" and the data iterator is not a
@@ -754,6 +753,20 @@ def maybe_save_checkpoint(checkpoint_manager, state, config, data_iterator, step
     checkpoint_saved = save_checkpoint(checkpoint_manager, actual_step, state, config, data_iterator, force_ckpt_save)
     if checkpoint_saved:
       print_save_message(actual_step, config.async_checkpointing)
+      if config.elastic_enabled:
+        elastic_utils.maybe_elastic_scale_up(config, checkpoint_manager)
+  except elastic_utils.manager.ScaleUpSignalError as e:
+    if config.elastic_enabled:
+      max_logging.log(f"Elastic event detected, letting exception bubble up: {e}")
+      raise
+    else:
+      raise exceptions.StopTraining("Job is preempted.") from e
+  except jax.errors.JaxRuntimeError as e:
+    if config.elastic_enabled:
+      max_logging.log(f"Elastic event detected, letting exception bubble up: {e}")
+      raise
+    else:
+      raise exceptions.StopTraining("Job is preempted.") from e
   except Exception as e:
     raise exceptions.StopTraining(f"Checkpointing failed. {str(e)}") from e
 
