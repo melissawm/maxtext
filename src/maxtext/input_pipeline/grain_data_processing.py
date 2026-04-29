@@ -424,6 +424,7 @@ def make_grain_train_iterator(
         grain_num_threads=config.grain_num_threads,
         grain_prefetch_buffer_size=config.grain_prefetch_buffer_size,
         grain_data_source_max_workers=config.grain_data_source_max_workers,
+        mixture_config_path=config.grain_train_mixture_config_path,
     )
     if config.use_dpo:
       preprocessing_fn = functools.partial(
