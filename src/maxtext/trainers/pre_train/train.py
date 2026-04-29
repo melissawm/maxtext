@@ -87,9 +87,7 @@ def get_first_step(model, state):
 # -----------------------------------------------------------------------------
 
 
-def loss_fn(
-    model, config, data, dropout_rng, params, sparsity_state=None, is_train=True
-):
+def loss_fn(model, config, data, dropout_rng, params, sparsity_state=None, is_train=True):
   """loss_fn for both train and eval.
 
   Args:
@@ -121,9 +119,7 @@ def loss_fn(
   # make its specific collection mutable so the MTPBlock can sow into it.
   if config.mtp_eval_target_module > 0 and not is_train:
     mutable_collections.append("mtp_acceptance")
-  sparsity_enabled = (
-      is_train and config.weight_sparsity_n and config.weight_sparsity_m
-  )
+  sparsity_enabled = is_train and config.weight_sparsity_n and config.weight_sparsity_m
   if sparsity_enabled:
     mutable_collections.append("batch_stats")
   if isinstance(model, nn.Module):
@@ -143,9 +139,7 @@ def loss_fn(
         data["inputs_position"],
         decoder_segment_ids=data["inputs_segmentation"],
         encoder_images=data["images"] if config.use_multimodal else None,
-        encoder_image_masks=data["image_masks"]
-        if config.use_multimodal and "image_masks" in data
-        else None,
+        encoder_image_masks=data["image_masks"] if config.use_multimodal and "image_masks" in data else None,
         enable_dropout=config.enable_dropout if is_train else False,
         rngs={"dropout": rng1, "params": aqt_rng},
         mutable=mutable_collections,
@@ -286,11 +280,7 @@ def loss_fn(
       "indexer_loss": indexer_loss,
       "moe_bias_updates": moe_bias_updates,
       "mtp_loss": mtp_loss,
-      "batch_stats": (
-          intermediate_outputs.get("batch_stats", None)
-          if hasattr(intermediate_outputs, "get")
-          else None
-      ),
+      "batch_stats": (intermediate_outputs.get("batch_stats", None) if hasattr(intermediate_outputs, "get") else None),
   }
   return loss, aux
 
@@ -416,9 +406,7 @@ def train_step(model, config, state_mesh_shardings, params_shardings, state, dat
   if sparsity_enabled:
     full_grads = {"params": grads}
     if sparsity_enabled and "batch_stats" in state.params:
-      batch_stats_grads = jax.tree_util.tree_map(
-          jnp.zeros_like, state.params.get("batch_stats", {})
-      )
+      batch_stats_grads = jax.tree_util.tree_map(jnp.zeros_like, state.params.get("batch_stats", {}))
       full_grads["batch_stats"] = batch_stats_grads
     full_grads = max_utils.unbox_logicallypartioned(full_grads)
   else:
@@ -501,9 +489,7 @@ def eval_step(model, config, state, data, dropout_rng):
   batch_stats = state.params.get("batch_stats", {})
 
   eval_loss_fn = functools.partial(_loss_fn, model, config, data, dropout_rng, is_train=False)
-  loss, aux = eval_loss_fn(
-      pure_params, *extra_dpo_args, sparsity_state=batch_stats
-  )
+  loss, aux = eval_loss_fn(pure_params, *extra_dpo_args, sparsity_state=batch_stats)
 
   mtp_acceptance_rate = 0.0
   if config.mtp_eval_target_module > 0:
@@ -630,6 +616,8 @@ def train_loop(config, recorder, state=None):
         eval_step_count = 0
         # pylint: disable=not-callable
         for eval_batch in eval_data_iterator:
+          # Shard input eval data
+          eval_batch = jax.device_put(eval_batch, sharding.get_input_data_sharding(config, mesh))
           if config.eval_steps > 0 and eval_step_count >= config.eval_steps:
             break
           with jax.set_mesh(mesh), nn_partitioning.axis_rules(config.logical_axis_rules):
