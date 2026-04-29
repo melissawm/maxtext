@@ -137,9 +137,14 @@ def generate_and_save_data(config, local_args):
       writer = array_record_module.ArrayRecordWriter(local_output_path, "group_size:1000")
 
     tokens = batch["inputs"]
+    # segment_ids prevents cross-document attention under packing; target_tokens/mask are consumed by
+    # the MTP block when enabled.
     logits = teacher_model(
         decoder_input_tokens=tokens,
         decoder_positions=batch["inputs_position"],
+        decoder_segment_ids=batch.get("inputs_segmentation"),
+        decoder_target_tokens=batch.get("targets"),
+        decoder_target_mask=batch.get("targets_segmentation"),
         enable_dropout=False,
     )
     top_k_vals, top_k_idx = get_top_k_logits(logits, k=k_val)
