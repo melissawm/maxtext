@@ -1384,7 +1384,7 @@ class Muon(BaseModel):
       0,
       description="Strength of the weight decay regularization. This is multiplied with the learning rate.",
   )
-  muon_consistent_rms: None | float = Field(
+  muon_consistent_rms: float | None = Field(
       None,
       description="If None, apply width scaling to updates. If float, apply consistent rms scaling (recommend 0.2).",
   )
