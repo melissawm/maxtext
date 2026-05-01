@@ -33,6 +33,7 @@ from array_record.python import array_record_module
 from orbax import checkpoint
 
 from maxtext.utils import max_logging
+from maxtext.utils import maxtext_utils
 # Reuse MaxText's native checkpointing logic
 from maxtext.common.checkpointing import GrainCheckpointHandler, GrainCheckpointSave, GrainCheckpointRestore
 from tunix.sft import checkpoint_manager as tunix_checkpoint_manager
@@ -191,6 +192,21 @@ class MaxTextToTunixIterator:
 # and far below fp32 exp overflow (~88).
 _PPL_CE_CAP = 20.0
 
+METRIC_TOTAL_LOSS = "distill/total_loss"
+METRIC_HARD_LOSS = "distill/hard_loss"
+METRIC_SOFT_LOSS = "distill/soft_loss"
+METRIC_TEACHER_LOSS = "distill/teacher_loss"
+METRIC_KL_DIV_T1 = "distill/kl_div_T1"
+METRIC_KL_DIV_AT_T = "distill/kl_div_at_T"
+METRIC_STUDENT_PERPLEXITY = "distill/student_perplexity"
+METRIC_TEACHER_PERPLEXITY = "distill/teacher_perplexity"
+METRIC_OUT_PROJ_FEATURE_LOSS = "distill/out_proj_feature_loss"
+METRIC_MOE_LB_LOSS = "distill/moe_lb_loss"
+METRIC_TEACHER_MOE_LB_LOSS = "distill/teacher_moe_lb_loss"
+METRIC_TEMPERATURE = "distill/temperature"
+METRIC_ALPHA = "distill/alpha"
+METRIC_BETA_FEATURE = "distill/beta_feature"
+
 
 def compute_schedule(
     step: jax.Array,
@@ -249,6 +265,35 @@ def weighted_mean(sum_count_pairs: Sequence[tuple[Any, Any]] | np.ndarray) -> fl
   if total <= 0.0:
     return 0.0
   return float(arr[:, 0].sum() / total)
+
+
+def calculate_distillation_tflops_per_device(
+    student_config,
+    teacher_config,
+    is_offline: bool = False,
+) -> tuple[float, float, float]:
+  """Per-step per-device TFLOPs for online distillation.
+
+  Student counts full forward + backward (matches the standard `* 3` accounting
+  in `calculate_tflops_training_per_device`). Teacher counts forward only, so we
+  divide its standard total by 3. In offline mode the teacher is not run, so its
+  contribution is zero.
+
+  Caller contract: `teacher_config`'s `per_device_batch_size`, `max_target_length`,
+  and `gradient_accumulation_steps` must already match `student_config`'s, since
+  the teacher runs on batches produced by the shared input pipeline. The
+  distillation entry point (`train_distill.main`) sets this up.
+
+  Returns:
+    (combined, student, teacher) per-step per-device TFLOPs.
+  """
+  student_tflops, _, _ = maxtext_utils.calculate_tflops_training_per_device(student_config, log=False)
+  if is_offline or teacher_config is None:
+    teacher_tflops = 0.0
+  else:
+    teacher_full, _, _ = maxtext_utils.calculate_tflops_training_per_device(teacher_config, log=False)
+    teacher_tflops = teacher_full / 3.0
+  return student_tflops + teacher_tflops, student_tflops, teacher_tflops
 
 
 class DistillationStrategy(abc.ABC):
@@ -558,27 +603,27 @@ class CombinedDistillationStrategy(DistillationStrategy):
     one = jnp.array(1.0, dtype=jnp.float32)
     metrics: dict[str, tuple[jax.Array, jax.Array]] = {
         # Token-weighted: emit (sum, valid_count) so multi-host averaging is unbiased.
-        "distill/soft_loss": (soft_loss_sum_scaled, valid_count),
-        "distill/hard_loss": (ce_student_sum, valid_count),
-        "distill/teacher_loss": (ce_teacher_sum, valid_count),
+        METRIC_SOFT_LOSS: (soft_loss_sum_scaled, valid_count),
+        METRIC_HARD_LOSS: (ce_student_sum, valid_count),
+        METRIC_TEACHER_LOSS: (ce_teacher_sum, valid_count),
         # Next-token prediction perplexity (per-step approximation of exp(hard_loss)).
         # The headline `_train_perplexity` Tunix prints is exp(total_loss) which for
         # distillation is exp(α·soft + (1-α)·hard + β·feature) and NOT next-token PPL.
-        "distill/student_perplexity": (student_perplexity_step, one),
-        "distill/teacher_perplexity": (teacher_perplexity_step, one),
+        METRIC_STUDENT_PERPLEXITY: (student_perplexity_step, one),
+        METRIC_TEACHER_PERPLEXITY: (teacher_perplexity_step, one),
         # KL at the current (scheduled) temperature T, without the T^2 scaling
         # that soft_loss applies. Pair with kl_div_T1 to compare T vs T=1.
-        "distill/kl_div_at_T": (kl_softened_sum, valid_count),
+        METRIC_KL_DIV_AT_T: (kl_softened_sum, valid_count),
         # KL at T=1: comparable across runs / annealing schedules.
-        "distill/kl_div_T1": (kl_t1_sum, valid_count),
+        METRIC_KL_DIV_T1: (kl_t1_sum, valid_count),
         # Per-step quantities: (value, 1.0) so the aggregator yields a simple mean over steps.
-        "distill/out_proj_feature_loss": (feature_loss, one),
-        "distill/moe_lb_loss": (moe_lb_loss, one),
-        "distill/teacher_moe_lb_loss": (teacher_moe_lb_loss, one),
-        "distill/total_loss": (total_loss, one),
-        "distill/temperature": (temperature, one),
-        "distill/alpha": (alpha, one),
-        "distill/beta_feature": (beta_feature, one),
+        METRIC_OUT_PROJ_FEATURE_LOSS: (feature_loss, one),
+        METRIC_MOE_LB_LOSS: (moe_lb_loss, one),
+        METRIC_TEACHER_MOE_LB_LOSS: (teacher_moe_lb_loss, one),
+        METRIC_TOTAL_LOSS: (total_loss, one),
+        METRIC_TEMPERATURE: (temperature, one),
+        METRIC_ALPHA: (alpha, one),
+        METRIC_BETA_FEATURE: (beta_feature, one),
     }
     return total_loss, metrics
 
