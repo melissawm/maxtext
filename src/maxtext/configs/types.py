@@ -672,6 +672,9 @@ class MoEGeneral(BaseModel):
       description="Dimension of tokens entering the MoE layer. If < 0, defaults to emb_dim.",
   )
   base_moe_mlp_dim: int = Field(-1, description="Intermediate dimension at MoE layer.")
+  padded_base_moe_mlp_dim: Optional[int] = Field(
+      None, description="Padded intermediate dimension at MoE layer for efficient GMM_v2 kernel execution."
+  )
   load_balance_loss_weight: NonNegativeFloat = Field(0.0, description="Weight for the load balancing auxiliary loss.")
   use_custom_sort_vjp: bool = Field(
       True,

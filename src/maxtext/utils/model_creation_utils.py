@@ -28,7 +28,6 @@ from flax import nnx
 import flax.linen as nn
 import jax
 import jax.numpy as jnp
-import numpy as np
 from jax.sharding import Mesh
 from maxtext.configs import pyconfig
 from maxtext.common.common_types import MODEL_MODE_AUTOREGRESSIVE, MODEL_MODE_TRAIN
@@ -51,18 +50,100 @@ except ImportError:
     return hasattr(x, "shape") and hasattr(x, "sharding") and hasattr(x, "dtype") and not isinstance(x, jax.Array)
 
 
-def _expand_checkpoint_to_model_shapes(ckpt_arr, model_arr):
-  """Expand ckpt_arr to model_arr's shape and re-shard to model_arr's sharding.
+# Logical axis names whose padding semantics are "replicate the existing values"
+# (e.g. KV-head replication for GQA with TP > num_kv_heads).
+_VLLM_REPEAT_AXES = frozenset({"kv_heads", ("expert", "model")})
 
-  Used to expand checkpoint KV-head (and similar) arrays that were saved with
-  fewer heads than the padded model shape requires (e.g. due to TP/EP padding
-  in adapter.py).  Each dimension must divide evenly into the corresponding
-  model dimension.
+# Logical axis names whose padding semantics are "append zeros at the end"
+# (e.g. MoE MLP-dim padding to satisfy the GMM_v2 kernel's per-shard size
+# constraint, set in src/maxtext/integration/vllm/maxtext_vllm_adapter/adapter.py).
+_VLLM_ZERO_PAD_AXES = frozenset({"mlp_moe", "activation_mlp", ("attn_dp", "model")})
 
-  Uses jnp.repeat so that each original slice is placed adjacent to its copies.
-  For GQA with TP, device i needs KV head i//ratio from the original checkpoint,
-  so the correct layout is e.g. [h0, h0, h1, h1, h2, h2, h3, h3] rather than
-  [h0, h1, h2, h3, h0, h1, h2, h3].
+
+def _normalize_logical_axes(axes):
+  """Coerce an axes value (PartitionSpec / tuple / None / leaf marker) to a plain tuple or None.
+
+  ``nnx.get_partition_spec`` returns a tree of :class:`jax.sharding.PartitionSpec`
+  leaves whose entries are logical axis names, ``None`` (unsharded), or nested
+  tuples (multi-axis sharding).  PartitionSpec is iterable, so ``tuple(spec)``
+  yields the per-axis entries directly.
+  """
+  if axes is None:
+    return None
+  if isinstance(axes, jax.sharding.PartitionSpec):
+    return tuple(axes)
+  if isinstance(axes, (tuple, list)):
+    return tuple(axes)
+  return None
+
+
+def _zero_pad_axis(arr, axis, extra):
+  """Append ``extra`` zeros at the end of ``axis``.
+
+  When ``arr`` is sharded along ``axis`` with a NamedSharding, this pads each
+  *local* shard via ``shard_map`` so we never materialize the full replicated
+  tensor — critical for large MoE weights where the global pad would re-OOM.
+  The resulting layout has zeros interleaved at each shard's tail rather than
+  all at the global tail. Both layouts are mathematically equivalent for any
+  matmul along the padded axis with a matching pad on the consuming weight,
+  which is exactly the MoE wi/wo + GMM_v2 kernel case (the only consumer that
+  triggers ``_ZERO_PAD_AXES`` today).
+
+  When ``arr`` is unsharded (or sharded along a different axis), falls back to
+  ``jnp.pad`` — same as before this change.
+  """
+  if extra == 0:
+    return arr
+
+  sharding = getattr(arr, "sharding", None)
+  pad_width = [(0, 0)] * arr.ndim
+
+  if isinstance(sharding, jax.sharding.NamedSharding):
+    spec = sharding.spec
+    partition = spec[axis] if axis < len(spec) else None
+    shards_along_axis = _partition_size(partition, sharding.mesh)
+    if shards_along_axis > 1:
+      if extra % shards_along_axis != 0:
+        raise ValueError(
+            f"Cannot per-shard zero-pad axis {axis}: extra={extra} not divisible by "
+            f"shards_along_axis={shards_along_axis} (sharding spec entry {partition!r})."
+        )
+      per_shard_extra = extra // shards_along_axis
+      pad_width[axis] = (0, per_shard_extra)
+
+      def _pad_local(x):
+        return jnp.pad(x, pad_width)
+
+      return jax.shard_map(_pad_local, mesh=sharding.mesh, in_specs=spec, out_specs=spec, check_vma=False)(arr)
+
+  pad_width[axis] = (0, extra)
+  return jnp.pad(arr, pad_width)
+
+
+def _align_checkpoint_to_model_shapes(ckpt_arr, model_arr, logical_axes=None):
+  """Align ckpt_arr to model_arr's shape and re-shard to model_arr's sharding.
+
+  Per-axis dispatch (driven by ``logical_axes``, the tuple of logical axis names
+  for ``model_arr``):
+
+    - axis name in ``_VLLM_REPEAT_AXES`` (e.g. ``"kv_heads"``): replicate the
+      checkpoint values along that axis with ``jnp.repeat``. For GQA with TP,
+      device ``i`` needs KV head ``i // ratio``, so the correct layout is e.g.
+      ``[h0, h0, h1, h1]`` rather than ``[h0, h1, h0, h1]``. Requires the
+      model dim to be an integer multiple of the checkpoint dim.
+
+    - axis name in ``_VLLM_ZERO_PAD_AXES`` (e.g. ``"mlp_moe"``,
+      ``"activation_mlp"``): append zeros at the end of the axis with
+      ``jnp.pad``. This is the right semantics for MoE MLP-dim padding done by
+      the vLLM adapter to satisfy the GMM_v2 kernel's size constraint.
+
+    - any other axis name (or when ``logical_axes`` is None): fall back to
+      ``jnp.repeat`` if the model dim divides evenly (preserving prior
+      behavior), otherwise raise.
+
+  Logical axis names are defined by the rules in ``configs/base.yml``. New
+  axes that need a non-default expansion semantics must be registered in
+  ``_VLLM_REPEAT_AXES`` or ``_VLLM_ZERO_PAD_AXES`` above.
   """
   ckpt_shape = ckpt_arr.shape
   model_shape = model_arr.shape
@@ -74,27 +155,188 @@ def _expand_checkpoint_to_model_shapes(ckpt_arr, model_arr):
         "If the checkpoint was saved with scan_layers=True (stacked layers), convert it to "
         "unscanned format before loading with vLLM (vllm.yml sets scan_layers=False)."
     )
+  axes = _normalize_logical_axes(logical_axes)
+  if axes is None or len(axes) != len(model_shape):
+    axes = (None,) * len(model_shape)
+
   result = ckpt_arr
-  for axis, (ckpt_dim, model_dim) in enumerate(zip(ckpt_shape, model_shape)):
-    if model_dim % ckpt_dim != 0:
-      raise ValueError(
-          f"Model dimension {model_dim} is not evenly divisible by checkpoint dimension {ckpt_dim}."
-          f" Full shapes — checkpoint: {ckpt_shape}, model: {model_shape}"
-      )
-    if model_dim != ckpt_dim:
+  for axis, (ckpt_dim, model_dim, axis_name) in enumerate(zip(ckpt_shape, model_shape, axes)):
+    if model_dim == ckpt_dim:
+      continue
+    if axis_name in _VLLM_ZERO_PAD_AXES:
+      if model_dim < ckpt_dim:
+        raise ValueError(
+            f"axis {axis} (logical={axis_name!r}): model_dim={model_dim} smaller than "
+            f"ckpt_dim={ckpt_dim}; shapes ckpt={ckpt_shape} model={model_shape}"
+        )
+      result = _zero_pad_axis(result, axis, model_dim - ckpt_dim)
+    elif axis_name in _VLLM_REPEAT_AXES:
+      if model_dim % ckpt_dim != 0:
+        raise ValueError(
+            f"axis {axis} (logical={axis_name!r}): model_dim={model_dim} not divisible by "
+            f"ckpt_dim={ckpt_dim}; shapes ckpt={ckpt_shape} model={model_shape}"
+        )
+      result = jnp.repeat(result, model_dim // ckpt_dim, axis=axis)
+    else:
+      if model_dim % ckpt_dim != 0:
+        raise ValueError(
+            f"Cannot align axis {axis} (logical={axis_name!r}): model_dim={model_dim} not "
+            f"divisible by ckpt_dim={ckpt_dim}, and axis is not registered in _VLLM_REPEAT_AXES "
+            f"({sorted(str(x) for x in _VLLM_REPEAT_AXES)}) or "
+            f"_VLLM_ZERO_PAD_AXES ({sorted(str(x) for x in _VLLM_ZERO_PAD_AXES)}). "
+            f"Full shapes ckpt={ckpt_shape} model={model_shape}"
+        )
       result = jnp.repeat(result, model_dim // ckpt_dim, axis=axis)
   return jax.device_put(result, model_arr.sharding)
 
 
+def _fuse_moe_weights(ckpt_tree, model_arrays_tree):
+  """Fuse separate wi_0/wi_1 checkpoint entries into a single wi when model uses fused layout.
+
+  This properly interleaves the gate and up projections based on the target tensor
+  parallelism (TP) sharding, ensuring that each device receives its respective
+  slice of both wi_0 and wi_1. It also applies any necessary MLP-dim padding
+  on a per-shard basis to satisfy kernel constraints.
+  """
+
+  def _is_fusion_site(node):
+    """A ckpt-side dict that holds wi_0/wi_1 leaf siblings — the parent of a fusion."""
+    return (
+        isinstance(node, dict)
+        and "wi_0" in node
+        and "wi_1" in node
+        and not isinstance(node["wi_0"], dict)
+        and not isinstance(node["wi_1"], dict)
+    )
+
+  def _key_str(key):
+    if hasattr(key, "key"):
+      return key.key
+    if hasattr(key, "attr"):
+      return key.attr
+    return key
+
+  def _lookup_model(path):
+    node = model_arrays_tree
+    for key in path:
+      name = _key_str(key)
+      if isinstance(node, dict) and name in node:
+        node = node[name]
+      else:
+        return None
+    return node
+
+  def _maybe_fuse(path, ckpt_node):
+    if not _is_fusion_site(ckpt_node):
+      return ckpt_node
+    model_node = _lookup_model(path)
+    if not isinstance(model_node, dict) or "wi" not in model_node:
+      return ckpt_node
+
+    wi_model = model_node["wi"]
+    axis = wi_model.ndim - 1
+
+    # Determine the number of shards (TP degree) along the concatenated axis
+    n_shards = 1
+    sharding = getattr(wi_model, "sharding", None)
+    if isinstance(sharding, jax.sharding.NamedSharding):
+      spec = sharding.spec
+      partition = spec[axis] if axis < len(spec) else None
+      n_shards = _partition_size(partition, sharding.mesh)
+
+    # Target size for a single half (wi_0 or wi_1) AFTER padding
+    target_half_dim = wi_model.shape[-1] // 2
+
+    # Helper to pad per-shard and reshape for interleaving
+    def _pad_and_chunk(arr, target_total_size):
+      shape = arr.shape
+      current_total_size = shape[-1]
+
+      # Calculate per-shard chunk sizes
+      chunk_size = current_total_size // n_shards
+      target_chunk_size = target_total_size // n_shards
+      pad_amount = target_chunk_size - chunk_size
+
+      # Reshape to expose the per-shard chunk: (..., n_shards, chunk_size)
+      arr_reshaped = arr.reshape(*shape[:-1], n_shards, chunk_size)
+
+      # Pad each chunk individually if necessary
+      if pad_amount > 0:
+        pad_widths = [(0, 0)] * arr_reshaped.ndim
+        pad_widths[-1] = (0, pad_amount)
+        arr_reshaped = jnp.pad(arr_reshaped, pad_widths)
+
+      return arr_reshaped
+
+    # Apply per-shard padding and chunking
+    padded_chunked_wi_0 = _pad_and_chunk(ckpt_node["wi_0"], target_half_dim)
+    padded_chunked_wi_1 = _pad_and_chunk(ckpt_node["wi_1"], target_half_dim)
+
+    # Concatenate along the inner chunk dimension to interleave the shards
+    # Shape becomes: (..., n_shards, target_chunk_size * 2)
+    wi_interleaved = jnp.concatenate([padded_chunked_wi_0, padded_chunked_wi_1], axis=-1)
+
+    # Flatten the n_shards dimension back out to match the final model shape, drop wi_0/wi_1.
+    new_node = {k: v for k, v in ckpt_node.items() if k not in ("wi_0", "wi_1")}
+    new_node["wi"] = wi_interleaved.reshape(*wi_model.shape)
+    return new_node
+
+  return jax.tree_util.tree_map_with_path(_maybe_fuse, ckpt_tree, is_leaf=_is_fusion_site)
+
+
+def _partition_size(partition, mesh):
+  """Total mesh-axis size used to shard a single tensor axis.
+
+  ``partition`` is a single PartitionSpec entry: ``None`` (unsharded), a single
+  mesh-axis name (str), or a tuple of mesh-axis names.
+  """
+  if partition is None:
+    return 1
+  names = (partition,) if isinstance(partition, str) else tuple(partition)
+  size = 1
+  for n in names:
+    size *= mesh.shape[n]
+  return size
+
+
+def _stored_shape_evenly_shardable(restore_arg, stored_shape):
+  """Whether the restore_arg's NamedSharding evenly partitions the stored shape.
+
+  When True, we can load the checkpoint with the model's logical sharding intact
+  (each device receives only its local slice), avoiding the multi-GB replicated
+  fanout that fully-replicated loading produces for large MoE weights.
+  """
+  sharding = restore_arg.sharding
+  if not isinstance(sharding, jax.sharding.NamedSharding):
+    return False
+  spec = sharding.spec
+  for axis_idx, dim in enumerate(stored_shape):
+    partition = spec[axis_idx] if axis_idx < len(spec) else None
+    if dim % _partition_size(partition, sharding.mesh) != 0:
+      return False
+  return True
+
+
 def _fix_restore_args_for_shape_mismatch(restore_args, stored_metadata_tree, mesh):
-  """Use replicated sharding for arrays whose checkpoint shape differs from the model shape.
+  """Adjust restore_args for arrays whose checkpoint shape differs from the model shape.
 
   When the model is initialized with padded shapes (e.g. KV heads padded to match
-  TP size) but the checkpoint was saved with smaller shapes, Orbax will reject the
-  restore because the provided sharding is incompatible with the stored shape.
-  For those arrays we switch to a fully-replicated sharding and clear global_shape
-  so Orbax loads the array as-written.  _expand_checkpoint_to_model_shapes then
-  expands and re-shards the loaded arrays to match the model.
+  TP size, or MoE MLP dim padded for the GMM_v2 kernel) but the checkpoint was
+  saved with smaller shapes, Orbax will reject the restore because the provided
+  ``global_shape`` is incompatible with the stored shape.
+
+  Two cases:
+
+  1. **Stored shape divides evenly across the model's NamedSharding** (typical
+     for MoE MLP-dim padding: stored 768 / TP=4 = 192). Keep the model's
+     sharding and pass the stored shape so Orbax loads each device's local
+     slice directly — no replicated fanout.
+     ``_align_checkpoint_to_model_shapes`` then pads each local shard.
+
+  2. **Stored shape doesn't divide evenly** (typical for KV-head padding:
+     stored 2 KV heads / TP=8 = 0.25). Fall back to fully-replicated loading
+     and let alignment expand-then-reshard. This matches the original behavior
+     and is required for correctness when sharded loading is impossible.
 
   Uses tree_map_with_path so each ArrayRestoreArgs is looked up by path in the
   metadata dict — avoids ordering/count mismatches from flattening two trees with
@@ -121,7 +363,8 @@ def _fix_restore_args_for_shape_mismatch(restore_args, stored_metadata_tree, mes
         return None
     return node
 
-  mismatched_paths = []
+  mismatched_paths_sharded = []
+  mismatched_paths_replicated = []
   rank_mismatched_paths = []
   missing_paths = []  # paths in model that are absent from the checkpoint tree
   found_array_count = [0]
@@ -136,6 +379,7 @@ def _fix_restore_args_for_shape_mismatch(restore_args, stored_metadata_tree, mes
     if _is_orbax_array_metadata(stored_meta):
       stored_shape = tuple(stored_meta.shape)
       if restore_arg.global_shape is not None and restore_arg.global_shape != stored_shape:
+        # Check for scanned vs unscanned rank mismatch
         if len(stored_shape) != len(restore_arg.global_shape):
           rank_mismatched_paths.append(
               f"  {'.'.join(_key_str(k) for k in path)}: "
@@ -143,10 +387,14 @@ def _fix_restore_args_for_shape_mismatch(restore_args, stored_metadata_tree, mes
               f"vs model shape {restore_arg.global_shape} (rank {len(restore_arg.global_shape)})"
           )
         else:
-          mismatched_paths.append(
-              f"  {'.'.join(_key_str(k) for k in path)}: stored={stored_shape} -> model={restore_arg.global_shape}"
-          )
+          # Handle the shape mismatch logic for padding/sharding
           found_array_count[0] += 1
+          path_str = f"  {'.'.join(_key_str(k) for k in path)}: stored={stored_shape} -> model={restore_arg.global_shape}"
+          if _stored_shape_evenly_shardable(restore_arg, stored_shape):
+            mismatched_paths_sharded.append(path_str)
+            return dataclasses.replace(restore_arg, global_shape=stored_shape, shape=stored_shape)
+
+          mismatched_paths_replicated.append(path_str)
           return dataclasses.replace(
               restore_arg, global_shape=None, shape=None, sharding=replicated, mesh=None, mesh_axes=None
           )
@@ -155,6 +403,7 @@ def _fix_restore_args_for_shape_mismatch(restore_args, stored_metadata_tree, mes
     return restore_arg
 
   fixed = jax.tree_util.tree_map_with_path(_fix_one, restore_args, is_leaf=lambda x: isinstance(x, ocp.ArrayRestoreArgs))
+
   if rank_mismatched_paths:
     sample = "\n".join(rank_mismatched_paths[:5])
     more = f"\n  ... and {len(rank_mismatched_paths) - 5} more" if len(rank_mismatched_paths) > 5 else ""
@@ -181,10 +430,16 @@ def _fix_restore_args_for_shape_mismatch(restore_args, stored_metadata_tree, mes
         f"scan_layers setting.\nExample missing paths:\n{sample}{more}"
     )
 
-  if mismatched_paths:
+  if mismatched_paths_sharded:
     max_logging.log(
-        f"Checkpoint shape mismatches ({len(mismatched_paths)} arrays): loading with replicated "
-        "sharding and expanding to model shape after restore.\n" + "\n".join(mismatched_paths)
+        f"Checkpoint shape mismatches ({len(mismatched_paths_sharded)} arrays): loading sharded at "
+        "stored shape and padding each local shard after restore.\n" + "\n".join(mismatched_paths_sharded)
+    )
+  if mismatched_paths_replicated:
+    max_logging.log(
+        f"Checkpoint shape mismatches ({len(mismatched_paths_replicated)} arrays): loading with replicated "
+        "sharding (stored shape not evenly partitionable across mesh) and expanding after restore.\n"
+        + "\n".join(mismatched_paths_replicated)
     )
   return fixed
 
@@ -634,6 +889,20 @@ def from_pretrained(
           )
           restore_args = {"base": restore_args} if has_base_key else restore_args
 
+        # Free memory used by initial sharded_state before restore, to make room for the incoming checkpoint arrays.
+        def _free_device_memory(node):
+          if isinstance(node, nnx.Variable) and not isinstance(node, nnx.RngState):
+            val = node.value
+          else:
+            val = node
+
+          if isinstance(val, jax.Array) and not val.is_deleted():
+            val.delete()
+
+          return node
+
+        jax.tree_util.tree_map(_free_device_memory, sharded_state, is_leaf=lambda n: isinstance(n, nnx.Variable))
+
         restored = ckptr.restore(
             epath.Path(config.load_parameters_path),
             item=item_to_restore,
@@ -657,6 +926,18 @@ def from_pretrained(
               sharded_state,
               is_leaf=lambda n: isinstance(n, nnx.Variable),
           )
+          # ``specs`` (nnx.get_partition_spec(abstract_state) at the top of from_pretrained)
+          # is the source of truth for logical axis names — it's the input to
+          # nn.logical_to_mesh_sharding.  Each leaf is a PartitionSpec whose entries are
+          # logical axis names (or None / nested tuples).  Reuse it for repeat/zero-pad
+          # dispatch in _align_checkpoint_to_model_shapes.
+          # nnx.get_partition_spec returns Variables wrapping PartitionSpecs at the leaves;
+          # unwrap to raw PartitionSpecs so _normalize_logical_axes can read them.
+          logical_axes_tree = jax.tree.map(
+              lambda v: v.value,
+              specs,
+              is_leaf=lambda n: isinstance(n, nnx.Variable),
+          )
 
           def to_dict(tree):
             if hasattr(tree, "items"):
@@ -665,22 +946,7 @@ def from_pretrained(
 
           model_arrays = to_dict(model_arrays)
           checkpoint = to_dict(checkpoint)
-
-          def _fuse_moe_weights(ckpt_tree, model_arrays_tree):
-            if not hasattr(ckpt_tree, "items") or not hasattr(model_arrays_tree, "items"):
-              return ckpt_tree
-            new_ckpt = {}
-            for k, v in ckpt_tree.items():
-              if k in ("wi_0", "wi_1") and "wi" in model_arrays_tree:
-                continue
-              new_ckpt[k] = _fuse_moe_weights(v, model_arrays_tree.get(k, {}))
-
-            if "wi" in model_arrays_tree and "wi_0" in ckpt_tree and "wi_1" in ckpt_tree:
-              wi_0 = ckpt_tree["wi_0"]
-              wi_1 = ckpt_tree["wi_1"]
-              new_ckpt["wi"] = np.concatenate([wi_0, wi_1], axis=-1)
-
-            return new_ckpt
+          logical_axes_tree = to_dict(logical_axes_tree)
 
           checkpoint = _fuse_moe_weights(checkpoint, model_arrays)
           # Release the raw restored buffers now that wi_0/wi_1 have been fused (if needed).
@@ -694,7 +960,20 @@ def from_pretrained(
             return {k: _filter_to_model_keys(ckpt[k], model[k]) for k in model if k in ckpt}
 
           checkpoint = _filter_to_model_keys(checkpoint, model_arrays)
-          checkpoint = jax.tree.map(_expand_checkpoint_to_model_shapes, checkpoint, model_arrays)
+
+          def _walk_align(ckpt, model_arr, axes):
+            if isinstance(ckpt, dict):
+              return {
+                  k: _walk_align(
+                      v,
+                      model_arr[k],
+                      axes.get(k) if isinstance(axes, dict) else None,
+                  )
+                  for k, v in ckpt.items()
+              }
+            return _align_checkpoint_to_model_shapes(ckpt, model_arr, axes)
+
+          checkpoint = _walk_align(checkpoint, model_arrays, logical_axes_tree)
           nnx.update(model, checkpoint)
         else:
           raise ValueError(

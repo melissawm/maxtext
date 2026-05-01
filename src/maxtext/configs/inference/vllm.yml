@@ -24,6 +24,8 @@ skip_jax_distributed_system: True
 scan_layers: False
 # Set weight dtype to bfloat16 as is done in vLLM
 weight_dtype: bfloat16
+# Allow model config to be overridden by CLI kwargs
+override_model_config: True
 
 
 # -------------- Logical Axis Rules --------------
