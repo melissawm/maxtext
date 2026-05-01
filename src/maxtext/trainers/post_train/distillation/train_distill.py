@@ -216,6 +216,9 @@ class MaxTextDistillationTrainer(peft_trainer.PeftTrainer):
       strategy: distillation_utils.DistillationStrategy,
       optimizer,
       training_config,
+      student_config: pyconfig.HyperParameters,
+      teacher_config: pyconfig.HyperParameters | None,
+      is_offline: bool = False,
       student_freeze_param_filter: Callable[[Any], bool] | None = None,
       **kwargs,
   ):
@@ -226,6 +229,15 @@ class MaxTextDistillationTrainer(peft_trainer.PeftTrainer):
     super().__init__(model=model, optimizer=dummy_optimizer, training_config=training_config, **kwargs)
 
     self.strategy = strategy
+
+    # Per-step per-device TFLOPs (constants for the run): student fwd+bwd + teacher fwd-only.
+    self._tflops_combined, self._tflops_student, self._tflops_teacher = (
+        distillation_utils.calculate_distillation_tflops_per_device(student_config, teacher_config, is_offline=is_offline)
+    )
+    max_logging.log(
+        f"Per-step per-device TFLOPs — combined: {self._tflops_combined:.2f}, "
+        f"student (fwd+bwd): {self._tflops_student:.2f}, teacher (fwd-only): {self._tflops_teacher:.2f}"
+    )
 
     # override optimizer to only use student_model.
     if training_config.gradient_accumulation_steps is not None and training_config.gradient_accumulation_steps > 1:
@@ -331,6 +343,37 @@ class MaxTextDistillationTrainer(peft_trainer.PeftTrainer):
     labels = self.strategy.create_labels(inputs["targets"], targets_segmentation=inputs.get("targets_segmentation", None))
     return self.strategy.compute_eval_loss(student_output, labels)
 
+  def _log_metrics(self, loss, step=None, step_time_delta=None, additional_metrics=None):
+    """Adds per-device TFLOPs (and per-sec variants) to the standard Tunix metrics."""
+    super()._log_metrics(loss=loss, step=step, step_time_delta=step_time_delta, additional_metrics=additional_metrics)
+
+    tflops_metrics = {
+        "perf/per_device_tflops": self._tflops_combined,
+        "perf/per_device_tflops_student": self._tflops_student,
+        "perf/per_device_tflops_teacher": self._tflops_teacher,
+    }
+    tflops_per_sec = None
+    if step_time_delta is not None and step_time_delta > 0:
+      tflops_per_sec = self._tflops_combined / step_time_delta
+      tflops_metrics.update(
+          {
+              "perf/per_device_tflops_per_sec": tflops_per_sec,
+              "perf/per_device_tflops_per_sec_student": self._tflops_student / step_time_delta,
+              "perf/per_device_tflops_per_sec_teacher": self._tflops_teacher / step_time_delta,
+          }
+      )
+    for name, value in tflops_metrics.items():
+      self.metrics_logger.log(self.metrics_prefix, name, value, self._mode, step)
+
+    # Console summary — keep it tight; everything else is in TensorBoard.
+    if tflops_per_sec is not None and self._mode == metrics_logger.Mode.TRAIN:
+      max_logging.log(
+          f"step {step} | step_time={step_time_delta:.2f}s | "
+          f"TFLOPs/s/device: {tflops_per_sec:.2f} "
+          f"(student={self._tflops_student / step_time_delta:.2f}, "
+          f"teacher={self._tflops_teacher / step_time_delta:.2f})"
+      )
+
   def _prepare_inputs(
       self, input_data: distillation_utils.MaxTextTrainingInput
   ) -> distillation_utils.MaxTextTrainingInput:
@@ -376,7 +419,39 @@ class MaxTextDistillationTrainer(peft_trainer.PeftTrainer):
         self._buffered_train_metrics.additional_metrics[name] = ([], distillation_utils.weighted_mean)
 
       self._buffered_train_metrics.additional_metrics[name][0].append(value)
-    max_logging.log(f"Distillation metrics: {aux}")
+
+    # Compact per-step summary: only the metrics that change run-to-run, and
+    # only those that are nonzero (so MoE / feature-distill terms hide when off).
+    # `aux` values are (sum, count) tuples; reduce to scalar via sum/count.
+    def _scalar(v):
+      s, c = v
+      c = float(c)
+      return float(s) / c if c > 0 else 0.0
+
+    headline_keys = (
+        distillation_utils.METRIC_TOTAL_LOSS,
+        distillation_utils.METRIC_HARD_LOSS,
+        distillation_utils.METRIC_SOFT_LOSS,
+        distillation_utils.METRIC_KL_DIV_T1,
+        distillation_utils.METRIC_STUDENT_PERPLEXITY,
+        distillation_utils.METRIC_TEACHER_PERPLEXITY,
+    )
+    optional_keys = (
+        distillation_utils.METRIC_OUT_PROJ_FEATURE_LOSS,
+        distillation_utils.METRIC_MOE_LB_LOSS,
+        distillation_utils.METRIC_TEACHER_MOE_LB_LOSS,
+    )
+    parts = []
+    for k in headline_keys:
+      if k in aux:
+        parts.append(f"{k.split('/', 1)[1]}={_scalar(aux[k]):.4g}")
+    for k in optional_keys:
+      if k in aux:
+        v = _scalar(aux[k])
+        if v != 0:
+          parts.append(f"{k.split('/', 1)[1]}={v:.4g}")
+    if parts:
+      max_logging.log("Distillation metrics | " + " ".join(parts))
 
   def setup_checkpoint_manager_and_restore(self, raw_train_iter, config):
     """Configures the trainer's CheckpointManager and restores states.
@@ -632,6 +707,9 @@ def train_distill(
         strategy=strategy,
         optimizer=optimizer,
         training_config=train_config,
+        student_config=student_config,
+        teacher_config=teacher_config,
+        is_offline=is_offline,
         student_freeze_param_filter=student_freeze_param_fn if student_params_to_update else None,
     )
     trainer.is_managed_externally = True
@@ -802,6 +880,20 @@ def main(argv: Sequence[str]) -> None:
   # This ensures flags like `num_query_heads=16` passed in CLI don't affect the Teacher.
   teacher_argv = [argv[0], argv[1]]
   teacher_config = pyconfig.initialize(teacher_argv, **teacher_overrides)
+
+  # Batch shape (per_device_batch_size / max_target_length / gradient_accumulation_steps)
+  # must be set at the YAML top level — not inside *_overrides — since student and
+  # teacher share the input pipeline.
+  for batch_field in ("per_device_batch_size", "max_target_length", "gradient_accumulation_steps"):
+    s_val = getattr(student_config, batch_field)
+    t_val = getattr(teacher_config, batch_field)
+    if s_val != t_val:
+      raise ValueError(
+          f"Distillation batch shape mismatch on '{batch_field}': "
+          f"student={s_val} vs teacher={t_val}. The teacher consumes batches from the "
+          f"student-driven input pipeline, so these must agree. Set '{batch_field}' at "
+          f"the YAML top level (not inside *_overrides) so both configs inherit it."
+      )
 
   # 4. Run Training
   train_distill(student_config, teacher_config, is_offline, global_config.offline_data_dir)
