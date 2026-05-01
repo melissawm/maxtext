@@ -343,9 +343,14 @@ class MaxTextDistillationTrainer(peft_trainer.PeftTrainer):
     labels = self.strategy.create_labels(inputs["targets"], targets_segmentation=inputs.get("targets_segmentation", None))
     return self.strategy.compute_eval_loss(student_output, labels)
 
-  def _log_metrics(self, loss, step=None, step_time_delta=None, additional_metrics=None):
-    """Adds per-device TFLOPs (and per-sec variants) to the standard Tunix metrics."""
-    super()._log_metrics(loss=loss, step=step, step_time_delta=step_time_delta, additional_metrics=additional_metrics)
+  def _log_metrics(self, loss, step=None, additional_metrics=None, **kwargs):
+    """Adds per-device TFLOPs to the standard Tunix metrics.
+
+    `step_time_delta` is consumed via **kwargs so this override works against
+    older tunix versions whose base `_log_metrics` does not accept it.
+    """
+    super()._log_metrics(loss=loss, step=step, additional_metrics=additional_metrics, **kwargs)
+    step_time_delta = kwargs.get("step_time_delta")
 
     tflops_metrics = {
         "perf/per_device_tflops": self._tflops_combined,

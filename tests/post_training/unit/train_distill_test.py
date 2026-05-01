@@ -891,7 +891,8 @@ class TrainDistillTest(unittest.TestCase):
     self.assertTrue(any(c == "1" or c.endswith("1") for c in checkpoints), f"Checkpoint 1 not found in {checkpoints}")
     self.assertTrue(any(c == "2" or c.endswith("2") for c in checkpoints), f"Checkpoint 2 not found in {checkpoints}")
 
-  def test_checkpointing_and_resume(self):
+  @mock.patch.object(distillation_utils, "calculate_distillation_tflops_per_device", return_value=(0.0, 0.0, 0.0))
+  def test_checkpointing_and_resume(self, _mock_tflops):
     """Trains a few steps, saves a checkpoint, and resumes from it."""
 
     # 1. Setup minimal dummy model and models bundle
@@ -941,6 +942,8 @@ class TrainDistillTest(unittest.TestCase):
         strategy=strategy,
         optimizer=optimizer1,
         training_config=train_config,
+        student_config=mock.Mock(),
+        teacher_config=mock.Mock(),
     )
     trainer1._lora_enabled = False
     trainer1.is_managed_externally = True
@@ -989,6 +992,8 @@ class TrainDistillTest(unittest.TestCase):
         strategy=strategy,
         optimizer=optimizer2,
         training_config=train_config,
+        student_config=mock.Mock(),
+        teacher_config=mock.Mock(),
     )
     trainer2._lora_enabled = False
 
@@ -1083,8 +1088,17 @@ class TrainDistillTest(unittest.TestCase):
     mock_student_cfg.save_checkpoint_on_completion = False
     mock_student_cfg.logical_axis_rules = []
 
+    # main() validates that student/teacher share batch shape — set explicit
+    # equal scalars on both mocks so the assertion passes.
+    mock_student_cfg.per_device_batch_size = 1
+    mock_student_cfg.max_target_length = 16
+    mock_student_cfg.gradient_accumulation_steps = 1
+
     mock_teacher_cfg = mock.Mock()
     mock_teacher_cfg.vocab_size = 32000
+    mock_teacher_cfg.per_device_batch_size = 1
+    mock_teacher_cfg.max_target_length = 16
+    mock_teacher_cfg.gradient_accumulation_steps = 1
     mock_pyconfig_init.side_effect = [mock_global, mock_student_cfg, mock_teacher_cfg]
 
     # 2. Model Loading
@@ -1181,8 +1195,17 @@ class TrainDistillTest(unittest.TestCase):
     mock_student_cfg.save_checkpoint_on_completion = False
     mock_student_cfg.logical_axis_rules = []
 
+    # main() validates that student/teacher share batch shape — set explicit
+    # equal scalars on both mocks so the assertion passes.
+    mock_student_cfg.per_device_batch_size = 1
+    mock_student_cfg.max_target_length = 16
+    mock_student_cfg.gradient_accumulation_steps = 1
+
     mock_teacher_cfg = mock.Mock()
     mock_teacher_cfg.vocab_size = 32000
+    mock_teacher_cfg.per_device_batch_size = 1
+    mock_teacher_cfg.max_target_length = 16
+    mock_teacher_cfg.gradient_accumulation_steps = 1
     mock_pyconfig_init.side_effect = [mock_global, mock_student_cfg, mock_teacher_cfg]
 
     mock_student_model = mock.Mock()
@@ -1206,7 +1229,8 @@ class TrainDistillTest(unittest.TestCase):
     self.assertIs(model_bundle.student_model, mock_student_model)
     self.assertIs(model_bundle.teacher_model, mock_teacher_model)
 
-  def test_student_freeze_param_filter(self):
+  @mock.patch.object(distillation_utils, "calculate_distillation_tflops_per_device", return_value=(0.0, 0.0, 0.0))
+  def test_student_freeze_param_filter(self, _mock_tflops):
     """Verifies that student_freeze_param_filter correctly freezes specified parameters."""
 
     # 1. Setup a dummy model with multiple layers
@@ -1260,6 +1284,8 @@ class TrainDistillTest(unittest.TestCase):
         strategy=strategy,
         optimizer=optax.sgd(0.1),
         training_config=train_config,
+        student_config=mock.Mock(),
+        teacher_config=mock.Mock(),
         student_freeze_param_filter=freeze_filter,
     )
     trainer._lora_enabled = False
