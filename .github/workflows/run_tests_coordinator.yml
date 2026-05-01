@@ -51,6 +51,11 @@ on:
         required: false
         type: boolean
         default: false
+      additional_pytest_args:
+        description: 'Additional pytest arguments to pass during test execution'
+        required: false
+        type: string
+        default: ''
 
 permissions:
   contents: read
@@ -137,6 +142,7 @@ jobs:
             "cpu-unit": "--ignore=tests/post_training",
             "cpu-post-training-unit": ""
           }')[inputs.flavor] }}
+        ${{ inputs.additional_pytest_args }}
 
       # Resource Scaling
       xla_python_client_mem_fraction: "${{ contains(inputs.flavor, 'gpu') && '0.65' || '0.75' }}"
