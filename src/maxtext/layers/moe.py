@@ -1137,64 +1137,104 @@ class RoutedMoE(nnx.Module):
         output = output[: orig_inputs_shape[0]]
       return output
 
-    # The batch is sharded by expert, except during inference decoding (where batch size == 1).
-    # In the decoding case, the expert axis is instead replicated along the tensor's batch dimension.
-    is_batch_sharded_by_expert = inputs.shape[0] > 1
-    if is_batch_sharded_by_expert:
-      batch_logical_axis = "activation_batch"
-    else:
-      batch_logical_axis = "decode_batch_moe"
+    def is_batch_sharded_by_ep(input_activation):
+      # The batch is sharded by expert, except during inference decoding (where batch size == 1).
+      # In the decoding case, the expert axis is instead replicated along the tensor's batch dimension.
+      return input_activation.shape[0] > 1
 
-    if self.get_tensor_transpose_parallelism_size() > 1:
-      input_partition_pspec = self._logical_to_mesh_axes(
-          (batch_logical_axis, "activation_norm_length", "activation_embed")
-      )
-      w0_bias_pspec = self._logical_to_mesh_axes(("exp", None))
-      w1_bias_pspec = self._logical_to_mesh_axes(("exp", None))
-      wo_bias_pspec = self._logical_to_mesh_axes(("exp", "activation_embed"))
-    else:
-      input_partition_pspec = self._logical_to_mesh_axes((batch_logical_axis, "activation_norm_length", None))
-      w0_bias_pspec = self._logical_to_mesh_axes(("exp", "activation_mlp"))
-      w1_bias_pspec = self._logical_to_mesh_axes(("exp", "activation_mlp"))
-      wo_bias_pspec = self._logical_to_mesh_axes(("exp", "activation_embed"))
+    def explicitly_weight_ag(shard_exp_on_fsdp):
+      if shard_exp_on_fsdp:
+        quantization_rule = qpl.get_current_rule("gmm")
+        if quantization_rule and quantization_rule.weight_calibration_method.startswith("fixed"):
+          return True
+      return False
 
-    gate_logits_pspec = self._logical_to_mesh_axes((batch_logical_axis, "activation_norm_length", None))
-    if self.config.model_name.startswith("deepseek3"):
-      pre_bias_logits_pspec = self._logical_to_mesh_axes((batch_logical_axis, "activation_norm_length", None))
-    else:
-      # pre_bias_logits is None for non-DeepSeek v3 models
-      pre_bias_logits_pspec = None
+    def maybe_aqt_partition(w0_kernel, w0_pspec, w1_kernel, w1_pspec, wo_kernel, wo_pspec):
+      if isinstance(w0_kernel, aqt.QTensor):
+        w0_pspec = aqt.partition_spec(w0_pspec, (1,), w0_kernel.dtype, use_bias=False)
+      if isinstance(w1_kernel, aqt.QTensor):
+        w1_pspec = aqt.partition_spec(w1_pspec, (1,), w1_kernel.dtype, use_bias=False)
+      if isinstance(wo_kernel, aqt.QTensor):
+        wo_pspec = aqt.partition_spec(wo_pspec, (1,), wo_kernel.dtype, use_bias=False)
+      return w0_pspec, w1_pspec, wo_pspec
 
-    # w0, w1, wo needs to be un sharded on fsdp / fsdp_transpose axis, so use
-    # mlp_no_fsdp axis
-    weight_gather = False
-    if self.config.shard_exp_on_fsdp:
-      quantization_rule = qpl.get_current_rule("gmm")
-      if quantization_rule and quantization_rule.weight_calibration_method.startswith("fixed"):
-        # special sharding when using static scaling for weights in quantization with shard_exp_on_fsdp
-        w0_pspec = self._logical_to_mesh_axes(self.wi_kernel_axes)
-        w1_pspec = self._logical_to_mesh_axes(self.wi_kernel_axes)
-        wo_pspec = self._logical_to_mesh_axes(self.wo_kernel_axes)
-        weight_gather = True
+    def get_routed_moe_shardings(is_batch_sharded_by_expert):
+      if is_batch_sharded_by_expert:
+        batch_logical_axis = "activation_batch"
       else:
-        # special sharding for dsv3 to remove overhead between gmm/AG
-        w0_pspec = self._logical_to_mesh_axes(("embed_tensor_transpose", None, "mlp_no_fsdp"))
-        w1_pspec = self._logical_to_mesh_axes(("embed_tensor_transpose", None, "mlp_no_fsdp"))
+        batch_logical_axis = "decode_batch_moe"
+
+      if self.get_tensor_transpose_parallelism_size() > 1:
+        input_partition_pspec = self._logical_to_mesh_axes(
+            (batch_logical_axis, "activation_norm_length", "activation_embed")
+        )
+        w0_bias_pspec = self._logical_to_mesh_axes(("exp", None))
+        w1_bias_pspec = self._logical_to_mesh_axes(("exp", None))
+        wo_bias_pspec = self._logical_to_mesh_axes(("exp", "activation_embed"))
+      else:
+        input_partition_pspec = self._logical_to_mesh_axes((batch_logical_axis, "activation_norm_length", None))
+        w0_bias_pspec = self._logical_to_mesh_axes(("exp", "activation_mlp"))
+        w1_bias_pspec = self._logical_to_mesh_axes(("exp", "activation_mlp"))
+        wo_bias_pspec = self._logical_to_mesh_axes(("exp", "activation_embed"))
+
+      gate_logits_pspec = self._logical_to_mesh_axes((batch_logical_axis, "activation_norm_length", None))
+      if self.config.model_name.startswith("deepseek3"):
+        pre_bias_logits_pspec = self._logical_to_mesh_axes((batch_logical_axis, "activation_norm_length", None))
+      else:
+        # pre_bias_logits is None for non-DeepSeek v3 models
+        pre_bias_logits_pspec = None
+
+      # w0, w1, wo needs to be un sharded on fsdp / fsdp_transpose axis, so use
+      # mlp_no_fsdp axis
+      if self.config.shard_exp_on_fsdp:
+        quantization_rule = qpl.get_current_rule("gmm")
+        if quantization_rule and quantization_rule.weight_calibration_method.startswith("fixed"):
+          # special sharding when using static scaling for weights in quantization with shard_exp_on_fsdp
+          w0_pspec = self._logical_to_mesh_axes(self.wi_kernel_axes)
+          w1_pspec = self._logical_to_mesh_axes(self.wi_kernel_axes)
+          wo_pspec = self._logical_to_mesh_axes(self.wo_kernel_axes)
+        else:
+          # special sharding for dsv3 to remove overhead between gmm/AG
+          w0_pspec = self._logical_to_mesh_axes(("embed_tensor_transpose", None, "mlp_no_fsdp"))
+          w1_pspec = self._logical_to_mesh_axes(("embed_tensor_transpose", None, "mlp_no_fsdp"))
+          wo_pspec = self._logical_to_mesh_axes(("embed_tensor_transpose", "mlp_no_fsdp", None))
+      elif self.config.use_2d_fsdp_sharding:
+        w0_pspec = self._logical_to_mesh_axes(("embed_tensor_transpose", "mlp_no_fsdp", None))
+        w1_pspec = self._logical_to_mesh_axes(("embed_tensor_transpose", "mlp_no_fsdp", None))
         wo_pspec = self._logical_to_mesh_axes(("embed_tensor_transpose", "mlp_no_fsdp", None))
-    elif self.config.use_2d_fsdp_sharding:
-      w0_pspec = self._logical_to_mesh_axes(("embed_tensor_transpose", "mlp_no_fsdp", None))
-      w1_pspec = self._logical_to_mesh_axes(("embed_tensor_transpose", "mlp_no_fsdp", None))
-      wo_pspec = self._logical_to_mesh_axes(("embed_tensor_transpose", "mlp_no_fsdp", None))
-    else:
-      w0_pspec = self._logical_to_mesh_axes(("exp", "embed_tensor_transpose", "mlp_no_fsdp"))
-      w1_pspec = self._logical_to_mesh_axes(("exp", "embed_tensor_transpose", "mlp_no_fsdp"))
-      wo_pspec = self._logical_to_mesh_axes(("exp", "mlp_no_fsdp", "embed_tensor_transpose"))
-    if isinstance(w0_kernel, aqt.QTensor):
-      w0_pspec = aqt.partition_spec(w0_pspec, (1,), w0_kernel.dtype, use_bias=False)
-    if isinstance(w1_kernel, aqt.QTensor):
-      w1_pspec = aqt.partition_spec(w1_pspec, (1,), w1_kernel.dtype, use_bias=False)
-    if isinstance(wo_kernel, aqt.QTensor):
-      wo_pspec = aqt.partition_spec(wo_pspec, (1,), wo_kernel.dtype, use_bias=False)
+      else:
+        # These are the main shardings used by default - they use funky rules to AG over FSDP.
+        w0_pspec = self._logical_to_mesh_axes(("exp", "embed_tensor_transpose", "mlp_no_fsdp"))
+        w1_pspec = self._logical_to_mesh_axes(("exp", "embed_tensor_transpose", "mlp_no_fsdp"))
+        wo_pspec = self._logical_to_mesh_axes(("exp", "mlp_no_fsdp", "embed_tensor_transpose"))
+      return (
+          batch_logical_axis,
+          input_partition_pspec,
+          gate_logits_pspec,
+          pre_bias_logits_pspec,
+          w0_pspec,
+          w1_pspec,
+          wo_pspec,
+          w0_bias_pspec,
+          w1_bias_pspec,
+          wo_bias_pspec,
+      )
+
+    is_batch_sharded_by_expert = is_batch_sharded_by_ep(inputs)
+    weight_gather = explicitly_weight_ag(self.config.shard_exp_on_fsdp)
+    (
+        batch_logical_axis,
+        input_partition_pspec,
+        gate_logits_pspec,
+        pre_bias_logits_pspec,
+        w0_pspec,
+        w1_pspec,
+        wo_pspec,
+        w0_bias_pspec,
+        w1_bias_pspec,
+        wo_bias_pspec,
+    ) = get_routed_moe_shardings(is_batch_sharded_by_expert)
+    w0_pspec, w1_pspec, wo_pspec = maybe_aqt_partition(w0_kernel, w0_pspec, w1_kernel, w1_pspec, wo_kernel, wo_pspec)
 
     @functools.partial(
         jax.shard_map,
