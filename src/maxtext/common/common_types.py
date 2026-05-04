@@ -32,8 +32,9 @@ AxisNames = tuple[str, ...]
 AxisIdxes = tuple[int, ...]
 
 BATCH = "activation_batch"
+BATCH_ATTN = "activation_batch_attn"
 
-ATTN_LENGTH = "activation_attn_length"
+ATTN_LENGTH = "activation_length_attn"
 
 LENGTH = "activation_length"
 PREFILL_LENGTH = "prefill_activation_length"
@@ -41,7 +42,7 @@ Q_LENGTH = "activation_q_length"
 Q_LORA_UP_PROJ = "q_lora_up_proj"
 KV_LENGTH = "activation_kv_length"
 KV_LORA_UP_PROJ = "kv_lora_up_proj"
-ATTN_EMBED = "activation_attn_embed"
+ATTN_EMBED = "activation_embed_attn"
 EMBED = "activation_embed"
 HEAD = "activation_heads"
 PREFILL_KV_BATCH = "activation_prefill_kv_batch"
@@ -65,10 +66,6 @@ CACHE_SCALE_KV = "cache_scale_kv"
 MODEL_MODE_AUTOREGRESSIVE = "autoregressive"
 MODEL_MODE_PREFILL = "prefill"
 MODEL_MODE_TRAIN = "train"
-
-# expert_shard_attention_option
-EP_AS_CONTEXT = "context"
-EP_AS_FSDP = "fsdp"
 
 DECODING_ACTIVE_SEQUENCE_INDICATOR = 1
 
@@ -103,6 +100,7 @@ class DecoderBlockType(enum.Enum):
   QWEN2 = "qwen2"
   QWEN3 = "qwen3"
   QWEN3_MOE = "qwen3_moe"
+  QWEN3_CUSTOM_MOE = "qwen3_custom_moe"
   QWEN3_NEXT = "qwen3_next"
   GPT3 = "gpt3"
   GPT_OSS = "gpt_oss"
@@ -110,6 +108,8 @@ class DecoderBlockType(enum.Enum):
   SIMPLE_MLP = "simple_mlp"
   LLAMA4 = "llama4"
   OLMO3 = "olmo3"
+
+  LLAMA2LTI = "llama2_learn_to_init"
 
 
 class AttentionType(enum.Enum):
@@ -125,7 +125,25 @@ class ShardMode(enum.Enum):
   EXPLICIT = "explicit"
 
 
+class ReorderStrategy(enum.Enum):
+  """Reorder strategies for load-balanced context parallelism.
+  Maps to transformer_engine.jax.attention.ReorderStrategy at runtime.
+  """
+
+  AUTO = "auto"
+  DUAL_CHUNK_SWAP = "dual_chunk_swap"
+  STRIPED = "striped"
+
+
 class HyperConnectionType(enum.Enum):
   ATTENTION = "attention"
   MLP_MOE = "mlp_moe"
   MLP_DENSE = "mlp_dense"
+
+
+class CustomRule(enum.Enum):
+  DEFAULT = ""
+  PURE_FSDP = "pure-fsdp"
+  CP_AS_EP = "cp-as-ep"  # Support CP and EP together
+  EP_AS_CP = "ep-as-cp"  # Support EP only
+  PIPELINE_LARGE_MOE = "pipeline-large-moe"

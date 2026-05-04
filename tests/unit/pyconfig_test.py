@@ -110,6 +110,14 @@ class PyconfigTest(unittest.TestCase):
     self.assertEqual(config.base_emb_dim, 1024)  # override
     self.assertEqual(config.base_mlp_dim, 14336)  # unchanged
 
+  def test_tokenizer_path_resolution_for_qwen3_base(self):
+    config = pyconfig.initialize(
+        [os.path.join(MAXTEXT_PKG_DIR, "train.py"), get_test_config_path()],
+        skip_jax_distributed_system=True,
+        model_name="qwen3-30b-a3b-base",
+    )
+    self.assertEqual(config.tokenizer_path, "Qwen/Qwen3-30B-A3B-Base")
+
   def test_resolve_config_path(self):
     self.assertEqual(resolve_config_path("foo"), os.path.join("src", "foo"))
     self.assertEqual(resolve_config_path(__file__), __file__)
@@ -149,9 +157,10 @@ class PyconfigTest(unittest.TestCase):
     self.assertEqual(config.dump_hlo_local_module_name, "")
     self.assertEqual(config.dump_hlo_module_name, "")
 
-  def test_unknown_module_raises(self):
-    with self.assertRaises(ValueError):
-      pyconfig.initialize_pydantic(["/custom_rl/module.py", "run_name=test"])
+  def test_unknown_module_falls_back_to_base_yml(self):
+    """An unknown module should fall back to base.yml with a warning (not raise)."""
+    config = pyconfig.initialize_pydantic(["/custom_rl/module.py", "run_name=test", "skip_jax_distributed_system=True"])
+    self.assertEqual(config.run_name, "test")
 
 
 if __name__ == "__main__":

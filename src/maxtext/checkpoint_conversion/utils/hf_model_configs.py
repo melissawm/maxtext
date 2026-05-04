@@ -20,7 +20,7 @@ This config defines the architectural configurations of the Hugging Face version
 import transformers
 
 if transformers.__version__ >= "5.0.0":
-  from transformers.configuration_utils import PreTrainedConfig as PTConfig
+  from transformers.configuration_utils import PreTrainedConfig as PTConfig  # pytype: disable=import-error
 else:
   from transformers.configuration_utils import PretrainedConfig as PTConfig
 
@@ -151,8 +151,8 @@ try:
   gemma4_31b_config = transformers.Gemma4Config(**gemma4_31b_dict)
 except AttributeError:
   # Graceful fallback to raw dict-based PTConfig if Gemma 4 natively is missing
-  gemma4_26b_config = PTConfig(**gemma4_26b_dict)
-  gemma4_31b_config = PTConfig(**gemma4_31b_dict)
+  gemma4_26b_config = PTConfig(**gemma4_26b_dict)  # pytype: disable=wrong-arg-types
+  gemma4_31b_config = PTConfig(**gemma4_31b_dict)  # pytype: disable=wrong-arg-types
 
 
 gemma3_4b_config = transformers.Gemma3Config(
@@ -593,7 +593,6 @@ qwen3_30b_a3b_thinking_2507_config = transformers.Qwen3MoeConfig(
     tie_word_embeddings=False,
     torch_dtype="bfloat16",
     use_cache=True,
-    use_sliding_window=False,
     vocab_size=151936,
 )
 
@@ -630,7 +629,6 @@ qwen3_235b_a22b_thinking_2507_config = transformers.Qwen3MoeConfig(
     torch_dtype="bfloat16",
     transformers_version="4.51.0",
     use_cache=True,
-    use_sliding_window=False,
     vocab_size=151936,
 )
 
@@ -668,7 +666,6 @@ qwen3_coder_480b_a35b_config = transformers.Qwen3MoeConfig(
     transformers_version="4.51.0",
     use_cache=True,
     use_qk_norm=True,
-    use_sliding_window=False,
     vocab_size=151936,
 )
 
@@ -855,6 +852,7 @@ deepseek32_671b_dict = {
 
 # TODO(shuningjin): replace with DeepseekV32Config when available in transformers library
 class DeepseekV32Config(PTConfig):
+  model_type = "deepseek_v32"
 
   def __init__(self, **kwargs):
     self.max_position_embeddings = kwargs.get("max_position_embeddings", 163840)
@@ -1075,7 +1073,6 @@ qwen3_next_80b_a3b_dict = {
     "torch_dtype": "bfloat16",
     "transformers_version": "4.57.0.dev0",
     "use_cache": True,
-    "use_sliding_window": False,
     "vocab_size": 151936,
 }
 qwen3_next_80b_a3b_config = transformers.Qwen3NextConfig(**qwen3_next_80b_a3b_dict)

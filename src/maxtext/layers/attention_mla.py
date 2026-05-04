@@ -36,7 +36,7 @@ from maxtext.common.common_types import (
     Array,
     AxisIdxes,
     AxisNames,
-    BATCH,
+    BATCH_ATTN,
     CACHE_BATCH,
     CACHE_BATCH_PREFILL,
     CACHE_SEQUENCE,
@@ -48,7 +48,6 @@ from maxtext.common.common_types import (
     D_KV,
     DType,
     EMBED,
-    EP_AS_CONTEXT,
     HEAD,
     Q_LORA_UP_PROJ,
     KV_BATCH,
@@ -425,8 +424,8 @@ def mla_as_linen(
     query_axis_names: AxisNames = (KV_BATCH, LENGTH, KV_HEAD, KV_HEAD_DIM),
     key_axis_names: AxisNames = (KV_BATCH, LENGTH, KV_HEAD, KV_HEAD_DIM),
     value_axis_names: AxisNames = (KV_BATCH, LENGTH, KV_HEAD, KV_HEAD_DIM),
-    input_axis_names: AxisNames = (BATCH, LENGTH, EMBED),
-    out_axis_names: AxisNames = (BATCH, LENGTH, HEAD, D_KV),
+    input_axis_names: AxisNames = (BATCH_ATTN, LENGTH, EMBED),
+    out_axis_names: AxisNames = (BATCH_ATTN, LENGTH, HEAD, D_KV),
     prefill_input_axis_names: AxisNames = (PREFILL_KV_BATCH, PREFILL_LENGTH, EMBED),
     decode_input_axis_names: AxisNames = (DECODE_BATCH, DECODE_LENGTH, EMBED),
     prefill_out_axis_names: AxisNames = (PREFILL_KV_BATCH, PREFILL_LENGTH, HEAD, D_KV),
@@ -563,8 +562,8 @@ class MLA(Attention):
       query_axis_names: AxisNames = (KV_BATCH, LENGTH, KV_HEAD, KV_HEAD_DIM),
       key_axis_names: AxisNames = (KV_BATCH, LENGTH, KV_HEAD, KV_HEAD_DIM),
       value_axis_names: AxisNames = (KV_BATCH, LENGTH, KV_HEAD, KV_HEAD_DIM),
-      input_axis_names: AxisNames = (BATCH, LENGTH, EMBED),
-      out_axis_names: AxisNames = (BATCH, LENGTH, HEAD, D_KV),
+      input_axis_names: AxisNames = (BATCH_ATTN, LENGTH, EMBED),
+      out_axis_names: AxisNames = (BATCH_ATTN, LENGTH, HEAD, D_KV),
       prefill_input_axis_names: AxisNames = (PREFILL_KV_BATCH, PREFILL_LENGTH, EMBED),
       decode_input_axis_names: AxisNames = (DECODE_BATCH, DECODE_LENGTH, EMBED),
       prefill_out_axis_names: AxisNames = (PREFILL_KV_BATCH, PREFILL_LENGTH, HEAD, D_KV),
@@ -905,9 +904,6 @@ class MLA(Attention):
     if model_mode == MODEL_MODE_PREFILL:
       key_logical_name = self.prefill_key_axis_names
       value_logical_name = self.prefill_value_axis_names
-    elif model_mode == MODEL_MODE_TRAIN and self.config.expert_shard_attention_option == EP_AS_CONTEXT:
-      key_logical_name = self.ep_key_axis_names
-      value_logical_name = self.ep_value_axis_names
     else:
       key_logical_name = self.key_axis_names
       value_logical_name = self.value_axis_names
@@ -1157,7 +1153,7 @@ class MLA(Attention):
     else:
       inputs_q = self._maybe_shard_with_logical(inputs_q, self.input_axis_names)
       inputs_kv = self._maybe_shard_with_logical(inputs_kv, self.input_axis_names)
-      out_logical_name = (BATCH, LENGTH, HEAD, D_KV)
+      out_logical_name = (BATCH_ATTN, LENGTH, HEAD, D_KV)
 
     if model_mode != MODEL_MODE_TRAIN and decoder_segment_ids is None:
       decoder_segment_ids = jnp.ones(inputs_q.shape[:2], dtype=jnp.int32)
@@ -1221,17 +1217,15 @@ class MLA(Attention):
           key,
           value,
           decoder_segment_ids,
+          inputs_positions,
           model_mode,
           cached_values,
           indexer_mask=indexer_mask,
           record_max_logits=use_qk_clip,
       )
 
+    out = self._maybe_shard_with_logical(out, self.out_axis_names)
     out = jax.ad_checkpoint.checkpoint_name(out, "attention_out")
-    if model_mode == MODEL_MODE_TRAIN and self.config.expert_shard_attention_option == EP_AS_CONTEXT:
-      out = self._maybe_shard_with_logical(out, self.ep_out_axis_names)
-    else:
-      out = self._maybe_shard_with_logical(out, self.out_axis_names)
 
     out_sharding = create_sharding(self.mesh, out_logical_name)
     out = self.out_projection(out, out_sharding=out_sharding)

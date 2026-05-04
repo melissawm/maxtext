@@ -44,10 +44,10 @@ Use the `to_maxtext.py` script to convert a Hugging Face model checkpoint into a
 python3 -m pip install torch --index-url https://download.pytorch.org/whl/cpu
 
 # Setup environment variables
-export MODEL=<Hugging Face Model to be converted to MaxText> # e.g. 'llama3.1-8b-Instruct'
-export BASE_OUTPUT_DIRECTORY=<output directory to store MaxText checkpoint> # e.g., gs://my-bucket/my-checkpoint-directory
+export MODEL=<HF_MODEL> # e.g. 'llama3.1-8b-Instruct'
+export BASE_OUTPUT_DIRECTORY=<CKPT_PATH> # e.g., gs://my-bucket/my-checkpoint-directory
 export USE_PATHWAYS=0 # Set to 1 for Pathways, 0 for McJAX
-export LAZY_LOAD_TENSORS=<Flag to lazy load> # Set to True to save RAM
+export LAZY_LOAD_TENSORS=<LAZY_LOAD> # Set to True to save RAM
 ```
 
 ### Run Conversion
@@ -97,9 +97,9 @@ Use the `to_huggingface.py` script to convert a MaxText checkpoint into the Hugg
 python3 -m pip install torch --index-url https://download.pytorch.org/whl/cpu
 
 # Setup environment variables
-export MODEL=<MaxText model name> # e.g. 'qwen3-4b'
-export MAXTEXT_CKPT_PATH=<gcs path for MaxText checkpoint> # e.g., gs://my-bucket/my-model-checkpoint/0/items
-export BASE_OUTPUT_DIRECTORY=<output directory to store Hugging Face checkpoint> # e.g., gs://my-bucket/my-checkpoint-directory
+export MODEL=<MODEL_NAME> # e.g. 'qwen3-4b'
+export MAXTEXT_CKPT_PATH=<CKPT_PATH> # e.g., gs://my-bucket/my-model-checkpoint/0/items
+export BASE_OUTPUT_DIRECTORY=<HF_CKPT_PATH> # e.g., gs://my-bucket/my-checkpoint-directory
 ```
 
 ### Run Conversion
@@ -138,9 +138,9 @@ To ensure the conversion was successful, you can use the [test script](https://g
 
 ```bash
 # Setup environment variables
-export MODEL=<MaxText model name> # e.g. 'qwen3-4b'
-export MAXTEXT_CKPT_PATH=<gcs path for MaxText checkpoint> # e.g., gs://my-bucket/my-model-checkpoint/0/items
-export HF_CKPT_PATH=<path to Hugging Face checkpoint> # e.g., gs://my-bucket/my-checkpoint-directory
+export MODEL=<MODEL_NAME> # e.g. 'qwen3-4b'
+export MAXTEXT_CKPT_PATH=<CKPT_PATH> # e.g., gs://my-bucket/my-model-checkpoint/0/items
+export HF_CKPT_PATH=<HF_CKPT_PATH> # e.g., gs://my-bucket/my-checkpoint-directory
 ```
 
 ### Run Correctness Test

@@ -1,5 +1,9 @@
 # Post-training
 
+```{note}
+Post-training workflows on TPU require specific dependencies. Please ensure you have installed MaxText with `maxtext[tpu-post-train]` as described in the [official documentation](https://maxtext.readthedocs.io/en/latest/install_maxtext.html).
+```
+
 ## What is MaxText post-training?
 
 MaxText provides performance and scalable LLM and VLM post-training, across a variety of techniques like SFT and GRPO.
@@ -66,4 +70,5 @@ posttraining/rl_on_multi_host.md
 posttraining/knowledge_distillation.md
 posttraining/multimodal.md
 posttraining/full_finetuning.md
+posttraining/gepa_optimization.md
 ```

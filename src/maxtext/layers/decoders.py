@@ -56,6 +56,7 @@ from maxtext.models import (
     olmo3,
     qwen2,
     qwen3,
+    qwen3_custom,
     simple_layer,
 )
 from maxtext.multimodal import utils as mm_utils
@@ -448,6 +449,8 @@ class Decoder(nn.Module):
         return [DecoderLayer]
       case DecoderBlockType.LLAMA2:
         return [llama2.LlamaDecoderLayerToLinen]
+      case DecoderBlockType.LLAMA2LTI:
+        return [llama2.LlamaLTIDecoderLayerToLinen]
       case DecoderBlockType.MISTRAL:
         # TODO(ranran): update to Mistral with sliding window attention
         return [mistral.MistralDecoderLayerToLinen]
@@ -476,6 +479,8 @@ class Decoder(nn.Module):
         return [qwen3.Qwen3DecoderLayerToLinen]
       case DecoderBlockType.QWEN3_MOE:
         return [qwen3.Qwen3MoeDecoderLayerToLinen]
+      case DecoderBlockType.QWEN3_CUSTOM_MOE:
+        return [qwen3_custom.Qwen3CustomMoeDecoderLayerToLinen]
       case DecoderBlockType.QWEN3_NEXT:
         return [qwen3.Qwen3NextScannableBlockToLinen] if self.config.scan_layers else [qwen3.Qwen3NextDecoderLayerToLinen]
       case DecoderBlockType.SIMPLE:
@@ -534,11 +539,13 @@ class Decoder(nn.Module):
         DecoderBlockType.QWEN2,
         DecoderBlockType.QWEN3,
         DecoderBlockType.QWEN3_MOE,
+        DecoderBlockType.QWEN3_CUSTOM_MOE,
         DecoderBlockType.GPT_OSS,
         DecoderBlockType.SIMPLE,
         DecoderBlockType.SIMPLE_MLP,
         DecoderBlockType.LLAMA4,
         DecoderBlockType.OLMO3,
+        DecoderBlockType.LLAMA2LTI,
     ):
       return functools.partial(rms_norm, num_features=num_features, shard_mode=self.config.shard_mode)
     elif self.config.decoder_block == DecoderBlockType.GPT3:
@@ -562,6 +569,7 @@ class Decoder(nn.Module):
             "cache": cache_spec,
             "intermediates": 0,
             "aqt": 0,
+            "batch_stats": 0,
             "_overwrite_with_gradient": 0,
         },
         split_rngs={
@@ -736,7 +744,7 @@ class Decoder(nn.Module):
           out_features_shape=cfg.vocab_size,
           weight_dtype=cfg.weight_dtype,
           dtype=jnp.float32 if cfg.logits_dot_in_fp32 else cfg.dtype,  # for logit training stability
-          kernel_axes=("embed", "vocab"),
+          kernel_axes=("embed_vocab", "vocab"),
           shard_mode=cfg.shard_mode,
           name="logits_dense",
           matmul_precision=self.config.matmul_precision,
@@ -914,7 +922,8 @@ class Decoder(nn.Module):
             # as detected by immutable params, use deepseek_batchsplit custom
             # scan with initialized parameters.
             if cfg.use_batch_split_schedule and not self.is_mutable_collection("params"):
-              if cfg.use_qwix_quantization:
+              # old version of batch-split that fully uses qwix quantization.
+              if cfg.use_qwix_quantization and not cfg.use_manual_quantization:
                 y = deepseek_batchsplit_fp8.scan_batch_split_layers(
                     y,
                     self.variables["params"]["moe_layers"],
@@ -927,7 +936,9 @@ class Decoder(nn.Module):
                     policy=policy,
                 )
               else:
-                # bf16 code path
+                # bf16 and fp8 code path for pure-JAX batch-split.
+                # fp8 code path supports both manual quantization and qwix
+                # quantization.
                 y = deepseek_batchsplit.scan_batch_split_layers(
                     y,
                     self.variables["params"]["moe_layers"],
@@ -981,16 +992,58 @@ class Decoder(nn.Module):
                 "nope_layer_interval": self.config.nope_layer_interval,
                 "interleave_moe_layer_step": self.config.interleave_moe_layer_step,
             }
-          y, _ = self.scan_decoder_layers(
-              cfg,
-              RemattedBlockLayer,
-              scan_length,
-              "layers",
-              mesh,
-              in_axes_tuple=(nn.broadcast,) * len(broadcast_args),
-              model_mode=model_mode,
-              **layer_kwargs,
-          )(y, *broadcast_args)
+          # Update broadcast_args and in_axes_tuple for vLLM RPA
+          in_axes_tuple = (nn.broadcast,) * len(broadcast_args)
+          current_broadcast_args = list(broadcast_args)
+          current_in_axes_tuple = list(in_axes_tuple)
+
+          if kv_caches is not None:
+            # Stack kv_caches for scan: [num_layers, ...]
+            stacked_kv_cache = jnp.stack(kv_caches, axis=0)
+
+            # We pass (y, stacked_kv_cache, 0) as the carry
+            carry = (y, stacked_kv_cache, 0)
+
+            # We don't pass kv_cache as a scanned argument anymore
+
+            # Pass None for previous_chunk, slot, page_state, kv_cache to align with __call__ signature
+            current_broadcast_args.extend([None, None, None, None, attention_metadata])
+            current_in_axes_tuple.extend([nn.broadcast] * 5)
+
+            max_logging.info(f"DEBUG: len(current_broadcast_args)={len(current_broadcast_args)}")
+            max_logging.info(f"DEBUG: current_broadcast_args={[type(a) for a in current_broadcast_args]}")
+
+            final_carry, _ = self.scan_decoder_layers(
+                cfg,
+                RemattedBlockLayer,
+                scan_length,
+                "layers",
+                mesh,
+                in_axes_tuple=tuple(current_in_axes_tuple),
+                model_mode=model_mode,
+                **layer_kwargs,
+            )(carry, *current_broadcast_args)
+
+            y, returned_kv_cache, _ = final_carry
+
+            # Update the list of KV caches from the scanned results
+            for i in range(cfg.num_decoder_layers):
+              kv_caches[i] = returned_kv_cache[i]
+          else:
+            # Fallback to old behavior if kv_caches is None (not vLLM RPA)
+            current_broadcast_args.append(None)
+            current_in_axes_tuple.append(nn.broadcast)
+
+            y, _ = self.scan_decoder_layers(
+                cfg,
+                RemattedBlockLayer,
+                scan_length,
+                "layers",
+                mesh,
+                in_axes_tuple=tuple(current_in_axes_tuple),
+                model_mode=model_mode,
+                **layer_kwargs,
+            )(y, *current_broadcast_args)
       else:
         if cfg.decoder_block == DecoderBlockType.DEEPSEEK:
           assert len(RemattedBlockLayers) == 2, "Unscanned layers must have a length of 2 using deepseek."

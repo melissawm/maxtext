@@ -430,13 +430,16 @@ class TrainDistillTest(unittest.TestCase):
     # Verify structure
     self.assertIsInstance(metrics, dict)
 
-    # Check keys required for TensorBoard
+    # Check keys required for TensorBoard. `distill/kl_div` was renamed
+    # to `distill/kl_div_at_T`; `distill/kl_div_T1` is an always-T=1 form.
     expected_keys = [
         "distill/soft_loss",
         "distill/hard_loss",
-        "distill/kl_div",
+        "distill/kl_div_at_T",
+        "distill/kl_div_T1",
         "distill/teacher_loss",
         "distill/out_proj_feature_loss",
+        "distill/moe_lb_loss",
         "distill/total_loss",
         "distill/temperature",
         "distill/alpha",
@@ -445,9 +448,15 @@ class TrainDistillTest(unittest.TestCase):
     for key in expected_keys:
       self.assertIn(key, metrics)
 
-    # Since inputs match perfectly, KL, feature loss should be near 0
-    self.assertLess(metrics["distill/kl_div"], 1e-5)
-    self.assertLess(metrics["distill/out_proj_feature_loss"], 1e-5)
+    # Metrics are now (sum, count) pairs; use the mean for value comparisons.
+    def _mean(pair):
+      s, c = pair
+      c_val = float(c)
+      return float(s) / c_val if c_val > 0 else float(s)
+
+    # Since inputs match perfectly, KL and feature loss should be near 0.
+    self.assertLess(_mean(metrics["distill/kl_div_at_T"]), 1e-5)
+    self.assertLess(_mean(metrics["distill/out_proj_feature_loss"]), 1e-5)
 
   def verify_strategy_compute_eval_loss(self):
     """Covers MonitoredLogitStrategy.compute_eval_loss."""
@@ -520,10 +529,15 @@ class TrainDistillTest(unittest.TestCase):
     # all tokens are predicted incorrect so the loss should be 10*2 since
     # token at position 1 should be excluded from the loss
     # mean kl_div should also be equal to 20
-    self.assertTrue(19.0 < metrics["distill/hard_loss"] < 21.0)
-    self.assertTrue(19.0 < metrics["distill/soft_loss"] < 21.0)
-    self.assertTrue(19.0 < metrics["distill/kl_div"] < 21.0)
-    self.assertTrue(metrics["distill/teacher_loss"] == 0.0)
+    def _mean(pair):
+      s, c = pair
+      c_val = float(c)
+      return float(s) / c_val if c_val > 0 else float(s)
+
+    self.assertTrue(19.0 < _mean(metrics["distill/hard_loss"]) < 21.0)
+    self.assertTrue(19.0 < _mean(metrics["distill/soft_loss"]) < 21.0)
+    self.assertTrue(19.0 < _mean(metrics["distill/kl_div_at_T"]) < 21.0)
+    self.assertTrue(_mean(metrics["distill/teacher_loss"]) == 0.0)
 
   def test_setup_pipeline_grain_enabled(self):
     """Covers setup_checkpoint_manager_and_restore when Grain IS detected."""
@@ -707,19 +721,24 @@ class TrainDistillTest(unittest.TestCase):
     mock_buffer.additional_metrics = {}
     trainer._buffered_train_metrics = mock_buffer
 
-    # Simulate auxiliary output from strategy
-    aux_metrics = {"distill/kl_div": jnp.array(0.5), "distill/soft_loss": jnp.array(1.2)}
+    # Simulate auxiliary output from strategy — now (sum, count) pairs.
+    aux_metrics = {
+        "distill/kl_div_at_T": (jnp.array(0.5), jnp.array(1.0)),
+        "distill/soft_loss": (jnp.array(1.2), jnp.array(2.0)),
+    }
 
     # Run Hook
     trainer._post_process_train_step(aux_metrics)
 
     # Verify buffer updated
-    self.assertIn("distill/kl_div", mock_buffer.additional_metrics)
+    self.assertIn("distill/kl_div_at_T", mock_buffer.additional_metrics)
     self.assertIn("distill/soft_loss", mock_buffer.additional_metrics)
 
-    # Verify value appended to list
-    values_list = mock_buffer.additional_metrics["distill/kl_div"][0]
-    self.assertEqual(values_list[0], 0.5)
+    # Verify value appended to list — stored as the (sum, count) tuple.
+    values_list = mock_buffer.additional_metrics["distill/kl_div_at_T"][0]
+    s, c = values_list[0]
+    self.assertEqual(float(s), 0.5)
+    self.assertEqual(float(c), 1.0)
 
   def test_gradient_accumulation_requires_k_passes_for_update(self):
     """Verifies that weights only update after k distinct forward passes."""
@@ -765,7 +784,7 @@ class TrainDistillTest(unittest.TestCase):
     mock_student_forward = mock.Mock(side_effect=lambda model, **kwargs: model(dummy_batch["input_tokens"]))
     trainer.strategy.student_forward_fn = mock_student_forward
 
-    trainer.strategy.compute_loss.side_effect = lambda s_out, t_out, labels: (jnp.sum(s_out), {"aux": 1.0})
+    trainer.strategy.compute_loss.side_effect = lambda s_out, t_out, labels, step=None: (jnp.sum(s_out), {"aux": 1.0})
 
     # --- EXECUTE PASS 1 ---
     trainer._train_step(model_bundle, nnx_opt, dummy_batch)
@@ -872,7 +891,8 @@ class TrainDistillTest(unittest.TestCase):
     self.assertTrue(any(c == "1" or c.endswith("1") for c in checkpoints), f"Checkpoint 1 not found in {checkpoints}")
     self.assertTrue(any(c == "2" or c.endswith("2") for c in checkpoints), f"Checkpoint 2 not found in {checkpoints}")
 
-  def test_checkpointing_and_resume(self):
+  @mock.patch.object(distillation_utils, "calculate_distillation_tflops_per_device", return_value=(0.0, 0.0, 0.0))
+  def test_checkpointing_and_resume(self, _mock_tflops):
     """Trains a few steps, saves a checkpoint, and resumes from it."""
 
     # 1. Setup minimal dummy model and models bundle
@@ -891,7 +911,7 @@ class TrainDistillTest(unittest.TestCase):
 
     # 2. Setup strategy and trainer config
     strategy = mock.Mock()
-    strategy.compute_loss.side_effect = lambda s_out, t_out, labels: (jnp.sum(s_out.logits), {"aux": 1.0})
+    strategy.compute_loss.side_effect = lambda s_out, t_out, labels, step=None: (jnp.sum(s_out.logits), {"aux": 1.0})
     strategy.labels_fn.return_value = None
     strategy.student_forward_fn = lambda model, **kw: distillation_utils.DistillationForwardOutput(
         logits=model(kw["input_tokens"])
@@ -922,6 +942,8 @@ class TrainDistillTest(unittest.TestCase):
         strategy=strategy,
         optimizer=optimizer1,
         training_config=train_config,
+        student_config=mock.Mock(),
+        teacher_config=mock.Mock(),
     )
     trainer1._lora_enabled = False
     trainer1.is_managed_externally = True
@@ -970,6 +992,8 @@ class TrainDistillTest(unittest.TestCase):
         strategy=strategy,
         optimizer=optimizer2,
         training_config=train_config,
+        student_config=mock.Mock(),
+        teacher_config=mock.Mock(),
     )
     trainer2._lora_enabled = False
 
@@ -1010,6 +1034,8 @@ class TrainDistillTest(unittest.TestCase):
     mock_global.student_overrides = {}
     mock_global.teacher_overrides = {}  # No checkpoint needed
     mock_global.offline_data_dir = "gs://bucket/data"  # Triggers offline mode
+    mock_global.base_output_directory = ""
+    mock_global.run_name = ""
 
     mock_student_cfg = mock.Mock()
     mock_student_cfg.vocab_size = 32000
@@ -1027,6 +1053,7 @@ class TrainDistillTest(unittest.TestCase):
     mock_student_cfg.eval_interval = -1
     mock_student_cfg.gradient_accumulation_steps = 1
     mock_student_cfg.global_batch_size = 8
+    mock_student_cfg.data_sharding = ("fsdp",)
 
     # Add dummy numbers for strategy math/logic
     mock_student_cfg.distill_temperature = 1.0
@@ -1036,6 +1063,20 @@ class TrainDistillTest(unittest.TestCase):
     mock_student_cfg.distill_feature_loss_type = "cosine"
     mock_student_cfg.use_sft = False
     mock_student_cfg.enable_dropout = False
+
+    # LTI related attributes
+    mock_student_cfg.learn_to_init_mode = False
+    mock_student_cfg.distill_weights_copy_map = {}
+    mock_student_cfg.distill_student_weights_share_map = {}
+    mock_student_cfg.get_keys.return_value = {}
+
+    # Add scheduling attributes
+    mock_student_cfg.distill_alpha_end = None
+    mock_student_cfg.distill_alpha_schedule = "constant"
+    mock_student_cfg.distill_temperature_end = None
+    mock_student_cfg.distill_temperature_schedule = "constant"
+    mock_student_cfg.distill_beta_end = None
+    mock_student_cfg.distill_beta_schedule = "constant"
 
     # Add dummy variables for Checkpointer and Logger
     mock_student_cfg.max_num_checkpoints_to_keep = 1
@@ -1047,8 +1088,17 @@ class TrainDistillTest(unittest.TestCase):
     mock_student_cfg.save_checkpoint_on_completion = False
     mock_student_cfg.logical_axis_rules = []
 
+    # main() validates that student/teacher share batch shape — set explicit
+    # equal scalars on both mocks so the assertion passes.
+    mock_student_cfg.per_device_batch_size = 1
+    mock_student_cfg.max_target_length = 16
+    mock_student_cfg.gradient_accumulation_steps = 1
+
     mock_teacher_cfg = mock.Mock()
     mock_teacher_cfg.vocab_size = 32000
+    mock_teacher_cfg.per_device_batch_size = 1
+    mock_teacher_cfg.max_target_length = 16
+    mock_teacher_cfg.gradient_accumulation_steps = 1
     mock_pyconfig_init.side_effect = [mock_global, mock_student_cfg, mock_teacher_cfg]
 
     # 2. Model Loading
@@ -1091,6 +1141,8 @@ class TrainDistillTest(unittest.TestCase):
     mock_global.student_overrides = {}
     mock_global.teacher_overrides = {"load_parameters_path": "gs://ckpt"}
     mock_global.offline_data_dir = None  # Triggers online mode
+    mock_global.base_output_directory = ""
+    mock_global.run_name = ""
 
     mock_student_cfg = mock.Mock()
     mock_student_cfg.vocab_size = 32000
@@ -1108,6 +1160,7 @@ class TrainDistillTest(unittest.TestCase):
     mock_student_cfg.eval_interval = -1
     mock_student_cfg.gradient_accumulation_steps = 1
     mock_student_cfg.global_batch_size = 8
+    mock_student_cfg.data_sharding = ("fsdp",)
 
     # Add dummy numbers for strategy math/logic
     mock_student_cfg.distill_temperature = 1.0
@@ -1117,6 +1170,20 @@ class TrainDistillTest(unittest.TestCase):
     mock_student_cfg.distill_feature_loss_type = "cosine"
     mock_student_cfg.use_sft = False
     mock_student_cfg.enable_dropout = False
+
+    # LTI-attributes
+    mock_student_cfg.learn_to_init_mode = False
+    mock_student_cfg.distill_weights_copy_map = {}
+    mock_student_cfg.distill_student_weights_share_map = {}
+    mock_student_cfg.get_keys.return_value = {}
+
+    # Add scheduling attributes
+    mock_student_cfg.distill_alpha_end = None
+    mock_student_cfg.distill_alpha_schedule = "constant"
+    mock_student_cfg.distill_temperature_end = None
+    mock_student_cfg.distill_temperature_schedule = "constant"
+    mock_student_cfg.distill_beta_end = None
+    mock_student_cfg.distill_beta_schedule = "constant"
 
     # Add dummy variables for Checkpointer and Logger
     mock_student_cfg.max_num_checkpoints_to_keep = 1
@@ -1128,13 +1195,23 @@ class TrainDistillTest(unittest.TestCase):
     mock_student_cfg.save_checkpoint_on_completion = False
     mock_student_cfg.logical_axis_rules = []
 
+    # main() validates that student/teacher share batch shape — set explicit
+    # equal scalars on both mocks so the assertion passes.
+    mock_student_cfg.per_device_batch_size = 1
+    mock_student_cfg.max_target_length = 16
+    mock_student_cfg.gradient_accumulation_steps = 1
+
     mock_teacher_cfg = mock.Mock()
     mock_teacher_cfg.vocab_size = 32000
+    mock_teacher_cfg.per_device_batch_size = 1
+    mock_teacher_cfg.max_target_length = 16
+    mock_teacher_cfg.gradient_accumulation_steps = 1
     mock_pyconfig_init.side_effect = [mock_global, mock_student_cfg, mock_teacher_cfg]
 
     mock_student_model = mock.Mock()
     mock_teacher_model = mock.Mock()
-    mock_get_model.side_effect = [mock_student_model, mock_teacher_model]
+    # The teacher is loaded before the student in online mode
+    mock_get_model.side_effect = [mock_teacher_model, mock_student_model]
 
     mock_build_tokenizer.return_value = mock.Mock(pad_id=0)
     mock_create_iterator.return_value = (mock.Mock(), mock.Mock())
@@ -1152,7 +1229,8 @@ class TrainDistillTest(unittest.TestCase):
     self.assertIs(model_bundle.student_model, mock_student_model)
     self.assertIs(model_bundle.teacher_model, mock_teacher_model)
 
-  def test_student_freeze_param_filter(self):
+  @mock.patch.object(distillation_utils, "calculate_distillation_tflops_per_device", return_value=(0.0, 0.0, 0.0))
+  def test_student_freeze_param_filter(self, _mock_tflops):
     """Verifies that student_freeze_param_filter correctly freezes specified parameters."""
 
     # 1. Setup a dummy model with multiple layers
@@ -1181,7 +1259,7 @@ class TrainDistillTest(unittest.TestCase):
 
     # 3. Setup Strategy and TrainingConfig
     strategy = mock.Mock()
-    strategy.compute_loss.side_effect = lambda s_out, t_out, labels: (jnp.sum(s_out.logits), {"aux": 1.0})
+    strategy.compute_loss.side_effect = lambda s_out, t_out, labels, step=None: (jnp.sum(s_out.logits), {"aux": 1.0})
     strategy.create_labels.return_value = None
     strategy.student_forward_fn = lambda model, **kw: distillation_utils.DistillationForwardOutput(
         logits=model(kw["input_tokens"])
@@ -1206,6 +1284,8 @@ class TrainDistillTest(unittest.TestCase):
         strategy=strategy,
         optimizer=optax.sgd(0.1),
         training_config=train_config,
+        student_config=mock.Mock(),
+        teacher_config=mock.Mock(),
         student_freeze_param_filter=freeze_filter,
     )
     trainer._lora_enabled = False
@@ -1237,6 +1317,43 @@ class TrainDistillTest(unittest.TestCase):
     # Verify layer2 has changed (trained)
     is_layer2_unchanged = np.allclose(student.layer2.kernel.get_value(), initial_layer2_weights)
     self.assertFalse(is_layer2_unchanged, msg="layer2 weights should have updated.")
+
+  def test_save_run_manifest_writes_files(self):
+    """Verifies _save_run_manifest copies the source YAML and writes command.sh."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+      source_yml = os.path.join(tmp_dir, "my_distill.yml")
+      with open(source_yml, "w", encoding="utf-8") as f:
+        f.write("# example config\nsteps: 10\n")
+
+      config = mock.Mock()
+      config.base_output_directory = tmp_dir
+      config.run_name = "test_run"
+      argv = ["train_distill.py", source_yml, "steps=20", "learning_rate=1e-4"]
+
+      train_distill._save_run_manifest(argv, config)  # pylint: disable=protected-access
+
+      out_dir = os.path.join(tmp_dir, "test_run")
+      saved_yml = os.path.join(out_dir, "distillation.yml")
+      saved_cmd = os.path.join(out_dir, "command.sh")
+      self.assertTrue(os.path.exists(saved_yml))
+      self.assertTrue(os.path.exists(saved_cmd))
+      with open(saved_yml, encoding="utf-8") as f:
+        self.assertIn("steps: 10", f.read())
+      with open(saved_cmd, encoding="utf-8") as f:
+        command = f.read()
+      self.assertIn("distillation.yml", command)
+      self.assertIn("steps=20", command)
+      self.assertIn("learning_rate=1e-4", command)
+
+  def test_save_run_manifest_swallows_errors(self):
+    """Verifies _save_run_manifest does not raise if the source YAML is missing."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+      config = mock.Mock()
+      config.base_output_directory = tmp_dir
+      config.run_name = "test_run"
+      argv = ["train_distill.py", "/does/not/exist.yml"]
+      # Must not raise — failures here should not kill training.
+      train_distill._save_run_manifest(argv, config)  # pylint: disable=protected-access
 
 
 if __name__ == "__main__":

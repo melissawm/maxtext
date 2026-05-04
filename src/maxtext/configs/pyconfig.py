@@ -1,4 +1,4 @@
-# Copyright 2023–2025 Google LLC
+# Copyright 2023–2026 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -77,16 +77,48 @@ def _module_from_path(path: str) -> str | None:
   return None
 
 
-def _resolve_or_infer_config(argv: list[str]) -> tuple[str, list[str]]:
+def _resolve_or_infer_config(argv: list[str] | None = None, **kwargs) -> tuple[str, list[str]]:
   """Resolves or infers config file path from module."""
+  if argv is None:
+    argv = [""]
+
+  if kwargs.get("base_config"):
+    logger.info("Using config : %s", kwargs["base_config"])
+    return resolve_config_path(kwargs["base_config"]), argv[1:]
+
+  # if passing at least two arguments via list (no kwargs), then we have to specify
+  # first one as either "" or python script like train_rl.py or train.py
+  # the second argument is the yaml file
   if len(argv) >= 2 and argv[1].endswith(".yml"):
     return resolve_config_path(argv[1]), argv[2:]
-  module = _module_from_path(argv[0])
+  module = _module_from_path(argv[0]) if len(argv) > 0 else None
   if module not in _CONFIG_FILE_MAPPING:
-    raise ValueError(f"No config file provided and no default config found for module '{module}'")
-  config_path = os.path.join(MAXTEXT_CONFIGS_DIR, _CONFIG_FILE_MAPPING[module])
-  logger.warning("No config file provided, using default config mapping: %s", config_path)
-  return config_path, argv[1:]
+    config_path = os.path.join(MAXTEXT_CONFIGS_DIR, "base.yml")
+    logger.warning("No config file provided and no default config found for module '%s', using base.yml", module)
+  else:
+    config_path = os.path.join(MAXTEXT_CONFIGS_DIR, _CONFIG_FILE_MAPPING[module])
+    logger.warning("No config file provided, using default config mapping: %s", config_path)
+  remaining_argv = argv[1:]
+
+  return config_path, remaining_argv
+
+
+def _resolve_or_infer_addl_config(**kwargs):
+  """Resolves or infers more configs from module."""
+  inferred_kwargs = {}
+  # if base_output_directory key is not seen
+  if not kwargs.get("base_output_directory"):
+    max_logging.warning("base_output_directory is not provided; Using local directory called maxtext_output")
+    base_output_directory = os.path.abspath("maxtext_output")
+    inferred_kwargs["base_output_directory"] = base_output_directory
+
+  # if hf_access_token key is not seen
+  if not kwargs.get("hf_access_token"):
+    hf_access_token = os.environ.get("HF_TOKEN")
+    if hf_access_token:
+      inferred_kwargs["hf_access_token"] = hf_access_token
+
+  return inferred_kwargs
 
 
 def yaml_key_to_env_key(s: str) -> str:
@@ -106,10 +138,6 @@ def resolve_config_path(param: str) -> str:
   """Resolve config path to auto rewrite to use new src folder."""
   if os.path.isfile(param):
     return param
-  elif "MaxText" in param:
-    lowercase_param = param.replace("MaxText", "maxtext")
-    if os.path.isfile(lowercase_param):
-      return lowercase_param
   # For pip-installed packages, strip the src prefix and resolve against
   # the installed configs directory (MAXTEXT_CONFIGS_DIR).
   if param.startswith("src/maxtext/configs/"):
@@ -224,16 +252,6 @@ def _prepare_for_pydantic(raw_keys: dict[str, Any]) -> dict[str, Any]:
           Please pass tokenizer_path in your command if this is not intended."
         )
 
-    # Preprocess muon_consistent_rms to be None or float
-    if key == "muon_consistent_rms":
-      if value in ["None", "none"]:
-        new_value = None
-      else:
-        try:
-          new_value = float(value)
-        except ValueError as e:
-          raise ValueError("muon_consistent_rms should be None or float") from e
-
     pydantic_kwargs[key] = new_value
 
   return pydantic_kwargs
@@ -289,19 +307,19 @@ class HyperParameters:
     return self._flat_config
 
 
-def initialize(argv: list[str], **kwargs) -> HyperParameters:
+def initialize(argv: list[str] | None = None, **kwargs) -> HyperParameters:
   """Initializes the configuration by loading YAML files, and applying CLI, env, and kwarg overrides."""
   pydantic_config = initialize_pydantic(argv, **kwargs)
   config = HyperParameters(pydantic_config)
   return config
 
 
-def initialize_pydantic(argv: list[str], **kwargs) -> MaxTextConfig:
+def initialize_pydantic(argv: list[str] | None = None, **kwargs) -> MaxTextConfig:
   """Initializes the configuration by loading YAML files, and applying CLI, env, and kwarg overrides.
   Returns pydantic MaxTextConfig class whereas `initialize` returns the og `HyperParameters`
   """
   # 1. Load base and inherited configs from file(s)
-  config_path, cli_args = _resolve_or_infer_config(argv)
+  config_path, cli_args = _resolve_or_infer_config(argv, **kwargs)
   base_yml_config = _load_config(config_path)
 
   # 2. Get overrides from CLI and kwargs
@@ -309,8 +327,15 @@ def initialize_pydantic(argv: list[str], **kwargs) -> MaxTextConfig:
   kwargs_cfg = omegaconf.OmegaConf.create(kwargs)
   overrides_cfg = omegaconf.OmegaConf.merge(cli_cfg, kwargs_cfg)
 
-  # 3. Handle model-specific config
+  temp_cfg1 = omegaconf.OmegaConf.merge(base_yml_config, overrides_cfg)
+  # 3.1. infer more configs if possible
+  temp_cfg1 = _resolve_or_infer_addl_config(**temp_cfg1)
+  # update overrides_cfg with temp_cfg1
+  overrides_cfg = omegaconf.OmegaConf.merge(overrides_cfg, temp_cfg1)
   temp_cfg = omegaconf.OmegaConf.merge(base_yml_config, overrides_cfg)
+
+  # 3.2. Handle model-specific config
+
   model_name = temp_cfg.get("model_name", "default")
   # The architecture for -Instruct v/s base models are the same, so for identifying the
   # architecture we replace "-Instruct" from the model_name and get the base model name
@@ -437,3 +462,13 @@ def initialize_pydantic(argv: list[str], **kwargs) -> MaxTextConfig:
 # Shim for backward compatibility with pyconfig_deprecated_test.py
 validate_and_update_keys = pyconfig_deprecated.validate_and_update_keys
 __all__ = ["initialize", "initialize_pydantic"]
+
+
+class _CallablePyconfigModule(sys.modules[__name__].__class__):
+  """Allows calling the module directly as mt.pyconfig()."""
+
+  def __call__(self, argv: list[str] | None = None, **kwargs) -> HyperParameters:
+    return initialize(argv, **kwargs)
+
+
+sys.modules[__name__].__class__ = _CallablePyconfigModule

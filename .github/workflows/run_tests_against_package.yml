@@ -70,6 +70,10 @@ on:
         description: 'If false, maxtext_sha must be provided for checkout'
         type: boolean
         default: false
+      is_update_hlo:
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -137,6 +141,7 @@ jobs:
             uv pip install pytest-cov
             PYTEST_COV_ARGS="--cov=MaxText --cov=maxtext --cov-report=xml --cov-report=term"
           fi
+          export PYTHONPATH="${pwd}/src${PYTHONPATH:+:${PYTHONPATH}}"
 
           if [ "${INPUTS_IS_SCHEDULED_RUN}" == "true" ]; then
             FINAL_PYTEST_MARKER="${INPUTS_PYTEST_MARKER}"
@@ -152,6 +157,14 @@ jobs:
           # omit this libtpu init args for gpu tests
           if [ "${INPUTS_DEVICE_TYPE}" != "cuda12" ]; then
             export LIBTPU_INIT_ARGS='--xla_tpu_scoped_vmem_limit_kib=65536'
+          else
+            # For cuda12, explicitly point to the pip-installed CUDA libraries
+            # to avoid conflicts with system-level installations on the runner.
+            if [ -d ".venv/lib/python3.12/site-packages/nvidia" ]; then
+              export LD_LIBRARY_PATH=$(pwd)/.venv/lib/python3.12/site-packages/nvidia/cudnn/lib:${LD_LIBRARY_PATH}
+            else
+              echo "Warning: Could not find pinned nvidia libraries in .venv."
+            fi
           fi
           if [ "${INPUTS_TOTAL_WORKERS}" -gt 1 ]; then
             $PYTHON_EXE -m pip install --quiet pytest-split pytest-xdist
@@ -159,16 +172,21 @@ jobs:
           else
             SPLIT_ARGS=""
           fi
-          $PYTHON_EXE -m pytest ${INPUTS_PYTEST_ADDOPTS} \
-            -v \
-            -m "${FINAL_PYTEST_MARKER}" \
-            --durations=0 \
-            $PYTEST_COV_ARGS \
-            $SPLIT_ARGS \
-            ${INPUTS_PYTEST_EXTRA_ARGS}
+          
+          # Setup substitution: If manually updating HLO, skip tests execution and run only the update script instead!
+          if [ "${INPUTS_IS_UPDATE_HLO}" == "true" ]; then
+            python3 tests/utils/update_hlo_references.py
+          else
+            $PYTHON_EXE -m pytest ${INPUTS_PYTEST_ADDOPTS} \
+              -v \
+              -m "${FINAL_PYTEST_MARKER}" \
+              --durations=0 \
+              $PYTEST_COV_ARGS \
+              $SPLIT_ARGS \
+              ${INPUTS_PYTEST_EXTRA_ARGS}
+          fi
 
         env:
-          PYTHONPATH: "${{ github.workspace }}/src"
           INPUTS_IS_SCHEDULED_RUN: ${{ inputs.is_scheduled_run }}
           INPUTS_PYTEST_MARKER: ${{ inputs.pytest_marker }}
           INPUTS_DEVICE_TYPE: ${{ inputs.device_type }}
@@ -177,6 +195,14 @@ jobs:
           INPUTS_WORKER_GROUP: ${{ inputs.worker_group }}
           INPUTS_PYTEST_EXTRA_ARGS: ${{ inputs.pytest_extra_args }}
           INPUTS_MAXTEXT_INSTALLED: ${{ inputs.maxtext_installed }}
+          INPUTS_IS_UPDATE_HLO: ${{ inputs.is_update_hlo }}
+      - name: Upload Reference HLO
+        if: ${{ inputs.is_update_hlo }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: reference-hlo
+          path: tests/utils/reference_hlo_*.txt
+          if-no-files-found: ignore
       - name: Upload results to Codecov
         if: ${{ !inputs.maxtext_installed }} # Skip code coverage upload for maxtext image testing
         uses: codecov/codecov-action@v5

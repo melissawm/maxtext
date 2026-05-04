@@ -38,8 +38,8 @@ MaxText is an open-source, high-performance LLM framework written in Python/JAX.
 
 ### Gemma
 
-- **Variants**: Gemma 1 (2B/7B), Gemma 2 (2B/9B/27B), **Gemma 3 (4B/12B/27B)** (text & multimodal)
-- **Notes**: RMSNorm; RoPE; GELU/SwiGLU; **QK-Norm** (Gemma 3); Local–Global interleaved attention; long-context scaling.
+- **Variants**: Gemma 1 (2B/7B), Gemma 2 (2B/9B/27B), Gemma 3 (4B/12B/27B), **Gemma 4 (31B Dense, MoE 26B-A4B)** (text & multimodal)
+- **Notes**: RMSNorm; RoPE; GELU/SwiGLU; **QK-Norm** (Gemma 3, 4); **Value Norm** (Gemma 4); Interleaved sliding-window & global attention (Gemma 3, 4); routed + shared experts (Gemma 4); long-context scaling.
 
 ### DeepSeek
 
@@ -90,7 +90,7 @@ The following summarizes observed runtime efficiency and scaling behaviors of Ma
 - **Model Implementation Guides & Source Code:**
 
   - **Llama**: [Guide](https://github.com/AI-Hypercomputer/maxtext/blob/main/tests/end_to_end/tpu/llama2/run_llama2.md) | [Llama2 and Llama3 Source](https://github.com/AI-Hypercomputer/maxtext/blob/main/src/maxtext/models/llama2.py) | [Llama4 Source](https://github.com/AI-Hypercomputer/maxtext/blob/main/src/maxtext/models/llama4.py)
-  - **Gemma**: [Guide](https://github.com/AI-Hypercomputer/maxtext/blob/main/tests/end_to_end/tpu/gemma/Run_Gemma.md) | [Gemma Source](https://github.com/AI-Hypercomputer/maxtext/blob/main/src/maxtext/models/gemma.py) | [Gemma2 Source](https://github.com/AI-Hypercomputer/maxtext/blob/main/src/maxtext/models/gemma2.py) | [Gemma3 Source](https://github.com/AI-Hypercomputer/maxtext/blob/main/src/maxtext/models/gemma3.py)
+  - **Gemma**: [Guide](https://github.com/AI-Hypercomputer/maxtext/blob/main/tests/end_to_end/tpu/gemma/Run_Gemma.md) | [Gemma Source](https://github.com/AI-Hypercomputer/maxtext/blob/main/src/maxtext/models/gemma.py) | [Gemma2 Source](https://github.com/AI-Hypercomputer/maxtext/blob/main/src/maxtext/models/gemma2.py) | [Gemma3 Source](https://github.com/AI-Hypercomputer/maxtext/blob/main/src/maxtext/models/gemma3.py) | [Gemma4 Source](https://github.com/AI-Hypercomputer/maxtext/blob/main/src/maxtext/models/gemma4.py)
   - **Mixtral**: [Guide](https://github.com/AI-Hypercomputer/maxtext/blob/main/tests/end_to_end/tpu/mixtral/Run_Mixtral.md) | [Mixtral Source](https://github.com/AI-Hypercomputer/maxtext/blob/main/src/maxtext/models/mixtral.py) | [Mistral Source](https://github.com/AI-Hypercomputer/maxtext/blob/main/src/maxtext/models/mistral.py)
   - **DeepSeek**: [Guide](https://github.com/AI-Hypercomputer/maxtext/blob/main/tests/end_to_end/tpu/deepseek/Run_DeepSeek.md) | [DeepSeek Source](https://github.com/AI-Hypercomputer/maxtext/blob/main/src/maxtext/models/deepseek.py)
   - **Qwen3**: [Guide](https://github.com/AI-Hypercomputer/maxtext/blob/main/tests/end_to_end/tpu/qwen/moe/run_qwen_moe.md) | [Qwen3-Next Guide](https://github.com/AI-Hypercomputer/maxtext/blob/main/tests/end_to_end/tpu/qwen/next/run_qwen3_next.md) | [Qwen3 Source](https://github.com/AI-Hypercomputer/maxtext/blob/main/src/maxtext/models/qwen3.py) | [Qwen3-Next Source](https://github.com/AI-Hypercomputer/maxtext/blob/main/src/maxtext/models/qwen3.py)

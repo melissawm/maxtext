@@ -335,6 +335,29 @@ class FlopCalculation(parameterized.TestCase):
     calculated_tflops, _, _ = calculate_tflops_training_per_device(cfg)
     self.assertFlopsAlmostEqual(calculated_tflops, golden_tflops)
 
+  def test_qwen3_custom_30b_a3b_flops(self):
+    """Test Qwen3 Custom 30B-A3B (compressed-latent MoE) FLOPs calculation.
+
+    The custom variant compresses attention output and MoE input to
+    attention_output_dim = moe_expert_input_dim = 768 (vs emb_dim = 2048),
+    then up-projects 768 -> 2048 once per layer. ~2.86B active parameters
+    per token (48 layers x (Q/K/V/O + gate + 8 routed experts + up_proj)
+    + unembedding).
+    """
+    cfg = self._initialize_model_config(
+        "qwen3-custom-30b-a3b",
+        max_target_length=2048,
+        per_device_batch_size=4,
+    )
+    kwargs = cfg.get_keys()
+    B = cfg.per_device_batch_size
+    S = cfg.max_target_length
+    attention_flops = self.compute_regular_attention_flops_per_device(kwargs)
+    golden_param_size = 2.86e9  # active params per token
+    golden_tflops = 6 * B * S * golden_param_size / 1e12 + attention_flops
+    calculated_tflops, _, _ = calculate_tflops_training_per_device(cfg)
+    self.assertFlopsAlmostEqual(calculated_tflops, golden_tflops)
+
   def test_deepseek32_671b_flops(self):
     """Test DeepSeek3.2-671b FLops calculation"""
     cfg = self._initialize_model_config(
@@ -681,6 +704,124 @@ class FlopCalculation(parameterized.TestCase):
     expected_total = (dense_flops_per_layer * dense_layers) + ((gate_flops + shared_flops + routed_flops) * moe_layers)
 
     self.assertAlmostEqual(ffn_tflops, expected_total, places=5)
+
+  def test_mtp_dense_flops(self):
+    """Test model with MTP modules on a Dense architecture (Llama3)."""
+    # Inject MTP modules during initialization
+    cfg = self._initialize_model_config(
+        "llama3-8b",
+        max_target_length=2048,
+        per_device_batch_size=4,
+        mtp_num_layers=2,
+    )
+
+    kwargs = cfg.get_keys()
+    B = cfg.per_device_batch_size
+    S = cfg.max_target_length
+
+    # 1. Base Llama3-8b FLOPs
+    base_attention_flops = self.compute_regular_attention_flops_per_device(kwargs)
+    # LLaMA3-8b has ~7.50B active parameters with tied embeddings
+    golden_base_param_size = 7.50e9
+    golden_base_tflops = 6 * B * S * golden_base_param_size / 1e12 + base_attention_flops
+
+    # 2. MTP Module Active Params (Per Module) for Dense
+    # MTP acts as a final layer replica without vocab embeddings or output projections.
+    Hq = kwargs["base_num_query_heads"]
+    Hkv = kwargs["base_num_kv_heads"]
+    Hd = kwargs["head_dim"]
+    emb_dim = kwargs["base_emb_dim"]
+    mlp_dim = kwargs["base_mlp_dim"]
+
+    # Attention Params: Q, K, V, and Out projections
+    attn_params = (emb_dim * (Hq + 2 * Hkv) * Hd) + (Hq * Hd * emb_dim)
+
+    # FFN Params: Llama uses SwiGLU, which consists of 3 matrices (Gate, Up, Down)
+    ffn_params = 3 * emb_dim * mlp_dim
+
+    # Total MTP Params
+    mtp_active_params = (attn_params + ffn_params) * cfg.mtp_num_layers
+    mtp_weight_tflops = 6 * B * S * mtp_active_params / 1e12
+
+    # MTP Attention FLOPs (Causal)
+    # 2 for QK^T and SV operations. 3 for fwd + bwd passes.
+    mtp_attention_tflops = 2 * 3 * cfg.mtp_num_layers * B * (S**2) * Hq * Hd / 1e12
+
+    # Final Expected TFLOPs
+    golden_total_tflops = golden_base_tflops + mtp_weight_tflops + mtp_attention_tflops
+
+    # Run Calculation
+    calculated_tflops, _, _ = calculate_tflops_training_per_device(cfg)
+
+    self.assertFlopsAlmostEqual(calculated_tflops, golden_total_tflops)
+
+  def test_mtp_moe_flops(self):
+    """Test model with MTP modules on an MoE architecture (DeepSeek)."""
+    # Inject MTP modules during initialization
+    cfg = self._initialize_model_config(
+        "deepseek2-16b",
+        max_target_length=8192,
+        per_device_batch_size=4,
+        mtp_num_layers=2,
+    )
+
+    kwargs = cfg.get_keys()
+    B = cfg.per_device_batch_size
+    S = cfg.max_target_length
+
+    # 1. Base DeepSeek FLOPs
+    base_attention_flops = self.compute_deepseek_attention_flops_per_device(kwargs)
+    # deepseek2-16b has ~2.4B active parameters
+    golden_base_param_size = 2.4e9
+    golden_base_tflops = 6 * B * S * golden_base_param_size / 1e12 + base_attention_flops
+
+    # 2. MTP Module Active Params for MoE (DeepSeek style)
+    emb_dim = kwargs["base_emb_dim"]
+    num_experts = kwargs["num_experts"]
+    moe_mlp_dim = kwargs["base_moe_mlp_dim"]
+    shared_experts = kwargs.get("shared_experts", 1)
+    num_experts_per_tok = kwargs["num_experts_per_tok"]
+
+    # FFN Params (Gate + Shared + Routed)
+    # SwiGLU requires 3 matrices (Gate, Up, Down) per expert
+    gate_params = emb_dim * num_experts
+    shared_params = 3 * emb_dim * moe_mlp_dim * shared_experts
+    routed_params = 3 * emb_dim * moe_mlp_dim * num_experts_per_tok
+    ffn_params = gate_params + shared_params + routed_params
+
+    # MLA Attention Params (Q, KV, and Out Projections)
+    qk_nope_hd = kwargs["qk_nope_head_dim"]
+    qk_rope_hd = kwargs["qk_rope_head_dim"]
+    v_hd = kwargs["v_head_dim"]
+    H_q = kwargs["base_num_query_heads"]
+    q_lora_rank = kwargs.get("q_lora_rank", 0)
+    kv_lora_rank = kwargs.get("kv_lora_rank", 0)
+
+    qk_head_dim_sum = qk_nope_hd + qk_rope_hd
+    if q_lora_rank == 0:
+      q_params = emb_dim * H_q * qk_head_dim_sum
+    else:
+      q_params = emb_dim * q_lora_rank + q_lora_rank * H_q * qk_head_dim_sum
+
+    kv_params = emb_dim * (kv_lora_rank + qk_rope_hd) + kv_lora_rank * H_q * (qk_nope_hd + v_hd)
+    proj_params = emb_dim * H_q * v_hd
+    attn_params = q_params + kv_params + proj_params
+
+    # Total MTP Active Params
+    mtp_active_params = (attn_params + ffn_params) * cfg.mtp_num_layers
+    mtp_weight_tflops = 6 * B * S * mtp_active_params / 1e12
+
+    # 3. MTP Attention FLOPs
+    # Causal attention flops for MLA (3 for fwd + bwd pass)
+    mtp_attention_tflops = 3 * cfg.mtp_num_layers * B * (S**2) * H_q * (qk_nope_hd + qk_rope_hd + v_hd) / 1e12
+
+    # Final Expected TFLOPs
+    golden_total_tflops = golden_base_tflops + mtp_weight_tflops + mtp_attention_tflops
+
+    # Run Calculation
+    calculated_tflops, _, _ = calculate_tflops_training_per_device(cfg)
+
+    self.assertFlopsAlmostEqual(calculated_tflops, golden_total_tflops)
 
   # ========== Parameterized Tests for Multiple Standard Models ==========
 

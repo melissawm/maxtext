@@ -27,7 +27,7 @@ from flax import nnx
 
 from maxtext.common.common_types import (
     DecoderBlockType,
-    BATCH,
+    BATCH_ATTN,
     HEAD,
     PREFILL_LENGTH,
     D_KV,
@@ -141,8 +141,8 @@ def attention_as_linen(
     query_axis_names: AxisNames = (KV_BATCH, ATTN_LENGTH, KV_HEAD, KV_HEAD_DIM),
     key_axis_names: AxisNames = (KV_BATCH, ATTN_LENGTH, KV_HEAD, KV_HEAD_DIM),
     value_axis_names: AxisNames = (KV_BATCH, ATTN_LENGTH, KV_HEAD, KV_HEAD_DIM),
-    input_axis_names: AxisNames = (BATCH, ATTN_LENGTH, ATTN_EMBED),
-    out_axis_names: AxisNames = (BATCH, ATTN_LENGTH, HEAD, D_KV),
+    input_axis_names: AxisNames = (BATCH_ATTN, ATTN_LENGTH, ATTN_EMBED),
+    out_axis_names: AxisNames = (BATCH_ATTN, ATTN_LENGTH, HEAD, D_KV),
     prefill_input_axis_names: AxisNames = (PREFILL_KV_BATCH, PREFILL_LENGTH, ATTN_EMBED),
     decode_input_axis_names: AxisNames = (DECODE_BATCH, DECODE_LENGTH, ATTN_EMBED),
     prefill_out_axis_names: AxisNames = (PREFILL_KV_BATCH, PREFILL_LENGTH, HEAD, D_KV),
@@ -298,8 +298,8 @@ class Attention(nnx.Module):
       query_axis_names: AxisNames = (KV_BATCH, ATTN_LENGTH, KV_HEAD, KV_HEAD_DIM),
       key_axis_names: AxisNames = (KV_BATCH, ATTN_LENGTH, KV_HEAD, KV_HEAD_DIM),
       value_axis_names: AxisNames = (KV_BATCH, ATTN_LENGTH, KV_HEAD, KV_HEAD_DIM),
-      input_axis_names: AxisNames = (BATCH, ATTN_LENGTH, ATTN_EMBED),
-      out_axis_names: AxisNames = (BATCH, ATTN_LENGTH, HEAD, D_KV),
+      input_axis_names: AxisNames = (BATCH_ATTN, ATTN_LENGTH, ATTN_EMBED),
+      out_axis_names: AxisNames = (BATCH_ATTN, ATTN_LENGTH, HEAD, D_KV),
       prefill_input_axis_names: AxisNames = (PREFILL_KV_BATCH, PREFILL_LENGTH, ATTN_EMBED),
       decode_input_axis_names: AxisNames = (DECODE_BATCH, DECODE_LENGTH, ATTN_EMBED),
       prefill_out_axis_names: AxisNames = (PREFILL_KV_BATCH, PREFILL_LENGTH, HEAD, D_KV),
@@ -981,7 +981,7 @@ class Attention(nnx.Module):
       value: Array,
       rpa_kv_cache: list[Array] | None = None,
       rpa_metadata: dict[str, Any] | None = None,
-  ) -> tuple[list[Array], Array]:
+  ) -> tuple[Array, list[Array]]:
     """Forward function for vLLM serving with RPA attention."""
     try:
       # pylint: disable=import-outside-toplevel
@@ -992,12 +992,13 @@ class Attention(nnx.Module):
           "vLLM RPA attention ops require the vllm-tpu package. Please install it with `pip install vllm-tpu`."
       ) from e
 
-    if rpa_kv_cache is None or rpa_metadata is None:
-      raise ValueError("kv_cache and attention_metadata must be provided when using vLLM.")
-
     query = query.reshape(-1, query.shape[2], query.shape[3])
     key = key.reshape(-1, key.shape[2], key.shape[3])
     value = value.reshape(-1, value.shape[2], value.shape[3])
+
+    if rpa_kv_cache is None or rpa_metadata is None:
+      # Return dummy values for dry runs (e.g. during model initialization or JIT tracing)
+      return query, []
 
     if self.config.sliding_window_size > 0:
       attention_chunk_size = self.config.sliding_window_size
@@ -1026,7 +1027,7 @@ class Attention(nnx.Module):
         k_scale,
         v_scale,
     )
-    return kv_cache, output
+    return output, kv_cache
 
   def __call__(
       self,
@@ -1169,7 +1170,7 @@ class Attention(nnx.Module):
 
     elif self.config.attention == "vllm_rpa" and model_mode != MODEL_MODE_TRAIN:
       batch, seq_len, num_heads, head_dim = query.shape
-      updated_kv, attn_out = self.forward_serve_vllm(
+      attn_out, updated_kv = self.forward_serve_vllm(
           query, key, value, rpa_kv_cache=kv_cache, rpa_metadata=attention_metadata
       )
       out = attn_out.reshape(batch, seq_len, num_heads, head_dim)
@@ -1184,6 +1185,7 @@ class Attention(nnx.Module):
           key,
           value,
           decoder_segment_ids,
+          inputs_positions,
           model_mode,
           cached_values,
           previous_chunk,

@@ -53,6 +53,7 @@ from maxtext.layers import quantizations
 from maxtext.models import models
 from maxtext.utils import max_logging
 from maxtext.utils import maxtext_utils
+from maxtext.utils import model_creation_utils
 import numpy as np
 import torch
 import torch.nn.functional as F
@@ -447,7 +448,10 @@ def main(config, test_args):  # pylint: disable=W0621
     else:
       maxtext_model = models.transformer_as_linen(config, mesh, quant=quant, model_mode=MODEL_MODE_TRAIN)
       init_state_fn = functools.partial(maxtext_utils.init_initial_state, maxtext_model, None, config, False, rng1)
-    maxtext_state, _ = maxtext_utils.setup_decode_state(config, mesh, None, init_state_fn)
+    if test_args.ckpt_type == "linen":
+      maxtext_state, _ = maxtext_utils.setup_decode_state(config, mesh, None, init_state_fn)
+    else:
+      maxtext_state, _ = model_creation_utils.setup_decode_state_from_nnx(maxtext_model, config, rng1, mesh)
 
     prompts = ["I love to", "Today is a", "What is the"]
     all_data_to_save = []
@@ -553,6 +557,14 @@ if __name__ == "__main__":
       required=False,
       default=False,
       help="Skip the first token during comparison to ignore BOS/init mismatches.",
+  )
+  parser.add_argument(
+      "--ckpt_type",
+      type=str,
+      required=False,
+      default="linen",
+      choices=["linen", "nnx"],
+      help="Checkpoint format to load: 'linen' (default) or 'nnx'.",
   )
 
   # Parse known args returns the namespace AND the list of remaining arguments

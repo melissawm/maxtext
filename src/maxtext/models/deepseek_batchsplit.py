@@ -33,9 +33,10 @@ from typing import Sequence
 
 import jax
 import jax.numpy as jnp
-from maxtext.kernels import attention, sort_activations
-
 from jax.experimental.pallas.ops.tpu.splash_attention import splash_attention_mask
+
+from maxtext.kernels import attention, sort_activations, megablox
+from maxtext.layers import quantizations
 
 
 def scheduling_group(group_id) -> contextlib.AbstractContextManager[None]:
@@ -714,7 +715,7 @@ def scan_batch_split_layers(
           pairwise_swap_and_negate_mask=yarn_mask,
       )
       # Offload to host memory.
-      for residual_name in ("mlpwi_0", "mlpwi_1"):
+      for residual_name in ("mlpwi_0", "mlpwi_1", "attn_out", "layer_inputs"):
         r = res.pop(residual_name)
         r = jax.tree.map(lambda x: jax.device_put(x, jax.typeof(x).sharding.with_memory_kind("pinned_host")), r)
         res[residual_name] = r
@@ -736,7 +737,7 @@ def scan_batch_split_layers(
         pairwise_swap_and_negate_mask=yarn_mask,
     )
     # Offload first layer residuals to host memory.
-    for residual_name in ("mlpwi_0", "mlpwi_1"):
+    for residual_name in ("mlpwi_0", "mlpwi_1", "attn_out", "layer_inputs"):
       r = first_res.pop(residual_name)
       r = jax.tree.map(lambda x: jax.device_put(x, jax.typeof(x).sharding.with_memory_kind("pinned_host")), r)
       first_res[residual_name] = r
@@ -829,7 +830,7 @@ def scan_batch_split_layers(
       next_next_ws_grad = all_reduce_ws_grad_dcn(next_next_ws_grad, mesh)
       all_layer_ws_grad = insert_layer_ws_grad(all_layer_ws_grad, next_next_ws_grad, layer_idx + 2, cfg.param_scan_axis)
       # Get residuals from host.
-      for residual_name in ("mlpwi_0", "mlpwi_1"):
+      for residual_name in ("mlpwi_0", "mlpwi_1", "attn_out", "layer_inputs"):
         r = res.pop(residual_name)
         r = jax.tree.map(lambda x: jax.device_put(x, jax.typeof(x).sharding.with_memory_kind("device")), r)
         res[residual_name] = r
@@ -890,7 +891,7 @@ def scan_batch_split_layers(
       prev_prev_ws = gather_weights(extract_layer_weights(all_weights, num_layers - 3, cfg.param_scan_axis), mesh)
       ws_grad = reduce_scatter_ws_grad(ws_grad, mesh)
     # Get residuals from host.
-    for residual_name in ("mlpwi_0", "mlpwi_1"):
+    for residual_name in ("mlpwi_0", "mlpwi_1", "attn_out", "layer_inputs"):
       r = last_last_res.pop(residual_name)
       r = jax.tree.map(lambda x: jax.device_put(x, jax.typeof(x).sharding.with_memory_kind("device")), r)
       last_last_res[residual_name] = r
@@ -931,7 +932,7 @@ def scan_batch_split_layers(
     third_ws_grad = all_reduce_ws_grad_dcn(third_ws_grad, mesh)
     all_layer_ws_grad = insert_layer_ws_grad(all_layer_ws_grad, third_ws_grad, 2, cfg.param_scan_axis)
     # Get residuals from host.
-    for residual_name in ("mlpwi_0", "mlpwi_1"):
+    for residual_name in ("mlpwi_0", "mlpwi_1", "attn_out", "layer_inputs"):
       r = first_res.pop(residual_name)
       r = jax.tree.map(lambda x: jax.device_put(x, jax.typeof(x).sharding.with_memory_kind("device")), r)
       first_res[residual_name] = r
@@ -991,6 +992,7 @@ def batch_split_schedule(
       norm_mla_ws,
       positions,
       mesh=mesh,
+      config=cfg,
       splash_kernel=splash_kernel,
       normalization_layer_epsilon=cfg.normalization_layer_epsilon,
       kv_lora_rank=cfg.kv_lora_rank,
@@ -1012,6 +1014,9 @@ def batch_split_schedule(
       num_experts=cfg.num_experts,
       num_experts_per_tok=cfg.num_experts_per_tok,
       routed_scaling_factor=cfg.routed_scaling_factor,
+      n_routing_groups=cfg.n_routing_groups,
+      topk_routing_group=cfg.topk_routing_group,
+      top_k_in_group=2,
       expert_axis_name="expert",
       use_gather_mosaic_kernel=cfg.use_gather_mosaic_kernel,
       config=cfg,
@@ -1041,6 +1046,7 @@ def batch_split_schedule_bwd(
       norm_mla_ws,
       positions,
       mesh=mesh,
+      config=cfg,
       splash_kernel=splash_kernel,
       normalization_layer_epsilon=cfg.normalization_layer_epsilon,
       kv_lora_rank=cfg.kv_lora_rank,
@@ -1064,6 +1070,9 @@ def batch_split_schedule_bwd(
       num_experts=cfg.num_experts,
       num_experts_per_tok=cfg.num_experts_per_tok,
       routed_scaling_factor=cfg.routed_scaling_factor,
+      n_routing_groups=cfg.n_routing_groups,
+      topk_routing_group=cfg.topk_routing_group,
+      top_k_in_group=2,
       expert_axis_name="expert",
       use_gather_mosaic_kernel=cfg.use_gather_mosaic_kernel,
       config=cfg,
@@ -1099,6 +1108,7 @@ def mla_with_norms(
     yarn_freqs,
     *,
     mesh,
+    config,
     splash_kernel,
     normalization_layer_epsilon,
     kv_lora_rank,
@@ -1141,6 +1151,7 @@ def mla_with_norms(
         pairwise_swap_and_negate_mask=pairwise_swap_and_negate_mask,
         dtype=dtype,
         mscale=mscale,
+        config=config,
         splash_kernel=splash_kernel,
         mesh=mesh,
         activation_pspec=activation_pspec,
@@ -1159,6 +1170,7 @@ def mla_with_norms_remat(
     yarn_freqs,
     *,
     mesh,
+    config,
     splash_kernel,
     normalization_layer_epsilon,
     kv_lora_rank,
@@ -1205,6 +1217,7 @@ def mla_with_norms_remat(
         pairwise_swap_and_negate_mask=pairwise_swap_and_negate_mask,
         dtype=dtype,
         mscale=mscale,
+        config=config,
         splash_kernel=splash_kernel,
         mesh=mesh,
         activation_pspec=activation_pspec,
@@ -1257,6 +1270,7 @@ def mla(
     original_max_position_embeddings,
     rope_factor,
     mscale,
+    config,
     splash_kernel,
     pairwise_swap_and_negate_mask,
     dtype,
@@ -1288,6 +1302,7 @@ def mla(
       dtype=dtype,
       qk_nope_head_dim=qk_nope_head_dim,
       mscale=mscale,
+      config=config,
       mesh=mesh,
       activation_pspec=activation_pspec,
   )
@@ -1303,6 +1318,7 @@ def mla(
       dtype=dtype,
       qk_nope_head_dim=qk_nope_head_dim,
       num_query_heads=num_query_heads,
+      config=config,
       mesh=mesh,
       activation_pspec=activation_pspec,
   )
@@ -1333,6 +1349,7 @@ def mla_remat(
     original_max_position_embeddings,
     rope_factor,
     mscale,
+    config,
     splash_kernel,
     pairwise_swap_and_negate_mask,
     dtype,
@@ -1362,6 +1379,7 @@ def mla_remat(
           dtype=dtype,
           qk_nope_head_dim=qk_nope_head_dim,
           mscale=mscale,
+          config=config,
           mesh=mesh,
           activation_pspec=activation_pspec,
       ),
@@ -1380,6 +1398,7 @@ def mla_remat(
           dtype=dtype,
           qk_nope_head_dim=qk_nope_head_dim,
           num_query_heads=num_query_heads,
+          config=config,
           mesh=mesh,
           activation_pspec=activation_pspec,
       ),
@@ -1422,7 +1441,6 @@ def mla_bwd(
   """Performs the backward pass for the mla function."""
   query_projection_bwd, kv_projection_bwd, attn_op_bwd, out_projection_bwd = bwds
   attn_out_grad, out_weights_grad = out_projection_bwd(out_grad)
-  # query_grad, key_grad, value_grad, _ = attention_op_bwd(attn_out_grad)
   query_grad, key_grad, value_grad = attn_op_bwd(attn_out_grad)
   inputs_grad_from_kv, _, wkv_a_weights_grad, wkv_b_weights_grad, kv_norm_scale_weights_grad = kv_projection_bwd(
       (key_grad, value_grad)
@@ -1457,6 +1475,7 @@ def query_projection(
     pairwise_swap_and_negate_mask,
     dtype,
     mscale,
+    config,
     mesh,
     activation_pspec,
 ):
@@ -1504,6 +1523,7 @@ def kv_projection(
     dtype,
     qk_nope_head_dim,
     num_query_heads,
+    config,
     mesh,
     activation_pspec,
 ):
@@ -1642,8 +1662,12 @@ def shared_expert_and_route(
     num_experts,
     num_experts_per_tok,
     routed_scaling_factor,
+    n_routing_groups,
+    topk_routing_group,
+    top_k_in_group,
     expert_axis_name,
     use_gather_mosaic_kernel,
+    config,
     normalization_layer_epsilon,
     dtype,
 ):
@@ -1664,6 +1688,9 @@ def shared_expert_and_route(
       num_experts=num_experts,
       num_experts_per_tok=num_experts_per_tok,
       routed_scaling_factor=routed_scaling_factor,
+      n_routing_groups=n_routing_groups,
+      topk_routing_group=topk_routing_group,
+      top_k_in_group=top_k_in_group,
   )
   x, selected_experts, weights, group_sizes = route(
       inputs,
@@ -1680,13 +1707,54 @@ def shared_expert(inputs, shared_w0, shared_w1, shared_wo):
   return dot(jax.nn.silu(dot(inputs, shared_w0)) * dot(inputs, shared_w1), shared_wo)
 
 
+# NOTE: Consider deduplicating this logic which is also in `moe.py`.
+def expert_group_mask(gate_logits, *, n_routing_groups, topk_routing_group, top_k_in_group):
+  """Computes expert group mask for node-limited routing."""
+  num_experts = gate_logits.shape[-1]
+  # Find top groups based on each group's top-2 expert scores, where
+  # `scores_grouped.shape =
+  # (batch * seq, n_routing_groups, experts_per_group)`.
+  scores_grouped = jnp.reshape(
+      gate_logits,
+      gate_logits.shape[:-1] + (n_routing_groups, -1),
+  )
+  top2_in_group_vals, _ = jax.lax.top_k(scores_grouped, k=top_k_in_group)
+  group_scores = jnp.sum(jnp.astype(top2_in_group_vals, jnp.float32), axis=-1)
+  _, group_idx = jax.lax.top_k(group_scores, k=topk_routing_group)
+
+  # Mask selected groups so that only those experts are considered.
+  group_mask = jax.nn.one_hot(group_idx, num_classes=n_routing_groups, dtype=jnp.float32)
+  group_mask = jnp.sum(group_mask, axis=-2)
+
+  # Apply masks and get top-k indices.
+  score_mask_expanded = jnp.broadcast_to(
+      group_mask[..., None],
+      group_mask.shape + (num_experts // n_routing_groups,),
+  )
+  return jnp.reshape(
+      score_mask_expanded,
+      score_mask_expanded.shape[:-2] + (num_experts,),
+  )
+
+
 def expert_indices_and_weights(
     gate_logits: jax.Array,
     pre_bias_logits: jax.Array,
     num_experts_per_tok: int,
     routed_scaling_factor: float,
+    n_routing_groups: int,
+    topk_routing_group: int,
+    top_k_in_group: int,
 ) -> tuple[jax.Array, jax.Array]:
   """Computes expert indices for each token and their corresponding weights."""
+  expert_mask = expert_group_mask(
+      gate_logits,
+      n_routing_groups=n_routing_groups,
+      topk_routing_group=topk_routing_group,
+      top_k_in_group=top_k_in_group,
+  )
+  gate_logits = jnp.where(expert_mask > 0, gate_logits, -jnp.inf)
+
   _, indices = jax.lax.top_k(
       gate_logits,
       k=num_experts_per_tok,
@@ -1701,9 +1769,12 @@ def expert_selection(
     routing_kernel,
     routing_bias,
     *,
-    num_experts,
-    num_experts_per_tok,
-    routed_scaling_factor,
+    num_experts: int,
+    num_experts_per_tok: int,
+    routed_scaling_factor: float,
+    n_routing_groups: int,
+    topk_routing_group: int,
+    top_k_in_group: int,
 ):
   """Selects experts for each token and calculates group sizes for each expert."""
   pre_bias_logits = jax.nn.sigmoid(dot(x, routing_kernel))
@@ -1714,6 +1785,9 @@ def expert_selection(
       pre_bias_logits,
       num_experts_per_tok=num_experts_per_tok,
       routed_scaling_factor=routed_scaling_factor,
+      n_routing_groups=n_routing_groups,
+      topk_routing_group=topk_routing_group,
+      top_k_in_group=top_k_in_group,
   )
   group_sizes = jnp.bincount(jnp.ravel(selected_experts), length=num_experts)
   return selected_experts, weights, group_sizes
@@ -1820,35 +1894,83 @@ route_impl.defvjp(route_impl_fwd, route_impl_bwd)
 unroute_impl.defvjp(unroute_impl_fwd, unroute_impl_bwd)
 
 
-def compute_gating(x, w0, w1, group_sizes, *, dtype):
+def gmm(
+    inputs,
+    kernel,
+    group_sizes,
+    preferred_element_type,
+    config,
+):
+  """Performs a Grouped Matrix Multiplication (GMM).
+
+  This function can use either a quantized Megablox kernel or a standard
+  jax.lax.ragged_dot for the GMM operation, based on the configuration.
+
+  Args:
+    inputs: The left-hand side operand of the GMM.
+    kernel: The right-hand side operand (kernel) of the GMM.
+    group_sizes: An array indicating the size of each group.
+    preferred_element_type: The preferred element type for the computation.
+    config: Configuration object containing model settings, including
+      `use_qwix_quantization` and `merge_gating_gmm`.
+
+  Returns:
+    The result of the grouped matrix multiplication.
+  """
+  if config.quantization:
+    output = megablox.gmm(
+        lhs=inputs,
+        rhs=kernel,
+        group_sizes=group_sizes,
+        preferred_element_type=preferred_element_type,
+        use_qwix_quantization=True,
+        use_tokamax_backend=True,
+        qwix_rule=quantizations.get_fp8_full_qwix_rule_w_sparsity(config)[0],
+        use_manual_quantization=True,
+    )
+  else:
+    output = jax.lax.ragged_dot(
+        lhs=inputs,
+        rhs=kernel,
+        group_sizes=group_sizes,
+        precision=jax.lax.Precision.DEFAULT,
+        preferred_element_type=preferred_element_type,
+    )
+  return output
+
+
+def compute_gating(x, w0, w1, group_sizes, *, dtype, config):
   """Computes the gating GMMs."""
-  layer_w0 = jax.lax.ragged_dot(
-      x,
-      w0,
+  gmm_fn = functools.partial(
+      gmm,
       group_sizes=group_sizes,
-      precision=jax.lax.Precision.DEFAULT,
       preferred_element_type=dtype,
+      config=config,
   )
-  layer_w1 = jax.lax.ragged_dot(
-      x,
-      w1,
-      group_sizes=group_sizes,
-      precision=jax.lax.Precision.DEFAULT,
-      preferred_element_type=dtype,
-  )
+  if config.merge_gating_gmm:
+    w01 = jnp.concatenate([w0, w1], axis=-1)
+    layer_w01 = gmm_fn(x, w01)
+    layer_w0, layer_w1 = jnp.split(layer_w01, 2, axis=-1)
+  else:
+    layer_w0 = gmm_fn(x, w0)
+    layer_w1 = gmm_fn(x, w1)
+
   return layer_w0, layer_w1
 
 
-def compute_linear(layer_w0, layer_w1, wo, group_sizes, weights, *, dtype):
+def compute_linear(layer_w0, layer_w1, wo, group_sizes, weights, *, dtype, config):
   """Combines the outputs of the gating GMMs and computes the final GMM."""
   intermediate_layer = jax.nn.silu(layer_w0) * layer_w1
   intermediate_layer *= weights[:, None]
-  layer_wo = jax.lax.ragged_dot(
+  gmm_fn = functools.partial(
+      gmm,
+      group_sizes=group_sizes,
+      preferred_element_type=dtype,
+      config=config,
+  )
+  layer_wo = gmm_fn(
       intermediate_layer,
       wo,
-      group_sizes=group_sizes,
-      precision=jax.lax.Precision.DEFAULT,
-      preferred_element_type=dtype,
   )
   return layer_wo
 
@@ -1860,10 +1982,14 @@ def route_compute_unroute(
     num_experts,
     num_experts_per_tok,
     routed_scaling_factor,
+    n_routing_groups,
+    topk_routing_group,
+    top_k_in_group,
     expert_axis_name,
     use_gather_mosaic_kernel,
     normalization_layer_epsilon,
     dtype,
+    config,
 ):
   """Routes, processes, and unroutes activations."""
   target_length = xs[0].shape[1]
@@ -1885,9 +2011,13 @@ def route_compute_unroute(
         gate_bias,
         num_experts=num_experts,
         num_experts_per_tok=num_experts_per_tok,
+        n_routing_groups=n_routing_groups,
+        topk_routing_group=topk_routing_group,
+        top_k_in_group=top_k_in_group,
         routed_scaling_factor=routed_scaling_factor,
         expert_axis_name=expert_axis_name,
         use_gather_mosaic_kernel=use_gather_mosaic_kernel,
+        config=config,
         normalization_layer_epsilon=normalization_layer_epsilon,
         dtype=dtype,
     )
@@ -1907,6 +2037,7 @@ def route_compute_unroute(
         routed_w1,
         group_sizes,
         dtype=dtype,
+        config=config,
     )
     return layer_w0, layer_w1
 
@@ -1919,6 +2050,7 @@ def route_compute_unroute(
         group_sizes,
         weights,
         dtype=dtype,
+        config=config,
     )
     return x
 
@@ -2091,10 +2223,14 @@ def route_compute_unroute_bwd(
     num_experts,
     num_experts_per_tok,
     routed_scaling_factor,
+    n_routing_groups,
+    topk_routing_group,
+    top_k_in_group,
     expert_axis_name,
     use_gather_mosaic_kernel,
     normalization_layer_epsilon,
     dtype,
+    config,
 ):
   """Performs the backward pass for route_compute_unroute."""
   xs = residuals.pop("mla_out")
@@ -2112,8 +2248,12 @@ def route_compute_unroute_bwd(
             num_experts=num_experts,
             num_experts_per_tok=num_experts_per_tok,
             routed_scaling_factor=routed_scaling_factor,
+            n_routing_groups=n_routing_groups,
+            topk_routing_group=topk_routing_group,
+            top_k_in_group=top_k_in_group,
             expert_axis_name=expert_axis_name,
             use_gather_mosaic_kernel=use_gather_mosaic_kernel,
+            config=config,
             normalization_layer_epsilon=normalization_layer_epsilon,
             dtype=dtype,
         ),
@@ -2176,6 +2316,7 @@ def route_compute_unroute_bwd(
         functools.partial(
             compute_gating,
             dtype=dtype,
+            config=config,
         ),
         x,
         routed_w0,
@@ -2190,6 +2331,7 @@ def route_compute_unroute_bwd(
         functools.partial(
             compute_linear,
             dtype=dtype,
+            config=config,
         ),
         layer_w0,
         layer_w1,
@@ -2249,6 +2391,9 @@ def moe(
     num_experts,
     num_experts_per_tok,
     routed_scaling_factor,
+    n_routing_groups,
+    topk_routing_group,
+    top_k_in_group,
     expert_axis_name,
     use_gather_mosaic_kernel,
     config,
@@ -2263,10 +2408,14 @@ def moe(
           num_experts=num_experts,
           num_experts_per_tok=num_experts_per_tok,
           routed_scaling_factor=routed_scaling_factor,
+          n_routing_groups=n_routing_groups,
+          topk_routing_group=topk_routing_group,
+          top_k_in_group=top_k_in_group,
           expert_axis_name=expert_axis_name,
           use_gather_mosaic_kernel=use_gather_mosaic_kernel,
           normalization_layer_epsilon=normalization_layer_epsilon,
           dtype=dtype,
+          config=config,
       ),
       mesh=mesh,
       in_specs=(
@@ -2317,6 +2466,9 @@ def moe_bwd(
     num_experts,
     num_experts_per_tok,
     routed_scaling_factor,
+    n_routing_groups,
+    topk_routing_group,
+    top_k_in_group,
     expert_axis_name,
     use_gather_mosaic_kernel,
     config,
@@ -2331,10 +2483,14 @@ def moe_bwd(
           num_experts=num_experts,
           num_experts_per_tok=num_experts_per_tok,
           routed_scaling_factor=routed_scaling_factor,
+          n_routing_groups=n_routing_groups,
+          topk_routing_group=topk_routing_group,
+          top_k_in_group=top_k_in_group,
           expert_axis_name=expert_axis_name,
           use_gather_mosaic_kernel=use_gather_mosaic_kernel,
           normalization_layer_epsilon=normalization_layer_epsilon,
           dtype=dtype,
+          config=config,
       ),
       mesh=mesh,
       in_specs=(

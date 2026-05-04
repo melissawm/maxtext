@@ -57,7 +57,7 @@ pip install uv
 # curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # Create virtual environment
-export VENV_NAME=<your virtual env name> # e.g., docker_venv
+export VENV_NAME=<VENV_NAME> # e.g., docker_venv
 uv venv --python 3.12 --seed ${VENV_NAME?}
 source ${VENV_NAME?}/bin/activate
 
@@ -78,9 +78,27 @@ If you plan to contribute to MaxText or need the latest unreleased features, ins
 # Clone the repository
 git clone https://github.com/AI-Hypercomputer/maxtext.git
 cd maxtext
+```
 
+:::\{only} is_not_latest
+
+By default, cloning the repository provides the latest version (**HEAD**).
+If you wish to use the latest features, please follow the [latest guide](https://maxtext.readthedocs.io/en/latest/install_maxtext.html).
+If you want to ensure compatibility with the specific version of the documentation
+you are currently viewing, you must checkout the corresponding tag for that version
+before proceeding with the installation.
+
+```{eval-rst}
+.. parsed-literal::
+
+  git checkout |version|
+```
+
+:::
+
+```bash
 # Create virtual environment
-export VENV_NAME=<your virtual env name> # e.g., docker_venv
+export VENV_NAME=<VENV_NAME> # e.g., docker_venv
 uv venv --python 3.12 --seed ${VENV_NAME?}
 source ${VENV_NAME?}/bin/activate
 
@@ -137,7 +155,7 @@ build_maxtext_docker_image WORKFLOW=post-training
 
 ```bash
 # Make sure to set `CLOUD_IMAGE_NAME` with your desired image name.
-export CLOUD_IMAGE_NAME=<Docker Image Name>
+export CLOUD_IMAGE_NAME=<IMAGE_NAME>
 upload_maxtext_docker_image CLOUD_IMAGE_NAME=${CLOUD_IMAGE_NAME?}
 ```
 

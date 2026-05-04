@@ -55,7 +55,6 @@ if [ ${USE_MULTIMODAL} == true ]; then
         dtype=float32 \
         matmul_precision=highest \
         per_device_batch_size=1 \
-        vision_output_length=280 \
         attention=dot_product \
         prompt="${TEST_PROMPT}" \
         image_path=${TEST_IMAGE} \

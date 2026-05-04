@@ -161,6 +161,7 @@ class SFTTrainingHooks(TrainingHooks):
         "scalar": {
             "eval/total_loss": eval_loss,
             "eval/avg_loss": avg_loss,
+            "eval/avg_perplexity": jnp.exp(avg_loss),
             "eval/total_weights": self.eval_metadata["total_weights"],
         }
     }
